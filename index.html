@@ -1024,7 +1024,7 @@ function openBrand(){
     $('#bfLogoRm',md).onclick=()=>{logo='';auto='';prev()};
     f.onsubmit=async e=>{
       e.preventDefault();const b=val();
-      await DB.setCfg('marca',b);fechouSalvando=true;applyBrand(b);close();
+      await DB.setCfg('marca',b);await DB.setCfg('marcaAt',agoraISO());fechouSalvando=true;applyBrand(b);close();Nuvem.marcarWs();
       renderMain();Player.ui();Telao.sendBrand();pushInboxBrand();
       const evs=state.eventos.filter(x=>x.gistId);
       if(evs.length&&state.token){for(const ev of evs)await pushMeta(ev,true);toast('Marca salva e aplicada aos links dos eventos.','ok')}
@@ -1521,9 +1521,24 @@ const cueOf=m=>isCer()?(momentoDe(m)?.nome||m.momentoNome||'Sem momento'):m.titu
 const descOf=m=>isCer()?[m.titulo,m.artista].filter(Boolean).join(' — '):`${m.turma} · ${m.professora}`;
 
 async function loadMusicas(){state.musicas=state.evento?await DB.byIndex('musicas','eventoId',state.evento.id):[]}
-async function saveEvento(ev){await DB.put('eventos',ev);const i=state.eventos.findIndex(e=>e.id===ev.id);if(i>=0)state.eventos[i]=ev;else state.eventos.push(ev)}
-async function saveMusica(m){await DB.put('musicas',m);const i=state.musicas.findIndex(x=>x.id===m.id);if(i>=0)state.musicas[i]=m;else state.musicas.push(m)}
-async function renumber(list=sorted()){list.forEach((m,i)=>m.ordem=i+1);await DB.putMany('musicas',list)}
+/* salvar marca a alteração com data/hora e agenda o envio para a nuvem (outros aparelhos) */
+async function saveEvento(ev,{remote=false}={}){
+  const h=JSON.stringify(evSyncObj(ev));
+  if(remote)ev._h=h;else if(h!==ev._h){ev._h=h;ev.atualizadoEm=agoraISO();if(ev.gistId){Nuvem.marcar(ev.id);Nuvem.marcarWs()}}
+  await DB.put('eventos',ev);const i=state.eventos.findIndex(e=>e.id===ev.id);if(i>=0)state.eventos[i]=ev;else state.eventos.push(ev);
+}
+async function saveMusica(m,{remote=false}={}){
+  if(m._tocada!==undefined){if(m._tocada&&m.status==='pronta')m.status='tocada';delete m._tocada}
+  const h=JSON.stringify(mSyncObj(m));
+  if(remote)m._h=h;else if(h!==m._h){m._h=h;m.atualizadoEm=agoraISO();Nuvem.marcar(m.eventoId)}
+  await DB.put('musicas',m);
+  if(state.evento?.id===m.eventoId){const i=state.musicas.findIndex(x=>x.id===m.id);if(i>=0)state.musicas[i]=m;else state.musicas.push(m)}
+}
+async function renumber(list=sorted()){
+  let mud=false;const ag=agoraISO();
+  list.forEach((m,i)=>{if(m.ordem!==i+1){m.ordem=i+1;m._h=JSON.stringify(mSyncObj(m));m.atualizadoEm=ag;mud=true}});
+  await DB.putMany('musicas',list);if(mud&&state.evento)Nuvem.marcar(state.evento.id);
+}
 async function removeLocal(m){
   await DB.del('musicas',m.id);await DB.del('audios',m.id);
   for(const p of PARTS)await DB.del('audios',partKey(m.id,p));
@@ -1620,9 +1635,11 @@ async function processGist(ev,gist){
     };
     for(const[p,bl]of Object.entries(reuseParts))await DB.put('audios',bl,partKey(m.id,p));
     if(reuse){await DB.put('audios',reuse,m.id);const inf=await getMediaInfo(reuse);m.duracao=inf.dur;m.video=inf.video;if(!(await faltamPartes(m)))m.status='pronta'}
-    await saveMusica(m);known.add(m.id);novos.push(m);
+    await saveMusica(m,{remote:true});known.add(m.id);novos.push(m);
   }
   if(evChanged){await saveEvento(ev);pushMeta(ev)}
+  const fe=gist.files?.['estado.json'];
+  if(fe){try{await mergeEstado(ev,JSON.parse(await readGistFile(fe)))}catch{}}
   if(novos.length){
     await renumber();
     novos.forEach(m=>state.novos.add(m.id));
@@ -1960,6 +1977,7 @@ const Player={
   async markPlayed(m){
     const x=state.musicas.find(y=>y.id===m.id);
     if(x&&x.status==='pronta'){x.status='tocada';x.tocadaEm=new Date().toISOString();await saveMusica(x);renderList()}
+    const ev=state.evento;if(ev){ev.ultimaExecucao=agoraISO();await saveEvento(ev)}
   },
   nextOf(m){const l=sorted();const i=l.findIndex(x=>x.id===m?.id);return l.slice(i+1).find(hasAudio)||null},
   prevOf(m){const l=sorted();const i=l.findIndex(x=>x.id===m?.id);return l.slice(0,Math.max(0,i)).reverse().find(hasAudio)||null},
@@ -2145,6 +2163,7 @@ function renderMain(){
         <h1>${esc(ev.nome)}</h1>
         <p class="muted">${info}</p>
         <span class="tipo-tag">${icon(t.icon)}${t.nome}${ev.homenageados&&cer?' · '+esc(ev.homenageados):''}</span>
+        ${(()=>{const lim=limiteEvento(ev);return`<div class="cli-info" style="margin-top:10px">${ev.manterSempre?`<span>🛡️ Mantido — não será apagado automaticamente</span>`:lim?`<span>🗑️ Apagado automaticamente em <b>${lim.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</b></span>`:`<span>Sem data — não será apagado automaticamente</span>`}<a href="#" data-a="manter">${ev.manterSempre?'Permitir exclusão automática':'Manter este evento'}</a></div>`})()}
         ${ev.cliente?.nome?`<div class="cli-info"><span>${ev.origemCliente?'Cadastrado por':'Cliente'}: <b>${esc(ev.cliente.nome)}</b></span>${ev.cliente.whatsapp?`<a href="${esc(waLink(ev.cliente.whatsapp))}" target="_blank" rel="noopener">${esc(ev.cliente.whatsapp)}</a>`:''}${ev.cliente.email?`<a href="mailto:${esc(ev.cliente.email)}">${esc(ev.cliente.email)}</a>`:''}</div>`:''}
         ${!ev.gistId?`<div class="note warn" style="margin-top:14px">${icon('alert')}<div>Este evento ainda não recebe envios por link. ${state.token?'Ative abaixo.':'Configure o token do GitHub primeiro.'}</div></div>`:''}
         <div class="ev-actions">
@@ -2153,6 +2172,7 @@ function renderMain(){
           ${cer?`<button class="btn" data-a="cron">${icon('list')}Editar cronograma</button>`:''}
           <button class="btn" data-a="add">${icon('plus')}Adicionar música manualmente</button>
           <div class="row">
+            <button class="btn ghost sm" data-a="bkEv" title="Exportar backup deste evento">${icon('download')}Backup</button>
             <button class="btn ghost sm" data-a="editEv">${icon('edit')}Editar</button>
             <button class="btn ghost sm danger" data-a="delEv">${icon('trash')}Excluir</button>
           </div>
@@ -2171,7 +2191,11 @@ function renderMain(){
   </div>`;
   main.onclick=e=>{
     const b=e.target.closest('[data-a]');if(!b||!main.contains(b))return;
-    ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,cron:openCronograma,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent})[b.dataset.a]?.();
+    if(b.tagName==='A')e.preventDefault();
+    ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,cron:openCronograma,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent,
+      bkEv:()=>openBackupEvento(),
+      manter:async()=>{const ev=state.evento;ev.manterSempre=!ev.manterSempre;await saveEvento(ev);renderMain();Player.ui();toast(ev.manterSempre?'Este evento não será apagado automaticamente.':'Exclusão automática reativada para este evento.','ok')}
+    })[b.dataset.a]?.();
   };
   $('#q').oninput=e=>{state.busca=e.target.value;renderList()};
   $('#filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;state.filtro=b.dataset.f;renderList()};
@@ -2532,15 +2556,18 @@ function openSongForm(m=null,momentoId=null){
           await DB.put('audios',blob,x.id);
           const inf=await getMediaInfo(blob);
           x.mime=blob.type;x.nomeArquivo=af.file.name;x.tamanho=af.file.size;x.duracao=inf.dur;x.video=inf.video;
+          x.audioGistId=null;x.audioArquivo=null;x.soLocal=false;
           if(x.status!=='tocada')x.status='pronta';x.erro='';
         }
         if(useMv&&x.video!==false){
-          x.montagem=mv.values();const fs=mv.files();
+          const antiga=x.montagem;x.montagem=mv.values();const fs=mv.files();
+          if(x.montagem)for(const p of PARTS){if(x.montagem[p]&&mv.kept(p)&&antiga?.[p]?.midia)x.montagem[p].midia=antiga[p].midia}
           for(const p of PARTS){if(fs[p])await DB.put('audios',new Blob([fs[p]],{type:fs[p].type||mimeOf(fs[p])}),partKey(x.id,p));else if(!mv.kept(p))await DB.del('audios',partKey(x.id,p))}
         }else if(af.file&&!x.video){x.montagem=null;for(const p of PARTS)await DB.del('audios',partKey(x.id,p))}
         await saveMusica(x);
         if(Player.cur?.id===x.id){if(Player.playing)Player.cur=x;else await Player.load(x,false)}
         close();renderList();Player.ui();toast(isNew?'Música adicionada.':'Alterações salvas.','ok');
+        if(ev.gistId&&state.token)subirManual(x);
       }catch(x){fail(x.message);btn.disabled=false}
     };
   }});
@@ -2639,26 +2666,313 @@ async function criarGistEvento(ev){
 }
 async function ativarEnvios(){
   const ev=state.evento;
-  try{ev.gistId=await criarGistEvento(ev);await saveEvento(ev);renderMain();Sync.start();toast('Envios por link ativados!','ok');openLinks()}
+  try{ev.gistId=await criarGistEvento(ev);await saveEvento(ev);Nuvem.marcar(ev.id);Nuvem.marcarWs();
+    for(const m of state.musicas)if(m.origem==='manual'&&!m.audioGistId)subirManual(m);renderMain();Sync.start();toast('Envios por link ativados!','ok');openLinks()}
   catch(e){toast(esc(e.message),'err',6000)}
 }
 
 async function deleteEvent(){
   const ev=state.evento;
-  const r=await confirmDialog(`O evento <b>${esc(ev.nome)}</b> e todas as músicas salvas neste aparelho serão apagados.`,{title:'Excluir evento',ok:'Excluir evento',danger:true,check:ev.gistId&&state.token?{label:'Apagar também os envios no GitHub (os links deixam de funcionar)',checked:true}:null});
+  const r=await confirmDialog(`O evento <b>${esc(ev.nome)}</b> e todas as músicas salvas neste aparelho serão apagados${ev.gistId?' (também nos outros aparelhos sincronizados)':''}.`,{title:'Excluir evento',ok:'Excluir evento',danger:true,check:ev.gistId&&state.token?{label:'Apagar também os envios no GitHub (libera espaço; os links deixam de funcionar)',checked:true}:null});
   const ok=typeof r==='object'?r.ok:r;if(!ok)return;
-  Player.a.pause();Player.cur=null;
-  for(const m of state.musicas){await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p))}
-  await DB.del('eventos',ev.id);state.eventos=state.eventos.filter(e=>e.id!==ev.id);
-  if(r.checked){
-    try{
-      const g=await gh(`/gists/${ev.gistId}`);const seen=new Set();
-      for(const[n,f]of Object.entries(g.data.files||{})){if(!n.startsWith('sub_'))continue;try{const meta=JSON.parse(await readGistFile(f));for(const gid of[meta.audioGistId,...PARTS.map(p=>meta.montagem?.[p]?.midia?.audioGistId)]){if(gid&&!seen.has(gid)){seen.add(gid);await gh(`/gists/${gid}`,{method:'DELETE'}).catch(()=>{})}}}catch{}}
-      await gh(`/gists/${ev.gistId}`,{method:'DELETE'});
-    }catch(e){toast('Evento removido daqui, mas houve erro ao limpar o GitHub: '+esc(e.message),'warn',6000)}
-  }
+  await apagarEvento(ev,{nuvem:!!r.checked});
   toast('Evento excluído.','ok');
-  await selectEvent(state.eventos[0]?.id);
+}
+
+/* =========================================================
+   NUVEM: sincronização entre aparelhos, limpeza automática e backup
+   ========================================================= */
+const EV_SYNC=['nome','data','local','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
+const M_SYNC=['titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal'];
+const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};
+const evSyncObj=ev=>pick(ev,EV_SYNC);
+const mSyncObj=m=>({...pick(m,M_SYNC),tocada:m.status==='tocada'});
+const agoraISO=()=>new Date().toISOString();
+const WS_DESC='[Palco Musical] Área de trabalho (sincronização entre aparelhos)';
+
+const Nuvem={
+  dirty:new Set(),t:null,wsT:null,busy:false,wsEtag:null,wsTimer:null,ultimo:null,erro:'',
+  marcar(evId){if(!evId)return;this.dirty.add(evId);clearTimeout(this.t);this.t=setTimeout(()=>this.flush(),1800)},
+  marcarWs(){clearTimeout(this.wsT);this.wsT=setTimeout(()=>pushWorkspace().catch(e=>this.falha(e)),2500)},
+  ok(){this.ultimo=new Date();this.erro=''},
+  falha(e){this.erro=e?.message||String(e);if(state.evento?.gistId)setSync('err',this.erro+' — use o backup se precisar.')},
+  async flush(){
+    if(this.busy){clearTimeout(this.t);this.t=setTimeout(()=>this.flush(),1200);return}
+    if(!state.token||!navigator.onLine)return;
+    this.busy=true;
+    try{
+      for(const id of[...this.dirty]){
+        this.dirty.delete(id);
+        const ev=state.eventos.find(e=>e.id===id);
+        if(ev?.gistId){try{await pushEstado(ev);this.ok()}catch(e){this.dirty.add(id);this.falha(e)}}
+      }
+    }finally{this.busy=false}
+  },
+  start(){clearInterval(this.wsTimer);if(!state.token)return;pullWorkspace().catch(e=>this.falha(e));this.wsTimer=setInterval(()=>pullWorkspace().catch(()=>{}),45000)}
+};
+
+/* ---------- estado de cada evento (estado.json dentro do Gist do evento) ---------- */
+async function musicasDo(ev){return state.evento?.id===ev.id?state.musicas:await DB.byIndex('musicas','eventoId',ev.id)}
+async function pushEstado(ev){
+  const r=await gh(`/gists/${ev.gistId}`);
+  const f=r.data.files?.['estado.json'];
+  if(f){try{await mergeEstado(ev,JSON.parse(await readGistFile(f)))}catch{}}
+  const mus=await musicasDo(ev);
+  const rem=new Set(ev.removidos||[]);
+  const est={app:'palco-musical',tipo:'estado',v:1,atualizadoEm:agoraISO(),
+    ev:{...evSyncObj(ev),atualizadoEm:ev.atualizadoEm||ev.criadoEm||''},
+    musicas:Object.fromEntries(mus.filter(m=>!rem.has(m.id)).map(m=>[m.id,{...mSyncObj(m),atualizadoEm:m.atualizadoEm||m.recebidoEm||''}]))};
+  await ghRetry(`/gists/${ev.gistId}`,{method:'PATCH',body:{description:`[Palco Musical] Evento: ${ev.nome}`,files:{'estado.json':{content:JSON.stringify(est)},'evento.json':{content:metaJSON(ev)}}}});
+  if(state.evento?.id===ev.id)Sync.etag=null;
+}
+/* aplica o que outro aparelho mudou (vale o mais recente, por música e por evento) */
+async function mergeEstado(ev,est){
+  if(!est||est.tipo!=='estado')return false;
+  const atual=state.evento?.id===ev.id;
+  let mudou=false;
+  if(est.ev&&(est.ev.atualizadoEm||'')>(ev.atualizadoEm||'')){
+    const rem=new Set([...(ev.removidos||[]),...(est.ev.removidos||[])]);
+    Object.assign(ev,pick(est.ev,EV_SYNC));ev.removidos=[...rem];ev.atualizadoEm=est.ev.atualizadoEm;
+    await saveEvento(ev,{remote:true});mudou=true;
+  }else if(est.ev?.removidos?.some(id=>!(ev.removidos||[]).includes(id))){
+    ev.removidos=[...new Set([...(ev.removidos||[]),...est.ev.removidos])];await saveEvento(ev,{remote:true});
+  }
+  const rem=new Set(ev.removidos||[]);
+  let mus=await musicasDo(ev);
+  for(const m of mus.filter(x=>rem.has(x.id))){
+    if(Player.cur?.id===m.id&&Player.playing)continue;
+    if(Player.cur?.id===m.id){Player.freeParts();Player.cur=null;Player.mt=null}
+    await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p));
+    if(atual)state.musicas=state.musicas.filter(x=>x.id!==m.id);mudou=true;
+  }
+  mus=await musicasDo(ev);
+  const baixar=[];
+  for(const[id,r]of Object.entries(est.musicas||{})){
+    if(rem.has(id))continue;
+    let m=mus.find(x=>x.id===id);
+    if(!m){
+      if(!r.audioGistId||r.soLocal)continue;
+      m={id,eventoId:ev.id,...pick(r,M_SYNC),status:'baixando',duracao:0,atualizadoEm:r.atualizadoEm,recebidoEm:r.recebidoEm||agoraISO()};
+      m._tocada=!!r.tocada;
+      await saveMusica(m,{remote:true});baixar.push(m);mudou=true;continue;
+    }
+    if((r.atualizadoEm||'')<=(m.atualizadoEm||''))continue;
+    const audioNovo=r.audioGistId&&r.audioGistId!==m.audioGistId;
+    const partesNovas=PARTS.filter(p=>{const a=r.montagem?.[p]?.midia?.audioGistId,b=m.montagem?.[p]?.midia?.audioGistId;return a&&a!==b});
+    Object.assign(m,pick(r,M_SYNC));m.atualizadoEm=r.atualizadoEm;
+    if(!r.montagem)m.montagem=null;
+    if(r.tocada&&m.status==='pronta')m.status='tocada';
+    if(!r.tocada&&m.status==='tocada')m.status='pronta';
+    if(audioNovo){await DB.del('audios',m.id);m.status='baixando'}
+    for(const p of partesNovas)await DB.del('audios',partKey(m.id,p));
+    if(audioNovo||partesNovas.length){m.status='baixando';baixar.push(m)}
+    m._tocada=!!r.tocada;
+    await saveMusica(m,{remote:true});mudou=true;
+  }
+  if(atual&&mudou){renderList();Player.ui();if(baixar.length)baixar.forEach(baixarAudio)}
+  return mudou;
+}
+
+/* ---------- área de trabalho (lista de eventos, marca e configurações) ---------- */
+async function findWorkspace(criar=false){
+  let id=await DB.cfg('workspaceGistId');
+  if(id){try{await gh(`/gists/${id}`);return id}catch(e){if(e.status!==404)throw e;await DB.setCfg('workspaceGistId','')}}
+  for(let page=1;page<=10;page++){
+    const r=await gh(`/gists?per_page=100&page=${page}`);
+    const g=(r.data||[]).find(x=>x.description===WS_DESC);
+    if(g){await DB.setCfg('workspaceGistId',g.id);return g.id}
+    if(!r.data||r.data.length<100)break;
+  }
+  if(!criar)return null;
+  const r=await gh('/gists',{method:'POST',body:{description:WS_DESC,public:false,files:{'workspace.json':{content:JSON.stringify(await wsData())}}}});
+  await DB.setCfg('workspaceGistId',r.data.id);return r.data.id;
+}
+async function wsData(){
+  return{app:'palco-musical',tipo:'workspace',v:1,atualizadoEm:agoraISO(),
+    marca:marca.logo||marca.nome?{...marca}:null,marcaAt:(await DB.cfg('marcaAt'))||'',
+    inboxGistId:(await DB.cfg('inboxGistId'))||'',importados:(await DB.cfg('importados'))||[],
+    excluidos:(await DB.cfg('excluidos'))||[],autoLimpeza:(await DB.cfg('autoLimpeza'))!==false,
+    eventos:state.eventos.filter(e=>e.gistId).map(e=>({gistId:e.gistId,...evSyncObj(e),atualizadoEm:e.atualizadoEm||e.criadoEm||''}))};
+}
+async function pullWorkspace(){
+  if(!state.token||!navigator.onLine)return;
+  const id=await findWorkspace(false);if(!id)return pushWorkspace();
+  const r=await gh(`/gists/${id}`,{etag:Nuvem.wsEtag});if(r.notModified)return;
+  Nuvem.wsEtag=r.etag;
+  let w;try{w=JSON.parse(await readGistFile(r.data.files['workspace.json']))}catch{return}
+  await mergeWorkspace(w);Nuvem.ok();
+}
+async function mergeWorkspace(w){
+  let mudou=false;
+  if(w.marca&&(w.marcaAt||'')>((await DB.cfg('marcaAt'))||'')){await DB.setCfg('marca',w.marca);await DB.setCfg('marcaAt',w.marcaAt);applyBrand(w.marca);mudou=true}
+  if(w.inboxGistId&&!(await DB.cfg('inboxGistId'))){await DB.setCfg('inboxGistId',w.inboxGistId);Inbox.start()}
+  const imp=new Set([...((await DB.cfg('importados'))||[]),...(w.importados||[])]);await DB.setCfg('importados',[...imp]);
+  const exc=new Set([...((await DB.cfg('excluidos'))||[]),...(w.excluidos||[])]);await DB.setCfg('excluidos',[...exc]);
+  for(const ev of state.eventos.filter(e=>e.gistId&&exc.has(e.gistId))){await apagarEvento(ev,{nuvem:false,silencioso:true});mudou=true}
+  for(const re of w.eventos||[]){
+    if(exc.has(re.gistId))continue;
+    const ev=state.eventos.find(e=>e.gistId===re.gistId);
+    if(!ev){const novo={id:uid(),gistId:re.gistId,...pick(re,EV_SYNC),atualizadoEm:re.atualizadoEm,links:re.links||[],removidos:re.removidos||[]};await saveEvento(novo,{remote:true});mudou=true;continue}
+    if((re.atualizadoEm||'')>(ev.atualizadoEm||'')){const rem=new Set([...(ev.removidos||[]),...(re.removidos||[])]);Object.assign(ev,pick(re,EV_SYNC));ev.removidos=[...rem];ev.atualizadoEm=re.atualizadoEm;await saveEvento(ev,{remote:true});mudou=true}
+  }
+  if(mudou){renderEvSel();if(!state.evento&&state.eventos.length)await selectEvent(state.eventos[0].id);else renderMain();Player.ui()}
+  return mudou;
+}
+async function pushWorkspace(){
+  if(!state.token)return;
+  const id=await findWorkspace(true);
+  const r=await gh(`/gists/${id}`);
+  try{await mergeWorkspace(JSON.parse(await readGistFile(r.data.files['workspace.json'])))}catch{}
+  const res=await ghRetry(`/gists/${id}`,{method:'PATCH',body:{files:{'workspace.json':{content:JSON.stringify(await wsData())}}}});
+  Nuvem.wsEtag=null;Nuvem.ok();return res;
+}
+
+/* ---------- envio para a nuvem das músicas adicionadas manualmente (para outros aparelhos) ---------- */
+const subindo=new Set();
+async function subirManual(m){
+  const ev=state.eventos.find(e=>e.id===m.eventoId);
+  if(!ev?.gistId||!state.token||subindo.has(m.id))return;
+  subindo.add(m.id);
+  try{
+    const P={t:state.token,e:ev.nome};
+    const up=async(blob,nome,key)=>{
+      if(blob.size>MAX_MB*1048576)return null;
+      const b64=await fileToB64(blob);const arq=`${key}_${m.id}.b64`;
+      const g=await ghUpload('/gists','POST',P.t,{description:`[Palco Musical] Arquivo (painel): ${m.titulo} (${P.e})`,public:false,files:{[arq]:{content:b64}}},()=>{});
+      return{audioGistId:g.id,audioArquivo:arq,mime:blob.type||'audio/mpeg',nomeArquivo:nome||m.titulo,tamanho:blob.size};
+    };
+    let grande=false;
+    if(!m.audioGistId){
+      const b=await DB.get('audios',m.id);
+      if(b){const r=await up(b,m.nomeArquivo,'audio');if(r){Object.assign(m,r);m.soLocal=false}else{grande=true;m.soLocal=true}}
+    }
+    if(m.montagem){for(const p of PARTS){const s=m.montagem[p];if(!s||(p!=='trilha'&&s.tipo==='texto')||s.midia)continue;const b=await DB.get('audios',partKey(m.id,p));if(b){const r=await up(b,s.nome,p);if(r)s.midia=r;else grande=true}}}
+    await saveMusica(m);
+    if(grande)toast(`<b>${esc(m.titulo)}</b>: arquivo acima de ${MAX_MB} MB fica só neste aparelho. Para levar a outro aparelho, use o backup.`,'warn',8000);
+  }catch(e){toast(`Não foi possível enviar <b>${esc(m.titulo)}</b> para a nuvem: ${esc(e.message)}. Ele continua salvo aqui.`,'warn',7000)}
+  finally{subindo.delete(m.id)}
+}
+
+/* ---------- limpeza automática: 24h após a data e a execução do evento ---------- */
+function limiteEvento(ev){
+  if(ev.manterSempre)return null;
+  let base=null;
+  if(ev.data){const[y,mo,d]=ev.data.split('-').map(Number);base=new Date(y,mo-1,d,23,59,59)}
+  if(ev.ultimaExecucao){const t=new Date(ev.ultimaExecucao);if(!base||t>base)base=t}
+  return base?new Date(base.getTime()+24*3600e3):null;
+}
+async function autoLimpeza(){
+  if((await DB.cfg('autoLimpeza'))===false)return;
+  const agora=new Date();
+  for(const ev of[...state.eventos]){
+    const lim=limiteEvento(ev);
+    if(!lim||agora<lim)continue;
+    if(state.evento?.id===ev.id&&Player.playing)continue;
+    await apagarEvento(ev,{nuvem:true,silencioso:true});
+    toast(`<b>${esc(ev.nome)}</b> foi apagado automaticamente (24h após o evento), inclusive os arquivos no GitHub.`,'info',9000);
+  }
+}
+/* apaga um evento deste aparelho e, se pedido, todos os arquivos dele no GitHub */
+async function apagarEvento(ev,{nuvem=true,silencioso=false}={}){
+  const atual=state.evento?.id===ev.id;
+  if(atual){Player.pauseAll();Player.freeParts();Player.cur=null;Player.mt=null}
+  const mus=await DB.byIndex('musicas','eventoId',ev.id);
+  const gids=new Set();
+  for(const m of mus){
+    [m.audioGistId,...PARTS.map(p=>m.montagem?.[p]?.midia?.audioGistId)].forEach(g=>g&&gids.add(g));
+    await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p));
+  }
+  await DB.del('eventos',ev.id);state.eventos=state.eventos.filter(e=>e.id!==ev.id);
+  if(ev.gistId){const exc=new Set((await DB.cfg('excluidos'))||[]);exc.add(ev.gistId);await DB.setCfg('excluidos',[...exc])}
+  if(nuvem&&ev.gistId&&state.token){
+    try{
+      const g=await gh(`/gists/${ev.gistId}`).catch(e=>{if(e.status===404)return null;throw e});
+      if(g){
+        for(const[n,f]of Object.entries(g.data.files||{})){
+          try{
+            const j=JSON.parse(await readGistFile(f));
+            if(n.startsWith('sub_'))[j.audioGistId,...PARTS.map(p=>j.montagem?.[p]?.midia?.audioGistId)].forEach(x=>x&&gids.add(x));
+            if(n==='estado.json')for(const r of Object.values(j.musicas||{}))[r.audioGistId,...PARTS.map(p=>r.montagem?.[p]?.midia?.audioGistId)].forEach(x=>x&&gids.add(x));
+          }catch{}
+        }
+      }
+      for(const gid of gids)await gh(`/gists/${gid}`,{method:'DELETE'}).catch(()=>{});
+      if(g)await gh(`/gists/${ev.gistId}`,{method:'DELETE'}).catch(()=>{});
+      const inbox=await DB.cfg('inboxGistId');
+      if(inbox)await gh(`/gists/${inbox}`,{method:'PATCH',body:{files:{[`ev_${ev.gistId}.json`]:null}}}).catch(()=>{});
+    }catch(e){if(!silencioso)toast('Evento removido daqui, mas houve erro ao limpar o GitHub: '+esc(e.message),'warn',6000)}
+  }
+  if(ev.gistId)Nuvem.marcarWs();
+  if(atual){state.evento=null;state.musicas=[];await selectEvent(state.eventos[0]?.id)}
+  else{renderEvSel()}
+}
+
+/* ---------- backup (.palco): exportar e importar ---------- */
+function openBackupEvento(){
+  const ev=state.evento;
+  openModal(`${modalHead('Backup do evento',esc(ev.nome))}
+    <p class="muted">Gera um arquivo <code>.palco</code> com o cronograma, as músicas, cortes e montagens deste evento. Importe em qualquer aparelho em Configurações → Backup.</p>
+    <div class="modal-f"><button class="btn" data-close>Cancelar</button><button class="btn" id="beD">${icon('download')}Só os dados</button><button class="btn primary" id="beA">${icon('download')}Com os arquivos</button></div>`,
+  {onMount:(md,close)=>{$('#beA',md).onclick=()=>{close();exportarBackup({eventoId:ev.id,arquivos:true})};$('#beD',md).onclick=()=>{close();exportarBackup({eventoId:ev.id,arquivos:false})}}});
+}
+async function exportarBackup({eventoId=null,arquivos=true}={}){
+  const evs=eventoId?state.eventos.filter(e=>e.id===eventoId):[...state.eventos];
+  const mus=[];for(const ev of evs)mus.push(...await DB.byIndex('musicas','eventoId',ev.id));
+  const files=[];let off=0;
+  if(arquivos)for(const m of mus)for(const k of[m.id,...PARTS.map(p=>partKey(m.id,p))]){const b=await DB.get('audios',k);if(b){files.push({key:k,type:b.type,size:b.size,offset:off,blob:b});off+=b.size}}
+  const limpa=o=>{const c={...o};delete c._h;return c};
+  const header={app:'palco-musical',tipo:'backup',v:1,criadoEm:agoraISO(),escopo:eventoId?'evento':'tudo',comArquivos:arquivos,
+    marca:{...marca},config:{autoLimpeza:(await DB.cfg('autoLimpeza'))!==false,inboxGistId:(await DB.cfg('inboxGistId'))||'',workspaceGistId:(await DB.cfg('workspaceGistId'))||'',volume:state.volume,auto:state.auto},
+    eventos:evs.map(limpa),musicas:mus.map(limpa),arquivos:files.map(({blob,...r})=>r)};
+  const hj=new TextEncoder().encode(JSON.stringify(header));
+  const blob=new Blob(['PALCO1\n',String(hj.length).padStart(10,'0'),hj,...files.map(f=>f.blob)],{type:'application/octet-stream'});
+  const d=new Date(),dt=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const nome=(eventoId?`palco-${(evs[0]?.nome||'evento').replace(/[^\wÀ-ú -]/g,'').trim().replace(/\s+/g,'-')}`:'palco-backup')+`-${dt}${arquivos?'':'-dados'}.palco`;
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
+  toast(`Backup gerado: <b>${esc(nome)}</b> (${fmtSize(blob.size)}). Guarde em local seguro — o token do GitHub não vai no backup.`,'ok',8000);
+}
+async function importarBackup(file){
+  let h;
+  try{
+    const head=await file.slice(0,17).text();
+    if(!head.startsWith('PALCO1\n'))throw new Error('Este arquivo não é um backup do Palco Musical (.palco).');
+    const len=parseInt(head.slice(7,17),10);
+    h=JSON.parse(await file.slice(17,17+len).text());h._base=17+len;
+    if(h.tipo!=='backup')throw new Error('Backup inválido.');
+  }catch(e){return toast(esc(e.message||'Não foi possível ler o backup.'),'err',7000)}
+  const r=await confirmDialog(`Backup de ${fmtHora(h.criadoEm)}: <b>${h.eventos.length}</b> evento(s), <b>${h.musicas.length}</b> música(s)${h.comArquivos?` e <b>${h.arquivos.length}</b> arquivo(s)`:' (sem arquivos — serão baixados da nuvem quando possível)'}.<br><br>Eventos que já existem aqui serão substituídos pela versão do backup.`,
+    {title:'Importar backup',ok:'Importar',check:h.marca&&(h.marca.nome||h.marca.logo)?{label:'Importar também a marca (logo, cor e contatos)',checked:!marca.nome&&!marca.logo}:null});
+  if(!(typeof r==='object'?r.ok:r))return;
+  toast('Importando backup…','info',3000);
+  const idMap={};
+  for(const e of h.eventos){
+    const ex=state.eventos.find(x=>x.id===e.id||(e.gistId&&x.gistId===e.gistId));
+    const id=ex?ex.id:e.id;idMap[e.id]=id;
+    if(ex){for(const m of await DB.byIndex('musicas','eventoId',id)){await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p))}}
+    if(e.gistId){const exc=new Set((await DB.cfg('excluidos'))||[]);if(exc.delete(e.gistId))await DB.setCfg('excluidos',[...exc])}
+    await saveEvento({...e,id,atualizadoEm:agoraISO()});
+  }
+  const tem=new Set(h.arquivos.map(a=>a.key));
+  for(const a of h.arquivos)await DB.put('audios',file.slice(h._base+a.offset,h._base+a.offset+a.size,a.type),a.key);
+  for(const m of h.musicas){
+    const x={...m,eventoId:idMap[m.eventoId]||m.eventoId};
+    if(tem.has(m.id)){if(x.status!=='tocada')x.status='pronta'}
+    else if(x.audioGistId)x.status=x.status==='tocada'?'tocada':'baixando';
+    else x.status='erro',x.erro='Arquivo não incluído no backup.';
+    await DB.put('musicas',x);
+  }
+  if(typeof r==='object'&&r.checked){await DB.setCfg('marca',h.marca);await DB.setCfg('marcaAt',agoraISO());applyBrand(h.marca)}
+  if(h.config?.inboxGistId&&!(await DB.cfg('inboxGistId')))await DB.setCfg('inboxGistId',h.config.inboxGistId);
+  state.eventos=await DB.all('eventos');
+  for(const e of h.eventos)Nuvem.marcar(idMap[e.id]);
+  Nuvem.marcarWs();
+  await selectEvent(idMap[h.eventos[0]?.id]||state.evento?.id||state.eventos[0]?.id);
+  const pend=state.musicas.filter(m=>m.status==='baixando');pend.forEach(baixarAudio);
+  toast(`Backup importado: ${h.eventos.length} evento(s) e ${h.musicas.length} música(s).`,'ok',6000);
+}
+function escolherBackup(){
+  const i=document.createElement('input');i.type='file';i.accept='.palco,application/octet-stream';
+  i.onchange=()=>{const f=i.files[0];if(f)importarBackup(f)};i.click();
 }
 
 /* =========================================================
@@ -2761,6 +3075,21 @@ function openSettings(){
         <button class="btn sm" id="ntf" ${!notif||Notification.permission!=='default'?'disabled':''}>${icon('bell')}${!notif?'Indisponível':Notification.permission==='granted'?'Ativadas':Notification.permission==='denied'?'Bloqueadas':'Ativar'}</button>
       </div>
       <hr class="sep" style="margin:6px 0">
+      <div>
+        <strong style="display:block">Sincronização entre aparelhos</strong>
+        <p class="muted" style="font-size:.88rem;margin:2px 0 8px">Abra o sistema em outro computador, tablet ou celular e cole <b>o mesmo token</b>: eventos, cronogramas, cortes, montagens, marca e músicas aparecem sozinhos e se mantêm iguais nos dois.</p>
+        <div class="row" style="justify-content:space-between"><span class="tk-status ${Nuvem.erro?'err':Nuvem.ultimo?'ok':''}" id="nvSt">${!state.token?'Desativada (sem token)':Nuvem.erro?'Falha: '+esc(Nuvem.erro):Nuvem.ultimo?'✓ Sincronizado às '+Nuvem.ultimo.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'Aguardando primeira sincronização'}</span>
+        <button class="btn sm" id="nvGo" type="button" ${state.token?'':'disabled'}>${icon('refresh')}Sincronizar agora</button></div>
+      </div>
+      <hr class="sep" style="margin:6px 0">
+      <div>
+        <strong style="display:block">Backup</strong>
+        <p class="muted" style="font-size:.88rem;margin:2px 0 8px">Se a sincronização falhar, leve tudo num arquivo <code>.palco</code> e importe no outro aparelho. O token não vai no backup.</p>
+        <div class="row"><button class="btn sm primary" id="bkAll" type="button">${icon('download')}Exportar tudo (com arquivos)</button><button class="btn sm" id="bkData" type="button">${icon('download')}Só os dados</button><button class="btn sm" id="bkImp" type="button">${icon('upload')}Importar backup</button></div>
+      </div>
+      <hr class="sep" style="margin:6px 0">
+      <label class="chk" style="align-items:flex-start"><input type="checkbox" id="autoLimp"><span><b>Apagar eventos automaticamente</b> 24 horas após a data do evento e a última música tocada — inclusive os arquivos no GitHub, liberando espaço. Dá para manter um evento específico no cartão dele.</span></label>
+      <hr class="sep" style="margin:6px 0">
       <div class="row" style="justify-content:space-between">
         <div><strong>Cadastro pelo cliente</strong><p class="muted" style="font-size:.88rem">Link para noivos e debutantes criarem o próprio evento.</p></div>
         <button class="btn sm" id="goReg" type="button">${icon('link')}Abrir</button>
@@ -2787,12 +3116,20 @@ function openSettings(){
         if(sc!==null&&!sc.split(',').map(s=>s.trim()).includes('gist'))throw new Error('Este token não tem a permissão “gist”. Gere outro marcando essa opção.');
         state.token=v;state.login=r.data.login;await DB.setCfg('token',v);await DB.setCfg('login',r.data.login);
         st.className='tk-status ok';st.textContent='✓ Conectado como @'+r.data.login;
-        toast('GitHub conectado!','ok');renderMain();Sync.start();retomarDownloads();Inbox.start();
+        toast('GitHub conectado! Buscando seus eventos de outros aparelhos…','ok');renderMain();Sync.start();retomarDownloads();Inbox.start();Nuvem.start();
         setTimeout(close,700);
       }catch(e){st.className='tk-status err';st.textContent=e.message}
     };
     const rm=$('#tkRm',md);if(rm)rm.onclick=async()=>{state.token='';state.login='';await DB.setCfg('token','');await DB.setCfg('login','');close();renderMain();Sync.tick();toast('Token removido.','ok')};
     $('#goMarca',md).onclick=()=>{close();setTimeout(openBrand,220)};
+    DB.cfg('autoLimpeza').then(v=>{$('#autoLimp',md).checked=v!==false});
+    $('#autoLimp',md).onchange=async e=>{await DB.setCfg('autoLimpeza',e.target.checked);Nuvem.marcarWs();renderMain();toast(e.target.checked?'Exclusão automática ativada.':'Exclusão automática desativada.','ok');if(e.target.checked)autoLimpeza()};
+    $('#bkAll',md).onclick=()=>exportarBackup({arquivos:true});
+    $('#bkData',md).onclick=()=>exportarBackup({arquivos:false});
+    $('#bkImp',md).onclick=()=>{close();setTimeout(escolherBackup,220)};
+    $('#nvGo',md).onclick=async()=>{const st=$('#nvSt',md);st.className='tk-status';st.textContent='Sincronizando…';
+      try{await pullWorkspace();await pushWorkspace();for(const ev of state.eventos)if(ev.gistId)Nuvem.dirty.add(ev.id);await Nuvem.flush();await Sync.tick(true);st.className='tk-status ok';st.textContent='✓ Sincronizado agora'}
+      catch(e){st.className='tk-status err';st.textContent='Falha: '+e.message+' — use o backup.'}};
     $('#goReg',md).onclick=()=>{close();setTimeout(openCadastroLink,220)};
     const nb=$('#ntf',md);nb.onclick=async()=>{const p=await Notification.requestPermission();nb.disabled=true;nb.innerHTML=icon('bell')+(p==='granted'?'Ativadas':'Bloqueadas')};
   }});
@@ -2844,6 +3181,8 @@ async function initAdmin(){
   Inbox.start();
   const last=await DB.cfg('ultimoEvento');
   await selectEvent(state.eventos.find(e=>e.id===last)?.id||state.eventos[0]?.id);
+  Nuvem.start();
+  autoLimpeza();setInterval(autoLimpeza,30*60e3);
 }
 
 /* =========================================================
