@@ -534,7 +534,26 @@ body.dj-on{overflow:hidden}
 .dj-list{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px}
 .dj-lh{display:flex;align-items:baseline;gap:10px;margin:0 4px 8px}
 .dj-lh small{color:var(--muted);font-size:.8rem}
+.dj-add{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 2px 12px}
+.dj-url{flex:1;min-width:260px}
+.dj-url input{min-height:38px;padding:8px 12px;font-size:.92rem}
+.deck.drop{outline:2px dashed var(--dk);outline-offset:3px}
+#djAvWrap{margin-bottom:12px}
+.dj-ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px;max-height:34vh;overflow:auto}
+#djAv .n.av{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.14);color:var(--accent-text)}
+#djAv .n.av .ic{width:15px;height:15px}
+#djAv .b .rm{width:30px;color:var(--muted)}
+#djAv .b .rm .ic{width:14px;height:14px}
 #djList{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px;max-height:34vh;overflow:auto}
+.dj-ol li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--surface2);border:1px solid transparent}
+.dj-ol li.in-a{border-color:#8b6cff}.dj-ol li.in-b{border-color:var(--accent)}
+.dj-ol .i{flex:1;min-width:0}
+.dj-ol .i b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.92rem}
+.dj-ol .i small{display:block;color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dj-ol .b{display:flex;gap:4px}
+.dj-ol .b button{width:36px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-weight:800;cursor:pointer;display:grid;place-items:center}
+.dj-ol .b button[data-load=A]:hover,.dj-ol .b button[data-load=A].on{background:#8b6cff;color:#fff;border-color:transparent}
+.dj-ol .b button[data-load=B]:hover,.dj-ol .b button[data-load=B].on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 #djList li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--surface2);border:1px solid transparent}
 #djList li.tocada{opacity:.55}
 #djList li.in-a{border-color:#8b6cff}#djList li.in-b{border-color:var(--accent)}
@@ -562,7 +581,8 @@ body.dj-on{overflow:hidden}
   .fader-r{height:100px}.mx-vol .vu{height:100px}
   .hide-sm{display:none}
   .dj-pill{top:calc(70px + env(safe-area-inset-top))}
-  #djList{grid-template-columns:1fr;max-height:none}
+  #djList,.dj-ol{grid-template-columns:1fr;max-height:none}
+  .dj-add{flex-direction:column;align-items:stretch}.dj-add>label{justify-content:center}.dj-url{min-width:0}
   .dk-rem b{font-size:1.35rem}
 }
 
@@ -1772,7 +1792,7 @@ class ExtMedia extends EventTarget{
       this.p=new YT.Player(this.inner,{videoId:i.id,width:'100%',height:'100%',
         playerVars:{controls:this.controls?1:0,disablekb:this.controls?0:1,modestbranding:1,rel:0,playsinline:1,iv_load_policy:3,fs:0,start:Math.floor(this._pend??0)},
         events:{
-          onReady:()=>{clearTimeout(to);if(this.mutedInit)this.p.mute();this._meta(this.p.getDuration());res()},
+          onReady:()=>{clearTimeout(to);if(this.mutedInit)this.p.mute();this._meta(this.p.getDuration());try{this.titulo=this.p.getVideoData?.().title||''}catch{}res()},
           onStateChange:e=>{
             const s=e.data,t=this.p.getCurrentTime?.()??this._t;this._meta(this.p.getDuration?.());
             if(s===1)this._pos(t,true);else if(s===2||s===5)this._pos(t,false);else if(s===0)this._fim();else this._pos(t);
@@ -3056,6 +3076,7 @@ class Deck{
         this.ext=new ExtMedia(m.link,{mount:$('#extHold')});
         this.ext.addEventListener('ended',()=>this.fim());
         await new Promise((r,j)=>{let ok=false;this.ext.addEventListener('loadedmetadata',()=>{ok=true;r()});this.ext.addEventListener('error',()=>j(new Error(this.ext.erro||'Não foi possível abrir o link.')));setTimeout(()=>ok||r(),20000)});
+        if(m.avulsa&&this.ext.titulo&&m.semTitulo){m.titulo=this.ext.titulo;m.semTitulo=false;Avulsas.salvar()}
       }else throw new Error('O arquivo desta música ainda não está disponível.');
       this.media.currentTime=this.ini;this.k=1;
     }catch(e){toast(`Deck ${this.id}: ${esc(e.message)}`,'err',7000);this.unload()}
@@ -3087,7 +3108,7 @@ class Deck{
     this.marcar();this.k=1;this.media.currentTime=this.ini;
     this.dj.deckAcabou(this);this.dj.render();
   }
-  marcar(){if(!this.played&&this.m){this.played=true;Player.markPlayed(this.m)}}
+  marcar(){if(!this.played&&this.m){this.played=true;if(this.m.avulsa)this.m.status='tocada';else Player.markPlayed(this.m)}}
   /* a cada quadro: fades do trecho marcado e corte exato no ponto final */
   tick(){
     if(!this.playing)return;
@@ -3180,6 +3201,7 @@ const DJ={
     if(!state.evento)return toast('Selecione um evento primeiro.','warn');
     if(Player.playing){Player.pauseAll();toast('O player principal foi pausado para usar os decks.','info',3500)}
     const el=$('#dj');el.hidden=false;this.aberto=true;document.body.classList.add('dj-on');
+    Avulsas.carregar().then(()=>this.render());
     if(!this.A.m&&!this.B.m){const L=this.lista();const n1=L.find(m=>m.status!=='tocada')||L[0];if(n1){this.A.load(n1).then(()=>{const n2=this.proxima(n1.id);if(n2)this.B.load(n2)})}}
     this.montar();this.render();this.loop();
   },
@@ -3223,14 +3245,22 @@ const DJ={
           ${deckHTML('B')}
         </div>
         <div class="dj-xf"><span>A</span><input type="range" min="0" max="1" step="0.001" value="${this.xf}" id="djXf" aria-label="Crossfader"><span>B</span><button class="btn sm ghost" id="djXfC" title="Centralizar">${icon('refresh')}</button></div>
-        <section class="dj-list"><div class="dj-lh"><strong>Cronograma</strong><small>Carregue no deck A ou B</small></div><ol id="djList"></ol></section>
+        <section class="dj-list">
+          <div class="dj-add">
+            <label class="btn sm primary">${icon('upload')}Importar do aparelho<input type="file" id="djFile" accept="audio/*,video/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac,.mp4,.mov,.webm" multiple hidden></label>
+            <form class="copyrow dj-url" id="djUrlF"><input type="url" id="djUrl" inputmode="url" placeholder="Cole um link do YouTube (ou SoundCloud, Vimeo, Drive…)" aria-label="Link da música"><button class="btn sm" type="submit">${icon('link')}Adicionar</button></form>
+          </div>
+          <div id="djAvWrap" hidden><div class="dj-lh"><strong>Avulsas</strong><small>Fora do cronograma · ficam salvas neste aparelho para este evento</small></div><ol id="djAv" class="dj-ol"></ol></div>
+          <div class="dj-lh"><strong>Cronograma</strong><small>Carregue no deck A ou B</small></div><ol id="djList" class="dj-ol"></ol>
+        </section>
       </div>`;
     el.addEventListener('click',e=>{
       const b=e.target.closest('[data-act]');
       if(b){const d=this.decks.find(x=>x.id===b.closest('[data-deck]').dataset.deck);const a=b.dataset.act;
         if(a==='play')d.toggle();else if(a==='cue')d.cue();else if(a==='stop'){d.unload();this.render()}else if(a==='next'){const n=this.proxima(this.outro(d).m?.id||d.m?.id);if(n)d.load(n);else toast('Não há próxima música.','warn')}
         return}
-      const ld=e.target.closest('[data-load]');if(ld){const m=state.musicas.find(x=>x.id===ld.dataset.id);const d=this.decks.find(x=>x.id===ld.dataset.load);if(m&&d)d.load(m);return}
+      const rm=e.target.closest('[data-avrm]');if(rm){Avulsas.remover(rm.dataset.avrm);return}
+      const ld=e.target.closest('[data-load]');if(ld){const m=state.musicas.find(x=>x.id===ld.dataset.id)||Avulsas.get(ld.dataset.id);const d=this.decks.find(x=>x.id===ld.dataset.load);if(m&&d)d.load(m);return}
       const ln=e.target.closest('[data-len]');if(ln){this.mixLen=+ln.dataset.len;$$('#djLen button').forEach(x=>x.classList.toggle('on',x===ln));try{localStorage.setItem('palco_mixlen',this.mixLen)}catch{}return}
     });
     el.addEventListener('input',e=>{
@@ -3251,6 +3281,14 @@ const DJ={
       const cv=$(`[data-deck=${d.id}] canvas`,el);
       cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();d.seekFrac((e.clientX-r.left)/r.width);this.drawWave(d,true)});
     }
+    $('#djFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)await Avulsas.addArquivos(fs)};
+    $('#djUrlF').onsubmit=async e=>{e.preventDefault();const i=$('#djUrl');if(await Avulsas.addLink(i.value))i.value=''};
+    for(const d of this.decks){
+      const sec=$(`[data-deck=${d.id}]`,el);
+      ['dragenter','dragover'].forEach(t=>sec.addEventListener(t,e=>{if(e.dataTransfer?.types?.includes('Files')){e.preventDefault();sec.classList.add('drop')}}));
+      ['dragleave','drop'].forEach(t=>sec.addEventListener(t,()=>sec.classList.remove('drop')));
+      sec.addEventListener('drop',async e=>{const f=[...(e.dataTransfer?.files||[])];if(!f.length)return;e.preventDefault();const add=await Avulsas.addArquivos(f);if(add[0])d.load(add[0])});
+    }
     $('#djMix').onclick=()=>this.mix();
     $('#djAuto').onclick=()=>{this.auto=!this.auto;this.render();toast(this.auto?'<b>AUTO MIX ligado:</b> no fim de cada música o sistema faz a passagem e carrega a próxima do cronograma.':'AUTO MIX desligado.','info',4500);if(this.auto)this.loop()};
     $('#djXfC').onclick=()=>{this.mixing=null;this.xf=.5;this.syncXf();this.aplicarGanhos()};
@@ -3267,7 +3305,7 @@ const DJ={
       const s=$(`[data-deck=${d.id}]`),m=d.m;
       s.classList.toggle('on',d.playing);s.classList.toggle('vazio',!m);
       $('[data-f=tt]',s).textContent=m?(m.titulo+(m.artista?' — '+m.artista:'')):'Vazio';
-      $('[data-f=st]',s).textContent=m?[isCer()?cueOf(m):[m.turma,m.professora].filter(Boolean).join(' · '),trechoTxt(m)?'✂ '+trechoTxt(m):'',m.link?'🔗 '+m.link.nome+' (sem EQ)':''].filter(Boolean).join(' · '):'Carregue uma música da lista';
+      $('[data-f=st]',s).textContent=m?[m.avulsa?(m.link?'Avulsa':'Avulsa · do aparelho'):isCer()?cueOf(m):[m.turma,m.professora].filter(Boolean).join(' · '),trechoTxt(m)?'✂ '+trechoTxt(m):'',m.link?'🔗 '+m.link.nome+' (sem EQ)':''].filter(Boolean).join(' · '):'Carregue uma música da lista';
       $('[data-f=ld]',s).hidden=!d.loading;
       $('[data-act=play]',s).innerHTML=icon(d.playing?'pause':'play');
       $$('[data-eq]',s).forEach(r=>r.disabled=!!d.ext);
@@ -3276,7 +3314,14 @@ const DJ={
     $('#djAuto').classList.toggle('on',this.auto);
     $('#djMix').classList.toggle('on',!!this.mixing);
     this.syncXf();
-    const L=this.lista(),ids={A:this.A.m?.id,B:this.B.m?.id};
+    const ids={A:this.A.m?.id,B:this.B.m?.id};
+    const AV=Avulsas.lista;
+    $('#djAvWrap').hidden=!AV.length;
+    $('#djAv').innerHTML=AV.map(m=>`<li class="${ids.A===m.id?'in-a':''} ${ids.B===m.id?'in-b':''}">
+      <span class="n av">${icon(m.link?'link':m.video?'video':'music')}</span>
+      <div class="i"><b>${esc(m.titulo)}</b><small>${esc(m.link?m.link.nome+' · online':(m.nomeArquivo||'arquivo')+(m.tamanho?' · '+fmtSize(m.tamanho):''))}</small></div>
+      <div class="b"><button data-load="A" data-id="${m.id}" class="${ids.A===m.id?'on':''}" title="Carregar no deck A">A</button><button data-load="B" data-id="${m.id}" class="${ids.B===m.id?'on':''}" title="Carregar no deck B">B</button><button data-avrm="${m.id}" class="rm" title="Remover da lista">${icon('x')}</button></div></li>`).join('');
+    const L=this.lista();
     $('#djList').innerHTML=L.length?L.map((m,i)=>`<li class="${m.status==='tocada'?'tocada':''} ${ids.A===m.id?'in-a':''} ${ids.B===m.id?'in-b':''}">
       <span class="n">${String(i+1).padStart(2,'0')}</span>
       <div class="i"><b>${esc(isCer()?cueOf(m):m.titulo)}</b><small>${esc(isCer()?[m.titulo,m.artista].filter(Boolean).join(' — '):descOf(m))}${m.status==='tocada'?' · tocada':''}</small></div>
@@ -3315,6 +3360,49 @@ const DJ={
     else{x.fillStyle='rgba(170,175,200,.35)';x.fillRect(0,H/2-2,W,4);x.fillStyle=col;x.fillRect(0,H/2-2,pos*W,4)}
     x.fillStyle='#fff';x.fillRect(Math.round(pos*W)-1,0,2*dpr,H);
     x.fillStyle=col;x.fillRect(Math.round(ini*W),0,2*dpr,H);x.fillRect(Math.round(end*W)-2,0,2*dpr,H);
+  }
+};
+/* músicas avulsas do Modo DJ: arquivos do aparelho ou links, fora do cronograma (salvas neste aparelho) */
+const Avulsas={
+  lista:[],evId:null,
+  chave(){return'dj_av_'+(state.evento?.id||'')},
+  async carregar(){
+    const id=state.evento?.id||null;if(id===this.evId)return;
+    this.evId=id;this.lista=id?((await DB.cfg(this.chave()))||[]):[];
+    for(const m of this.lista)Object.assign(m,{avulsa:true,status:m.status||'pronta',inicio:0,fim:0});
+  },
+  salvar(){if(!this.evId)return;DB.setCfg(this.chave(),this.lista.map(({id,titulo,artista,link,mime,nomeArquivo,tamanho,video,semTitulo})=>({id,titulo,artista,link,mime,nomeArquivo,tamanho,video,semTitulo})));DJ.render()},
+  get(id){return this.lista.find(x=>x.id===id)},
+  async addArquivos(files){
+    const out=[];
+    for(const f of files){
+      const er=checkFile(f,MAX_LOCAL_MB);if(er){toast(esc(f.name)+': '+esc(er),'err',6000);continue}
+      const id='av:'+uid(),blob=new Blob([f],{type:mimeOf(f)});
+      await DB.put('audios',blob,id);
+      const inf=await getMediaInfo(blob);
+      const m={id,titulo:f.name.replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').trim()||'Música',artista:'',mime:blob.type,nomeArquivo:f.name,tamanho:f.size,video:inf.video,duracao:inf.dur,avulsa:true,status:'pronta',inicio:0,fim:0};
+      this.lista.push(m);out.push(m);
+    }
+    if(out.length){this.salvar();toast(out.length>1?`${out.length} músicas importadas para a lista Avulsas.`:`<b>${esc(out[0].titulo)}</b> importada. Carregue no deck A ou B.`,'ok',4000)}
+    return out;
+  },
+  async addLink(raw){
+    const info=parseLink(raw);
+    if(!info){toast('Cole um link válido (começando com https://).','warn');return false}
+    if(!linkTocavel(info)){toast(esc(linkAviso(info)),'warn',7000);return false}
+    const m={id:'av:'+uid(),titulo:`${info.nome}${info.id?' · '+info.id:''}`,semTitulo:true,artista:'',link:info,video:!!info.video,avulsa:true,status:'pronta',inicio:0,fim:0};
+    this.lista.push(m);this.salvar();
+    toast(`Link do ${esc(info.nome)} adicionado. O título aparece ao carregar no deck.`,'ok',4000);
+    return true;
+  },
+  async remover(id){
+    if(DJ.decks.some(d=>d.m?.id===id&&d.playing))return toast('Esta música está tocando em um deck.','warn');
+    DJ.decks.forEach(d=>{if(d.m?.id===id)d.unload()});
+    this.lista=this.lista.filter(x=>x.id!==id);await DB.del('audios',id).catch(()=>{});this.salvar();
+  },
+  async apagarDoEvento(evId){
+    const L=(await DB.cfg('dj_av_'+evId))||[];for(const m of L)await DB.del('audios',m.id).catch(()=>{});
+    await DB.del('config','dj_av_'+evId).catch(()=>{});if(this.evId===evId){this.lista=[];this.evId=null}
   }
 };
 function renderDjPill(soTempo){
@@ -3917,6 +4005,7 @@ function openSongForm(m=null,momentoId=null){
    AÇÕES: EVENTOS
    ========================================================= */
 async function selectEvent(id){
+  if(state.evento?.id!==id)Avulsas.evId=null;
   if(DJ.decks.length&&state.evento?.id!==id){DJ.mixing=null;DJ.decks.forEach(d=>d.unload());if(DJ.aberto)DJ.fechar();const el=$('#dj');el.dataset.ok='';el.innerHTML='';renderDjPill()}
   $('#admin').classList.toggle('sem-evento',!state.eventos.some(e=>e.id===id));
   Player.a.pause();Player.cur=null;
@@ -4266,6 +4355,7 @@ async function apagarEvento(ev,{nuvem=true,silencioso=false}={}){
     await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p));
   }
   await DB.del('eventos',ev.id);state.eventos=state.eventos.filter(e=>e.id!==ev.id);
+  await Avulsas.apagarDoEvento(ev.id);
   if(ev.gistId){const exc=new Set((await DB.cfg('excluidos'))||[]);exc.add(ev.gistId);await DB.setCfg('excluidos',[...exc])}
   if(nuvem&&ev.gistId&&state.token){
     try{
