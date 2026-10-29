@@ -1809,7 +1809,11 @@ function sorted(){
 const cueOf=m=>isCer()?(momentoDe(m)?.nome||m.momentoNome||'Sem momento'):m.titulo+(m.artista?' — '+m.artista:'');
 const descOf=m=>isCer()?[m.titulo,m.artista].filter(Boolean).join(' — '):`${m.turma} · ${m.professora}`;
 
-async function loadMusicas(){state.musicas=state.evento?await DB.byIndex('musicas','eventoId',state.evento.id):[]}
+async function loadMusicas(){
+  state.musicas=state.evento?await DB.byIndex('musicas','eventoId',state.evento.id):[];
+  /* corrige músicas por link que ficaram “baixando”/“erro” em versões anteriores */
+  for(const m of state.musicas)if(ehLink(m)&&linkTocavel(m.link)&&(m.status==='erro'||m.status==='baixando'))await prepararLink(m);
+}
 /* salvar marca a alteração com data/hora e agenda o envio para a nuvem (outros aparelhos) */
 async function saveEvento(ev,{remote=false}={}){
   const h=JSON.stringify(evSyncObj(ev));
@@ -1924,6 +1928,7 @@ async function processGist(ev,gist){
     };
     for(const[p,bl]of Object.entries(reuseParts))await DB.put('audios',bl,partKey(m.id,p));
     if(reuse){await DB.put('audios',reuse,m.id);const inf=await getMediaInfo(reuse);m.duracao=inf.dur;m.video=inf.video;if(!(await faltamPartes(m)))m.status='pronta'}
+    else if(ehLink(m))await prepararLink(m,{salvar:false});
     await saveMusica(m,{remote:true});known.add(m.id);novos.push(m);
   }
   if(evChanged){await saveEvento(ev);pushMeta(ev)}
@@ -1943,23 +1948,23 @@ async function faltamPartes(m){
   for(const p of PARTS){if(m.montagem?.[p]?.midia&&!(await DB.get('audios',partKey(m.id,p))))return true}
   return false;
 }
+/* músicas por link tocam online: nada é baixado (só eventuais arquivos da montagem) */
+const ehLink=m=>!!(m.link&&!m.audioGistId);
+async function prepararLink(m,{salvar=true}={}){
+  if(!linkTocavel(m.link)){m.status='erro';m.erro=linkAviso(m.link)}
+  else if(await faltamPartes(m)){m.status='baixando';m.erro=''}
+  else{m.status=m.status==='tocada'?'tocada':'pronta';m.erro='';m.offline=false}
+  if(salvar)await saveMusica(m,{remote:true});
+  return m.status;
+}
 async function baixarAudio(m){
-  if(baixando.has(m.id)||(!state.token&&!m.link))return;
+  if(ehLink(m)&&!m.montagem){await prepararLink(m);renderList();return}
+  if(baixando.has(m.id)||(!state.token&&!ehLink(m)))return;
   baixando.add(m.id);
   try{
     m.status='baixando';await saveMusica(m);renderList();
-    if(m.link&&!m.audioGistId&&!(await DB.get('audios',m.id))){
-      if(!linkTocavel(m.link))throw new Error(`Link do ${m.link.nome}: abra o link e baixe a música manualmente (a plataforma não permite tocar fora dela).`);
-      /* links diretos/Drive/Dropbox: tenta guardar uma cópia para tocar sem internet */
-      m.offline=false;
-      if(m.link.tipo==='stream'){
-        try{
-          const r=await fetch(m.link.src);if(!r.ok)throw 0;
-          const b=await r.blob();if(b.size<20000||!/^(audio|video|application\/octet-stream)/.test(b.type||'audio/'))throw 0;
-          const bl=b.type&&!/octet/.test(b.type)?b:new Blob([b],{type:/\.(mp4|m4v|mov|webm)(\?|$)/i.test(m.link.src)?'video/mp4':'audio/mpeg'});
-          await DB.put('audios',bl,m.id);const inf=await getMediaInfo(bl);m.duracao=inf.dur;m.video=inf.video;m.tamanho=bl.size;m.offline=true;
-        }catch{}
-      }
+    if(ehLink(m)){
+      if(!linkTocavel(m.link))throw new Error(linkAviso(m.link));
     }
     else if(!(await DB.get('audios',m.id))){
       if(!m.audioGistId)throw new Error('Arquivo principal não encontrado.');
@@ -1971,11 +1976,11 @@ async function baixarAudio(m){
       const md=m.montagem?.[p]?.midia;
       if(md&&!(await DB.get('audios',partKey(m.id,p)))){const b=await fetchAudioBlob(md.audioGistId,md.audioArquivo,md.mime,state.token);await DB.put('audios',b,partKey(m.id,p))}
     }
-    m.status='pronta';m.erro='';
+    m.status=m.status==='tocada'?'tocada':'pronta';if(m._eraTocada){m.status='tocada';delete m._eraTocada}m.erro='';
     await saveMusica(m);
   }catch(e){
     m.status='erro';m.erro=e.message;await saveMusica(m);
-    toast(`Falha ao baixar <b>${esc(m.titulo)}</b>: ${esc(e.message)}`,'err',6000);
+    toast(ehLink(m)?`<b>${esc(m.titulo)}</b>: ${esc(e.message)}`:`Falha ao baixar <b>${esc(m.titulo)}</b>: ${esc(e.message)}`,'err',7000);
   }finally{baixando.delete(m.id);renderList()}
 }
 function retomarDownloads(){state.musicas.filter(m=>m.status==='baixando'&&(m.origem==='link'||m.link||m.audioGistId)).forEach(baixarAudio)}
@@ -2565,7 +2570,7 @@ function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
     </div>
     <div class="meta">
       <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
-      ${m.link?`<span class="chip c-link" title="${m.offline?'Link baixado — toca sem internet':'Toca pela internet'}">${icon('link')}${esc(m.link.nome)}${m.offline?' · baixado':' · online'}</span>`:''}
+      ${m.link?`<span class="chip c-link" title="Toca pela internet, direto do ${esc(m.link.nome)}">${icon('link')}${esc(m.link.nome)} · online</span>`:''}
       ${m.video?`<span class="chip c-soft">${icon('video')}Vídeo</span>`:''}
       ${temMontagem(m)?`<span class="chip c-soft" title="Introdução, encerramento ou música de fundo">${icon('sparkle')}Montagem</span>`:''}
       ${m.posicaoSugerida&&!cer?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
@@ -2782,9 +2787,9 @@ function openSongMenu(m){
       ${hasAudio(m)?`<button data-m="play">${icon('play')}Tocar agora</button><button data-m="prep">${icon('next')}Preparar (carregar sem tocar)</button>`:''}
       <button data-m="edit">${icon('cut')}Editar / ajustar início e fim / trocar arquivo</button>
       ${m.status==='tocada'?`<button data-m="pend">${icon('refresh')}Marcar como “a tocar”</button>`:m.status==='pronta'?`<button data-m="done">${icon('check')}Marcar como tocada</button>`:''}
-      ${m.status==='erro'||(m.status==='baixando'&&!baixando.has(m.id))?`<button data-m="retry">${icon('refresh')}Tentar baixar novamente</button>`:''}
+      ${!ehLink(m)&&(m.status==='erro'||(m.status==='baixando'&&!baixando.has(m.id)))?`<button data-m="retry">${icon('refresh')}Tentar baixar novamente</button>`:''}
       ${m.link?`<button data-m="link">${icon('link')}Abrir o link original (${esc(m.link.nome)})</button>`:''}
-      ${hasAudio(m)&&!(m.link&&!m.offline)?`<button data-m="dl">${icon('download')}Baixar o arquivo</button>`:''}
+      ${hasAudio(m)&&!ehLink(m)?`<button data-m="dl">${icon('download')}Baixar o arquivo</button>`:''}
       <button data-m="del" class="danger">${icon('trash')}Excluir música</button>
     </div>
     ${m.erro&&m.status==='erro'?`<p class="err" style="margin-top:12px">${icon('alert')}${esc(m.erro)}</p>`:''}`,
@@ -2888,11 +2893,10 @@ function openSongForm(m=null,momentoId=null){
           x.audioGistId=null;x.audioArquivo=null;x.soLocal=false;
           if(x.status!=='tocada')x.status='pronta';x.erro='';
         }
-        let baixarDepois=false;
         if(af.link){
           await DB.del('audios',x.id);
           Object.assign(x,{link:af.link,audioGistId:null,audioArquivo:null,offline:false,soLocal:false,nomeArquivo:`Link do ${af.link.nome}`,tamanho:0,video:!!(af.isVideo||af.link.video),duracao:0});
-          x.status='baixando';baixarDepois=true;
+          if(!linkTocavel(af.link)){x.status='erro';x.erro=linkAviso(af.link)}else if(x.status!=='tocada'){x.status='pronta';x.erro=''}
         }else if(af.file){x.link=null;x.offline=false}
         if(useMv&&x.video!==false){
           const antiga=x.montagem;x.montagem=mv.values();const fs=mv.files();
@@ -2902,7 +2906,7 @@ function openSongForm(m=null,momentoId=null){
         await saveMusica(x);
         if(Player.cur?.id===x.id){if(Player.playing)Player.cur=x;else await Player.load(x,false)}
         close();renderList();Player.ui();toast(isNew?'Música adicionada.':'Alterações salvas.','ok');
-        if(baixarDepois)baixarAudio(x);
+
         if(ev.gistId&&state.token)subirManual(x);
       }catch(x){fail(x.message);btn.disabled=false}
     };
@@ -3094,8 +3098,9 @@ async function mergeEstado(ev,est){
     if(!m){
       if((!r.audioGistId&&!r.link)||r.soLocal)continue;
       m={id,eventoId:ev.id,...pick(r,M_SYNC),status:'baixando',duracao:0,atualizadoEm:r.atualizadoEm,recebidoEm:r.recebidoEm||agoraISO()};
-      m._tocada=!!r.tocada;
-      await saveMusica(m,{remote:true});baixar.push(m);mudou=true;continue;
+      if(ehLink(m)){await prepararLink(m,{salvar:false});if(r.tocada&&m.status==='pronta')m.status='tocada'}
+      else m._tocada=!!r.tocada;
+      await saveMusica(m,{remote:true});if(m.status==='baixando')baixar.push(m);mudou=true;continue;
     }
     if((r.atualizadoEm||'')<=(m.atualizadoEm||''))continue;
     const audioNovo=(r.audioGistId&&r.audioGistId!==m.audioGistId)||JSON.stringify(r.link||null)!==JSON.stringify(m.link||null);
@@ -3106,7 +3111,7 @@ async function mergeEstado(ev,est){
     if(!r.tocada&&m.status==='tocada')m.status='pronta';
     if(audioNovo){await DB.del('audios',m.id);m.status='baixando'}
     for(const p of partesNovas)await DB.del('audios',partKey(m.id,p));
-    if(audioNovo||partesNovas.length){m.status='baixando';baixar.push(m)}
+    if(audioNovo||partesNovas.length){m.status='baixando';if(ehLink(m))await prepararLink(m,{salvar:false});if(m.status==='baixando')baixar.push(m)}
     m._tocada=!!r.tocada;
     await saveMusica(m,{remote:true});mudou=true;
   }
