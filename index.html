@@ -247,7 +247,8 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .types-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px}
 
 /* ---------- Event type picker ---------- */
-.tipos{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tipos{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.tipos.tipos-reg{grid-template-columns:repeat(2,1fr)}
 .tipo{position:relative;cursor:pointer}
 .tipo input{position:absolute;opacity:0;pointer-events:none}
 .tipo>span{display:flex;flex-direction:column;gap:4px;height:100%;padding:14px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);transition:border-color .15s,background .15s}
@@ -1104,12 +1105,20 @@ function setProg(el,p,txt){el.hidden=false;$('.bar',el).style.width=Math.round(p
 const TIPOS={
   escolar:{nome:'Evento escolar',desc:'Jogos internos, festas e apresentações por turma',icon:'school',cer:false},
   quinze:{nome:'15 anos',desc:'Entrada, homenagens, valsas…',icon:'crown',cer:true,quem:'a debutante',de:'da debutante',hom:'Nome da debutante',ph:'Ex.: Maria Clara',auto:h=>`15 anos de ${h}`,
-    tpl:['Entrada da debutante','Homenagem aos pais','Homenagem aos avós','Homenagem aos padrinhos','Troca do sapato','Valsa com o pai','Valsa com o padrinho','Valsa com os príncipes','Parabéns e corte do bolo','Abertura da pista']},
-  casamento:{nome:'Casamento',desc:'Cerimônia e recepção',icon:'heart',cer:true,quem:'os noivos',de:'dos noivos',hom:'Nome dos noivos',ph:'Ex.: Ana & Pedro',auto:h=>`Casamento de ${h}`,
-    tpl:['Entrada dos padrinhos','Entrada do noivo','Entrada das daminhas e pajens','Entrada da noiva','Entrada das alianças','Assinaturas','Saída dos noivos','Entrada na recepção','Primeira dança']},
+    tpl:['Entrada da debutante','Homenagem aos pais','Homenagem aos avós','Homenagem aos padrinhos','Troca do sapato','Valsa com o pai','Valsa com o padrinho','Valsa com os príncipes','Parabéns e corte do bolo','Abertura da pista'],
+    sug:['Agradecimentos','Brinde','Vela dos 15 anos','Entrega da coroa']},
+  casamento:{nome:'Casamento (cerimônia e recepção)',curto:'Casamento',desc:'Cerimônia completa + recepção',icon:'heart',cer:true,quem:'os noivos',de:'dos noivos',hom:'Nome dos noivos',ph:'Ex.: Ana & Pedro',auto:h=>`Casamento de ${h}`,
+    tpl:['Entrada dos padrinhos','Entrada do noivo','Entrada das daminhas e pajens','Entrada da noiva','Entrada das alianças','Assinaturas','Saída dos noivos','Entrada na recepção','Primeira dança'],
+    sug:['Homenagem aos pais','Agradecimentos','Brinde','Corte do bolo','Jogar o buquê','Abertura da pista']},
+  casamento_rec:{nome:'Casamento (recepção)',curto:'Casamento',desc:'Só a festa: entrada dos noivos, valsa…',icon:'heart',cer:true,quem:'os noivos',de:'dos noivos',hom:'Nome dos noivos',ph:'Ex.: Ana & Pedro',auto:h=>`Casamento de ${h}`,
+    tpl:['Entrada dos noivos','Valsa dos noivos'],
+    sug:['Homenagem aos pais','Homenagem aos padrinhos','Homenagem aos avós','Agradecimentos','Brinde','Corte do bolo','Jogar o buquê','Abertura da pista']},
   cerimonial:{nome:'Outro cerimonial',desc:'Formatura, bodas, aniversários…',icon:'sparkle',cer:true,quem:'o cliente',de:'do cliente',hom:'Homenageado(s)',ph:'Ex.: Formandos 2026',auto:h=>h,
-    tpl:['Abertura','Entrada dos homenageados','Homenagem','Momento especial','Encerramento']}
+    tpl:['Abertura','Entrada dos homenageados','Homenagem','Momento especial','Encerramento'],
+    sug:['Agradecimentos','Brinde','Abertura da pista']}
 };
+/* lista para marcar no cadastro: momentos padrão já marcados + sugestões desmarcadas */
+const momentosModelo=t=>[...(t.tpl||[]).map(n=>({n,on:true})),...(t.sug||[]).filter(n=>!(t.tpl||[]).includes(n)).map(n=>({n,on:false}))];
 const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
 
 /* =========================================================
@@ -2703,7 +2712,7 @@ const Stage={
 /* =========================================================
    RENDERIZAÇÃO (organizador)
    ========================================================= */
-const TIPO_EMOJI={escolar:'🏫',quinze:'👑',casamento:'💍',cerimonial:'✨'};
+const TIPO_EMOJI={escolar:'🏫',quinze:'👑',casamento:'💍',casamento_rec:'💍',cerimonial:'✨'};
 const hojeISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const diasAte=d=>{if(!d)return null;const[y,m,dd]=d.split('-').map(Number);const a=new Date(y,m-1,dd),h=new Date();h.setHours(0,0,0,0);return Math.round((a-h)/864e5)};
 function quando(d){
@@ -3080,7 +3089,7 @@ function openCronograma(){
         <button type="button" class="btn icon ghost sm danger" data-c="del" data-i="${i}" aria-label="Remover">${icon('trash')}</button></li>`).join('')
         :'<li class="muted" style="justify-content:center;padding:14px">Nenhum momento. Adicione abaixo ou use as sugestões.</li>';
       const names=new Set(list.map(m=>m.nome.trim().toLowerCase()));
-      const sug=(t.tpl||[]).filter(n=>!names.has(n.toLowerCase()));
+      const sug=[...new Set([...(t.tpl||[]),...(t.sug||[])])].filter(n=>!names.has(n.toLowerCase()));
       $('#cronSug',md).innerHTML=sug.length?`<p class="muted" style="font-size:.85rem;margin-bottom:8px">Sugestões para ${t.nome.toLowerCase()}:</p><div class="chips">${sug.map(n=>`<button type="button" data-sg="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>`:'';
     };
     draw();
@@ -3284,7 +3293,7 @@ function openEventForm(ev=null){
       f.elements.nome.placeholder=t.cer?(t.auto('…')+' (opcional, preenche sozinho)'):'Ex.: Abertura dos Jogos Internos 2026';
       const needTpl=t.cer&&(isNew||!(ev.momentos||[]).length);
       $('#efTpl',md).hidden=!needTpl;
-      if(needTpl)$('#efTplL',md).innerHTML=t.tpl.map((n,i)=>`<label class="chk"><input type="checkbox" value="${esc(n)}" checked> ${esc(n)}</label>`).join('');
+      if(needTpl)$('#efTplL',md).innerHTML=momentosModelo(t).map(({n,on})=>`<label class="chk"><input type="checkbox" value="${esc(n)}" ${on?'checked':''}><span>${esc(n)}${on?'':' <span class="hint">(opcional)</span>'}</span></label>`).join('');
     };
     f.addEventListener('change',e=>{if(e.target.name==='tipo')upd()});upd();
     f.onsubmit=async e=>{
@@ -4403,7 +4412,7 @@ async function initReg(P){
     <div class="prof-hero"><span class="logo xl rose" data-brand-logo="sparkle">${icon('sparkle')}</span><div class="brand-cap" data-brand-name></div><span class="eyebrow">Cadastro de evento</span><h1>Cadastre o seu evento</h1><p class="muted">Depois do cadastro você envia a música (ou vídeo) de cada momento e marca exatamente onde ela começa e termina.</p></div>
     ${saved.length?`<div class="meus"><p class="muted" style="font-size:.88rem">Eventos que você já cadastrou neste aparelho:</p>${saved.map(x=>`<a href="${esc(x.link)}">${icon('heart')}<span><b>${esc(x.nome)}</b><small>${x.data?esc(x.data.split('-').reverse().join('/')):''} · continuar enviando músicas</small></span>${icon('next')}</a>`).join('')}</div>`:''}
     <form id="rgF" class="card prof-card stack" novalidate>
-      <div class="field"><span>Tipo de evento *</span><div class="tipos" style="grid-template-columns:repeat(3,1fr)">${['quinze','casamento','cerimonial'].map(k=>{const t=TIPOS[k];return`<label class="tipo"><input type="radio" name="tipo" value="${k}" ${k==='quinze'?'checked':''}><span>${icon(t.icon)}<b>${t.nome}</b><small>${t.desc}</small></span></label>`}).join('')}</div></div>
+      <div class="field"><span>Tipo de evento *</span><div class="tipos tipos-reg">${['quinze','casamento','casamento_rec','cerimonial'].map(k=>{const t=TIPOS[k];return`<label class="tipo"><input type="radio" name="tipo" value="${k}" ${k==='quinze'?'checked':''}><span>${icon(t.icon)}<b>${t.nome}</b><small>${t.desc}</small></span></label>`}).join('')}</div></div>
       <label class="field"><span id="rgHomL">Nome da debutante *</span><input name="hom" autocomplete="off"></label>
       <div class="grid2">
         <label class="field"><span>Data do evento *</span><input type="date" name="data"></label>
@@ -4429,8 +4438,10 @@ async function initReg(P){
   const drawMoms=()=>{
     const t=TIPOS[f.elements.tipo.value];
     $('#rgHomL').textContent=t.hom+' *';f.elements.hom.placeholder=t.ph;
-    const prev=new Map($$('#rgMoms input').map(i=>[i.value,i.checked]));
-    $('#rgMoms').innerHTML=[...t.tpl,...extras].map(n=>`<label class="chk"><input type="checkbox" value="${esc(n)}" ${prev.has(n)?(prev.get(n)?'checked':''):'checked'}> ${esc(n)}</label>`).join('');
+    /* ao trocar de tipo, recomeça a lista daquele tipo (mantém só os momentos que o cliente acrescentou) */
+    const mudouTipo=drawMoms._tipo!==f.elements.tipo.value;drawMoms._tipo=f.elements.tipo.value;
+    const prev=mudouTipo?new Map(extras.map(n=>[n,true])):new Map($$('#rgMoms input').map(i=>[i.value,i.checked]));
+    $('#rgMoms').innerHTML=[...momentosModelo(t),...extras.map(n=>({n,on:true}))].map(({n,on})=>`<label class="chk"><input type="checkbox" value="${esc(n)}" ${prev.has(n)?(prev.get(n)?'checked':''):(on?'checked':'')}><span>${esc(n)}${on?'':' <span class="hint">(opcional)</span>'}</span></label>`).join('');
   };
   f.addEventListener('change',e=>{if(e.target.name==='tipo')drawMoms()});drawMoms();
   const add=()=>{const i=$('#rgNew');const v=i.value.trim();if(!v)return;extras.push(v);i.value='';drawMoms()};
