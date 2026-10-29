@@ -491,6 +491,16 @@ body.dj-on{overflow:hidden}
 .dk-rem small{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}
 .dk-wave{position:relative;height:84px;border-radius:12px;overflow:hidden;cursor:pointer;touch-action:none}
 .dk-wave canvas{width:100%;height:100%;display:block}
+.dk-ext{position:absolute;inset:0;display:none;background:#000}
+.deck.has-ext .dk-ext{display:block}
+.deck.has-ext .dk-wave{height:220px}
+.deck.has-ext .dk-wave canvas{display:none}
+.dk-ext .ext-media,.dk-ext .ext-in{position:absolute;inset:0}
+.dk-ext iframe{position:absolute;inset:0;width:100%!important;height:100%!important;border:0}
+.dk-alert{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.45);font-size:.86rem}
+.dk-alert .ic{width:18px;height:18px;color:var(--warn);flex:none}
+.dk-alert span{flex:1;min-width:0}
+#dj.dj-min{left:-300vw;right:auto;width:100vw;pointer-events:none;opacity:0}
 .dk-load{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.35);color:#fff;font-weight:600;font-size:.9rem}
 .dk-mid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:stretch}
 .dk-eq{display:flex;flex-direction:column;gap:8px;justify-content:center}
@@ -1789,22 +1799,41 @@ class ExtMedia extends EventTarget{
     const pronto=()=>window.YT&&window.YT.Player;
     const apiOk=new Promise(r=>{if(pronto())return r();const prev=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{prev&&prev();r()};const c=setInterval(()=>{if(pronto()){clearInterval(c);r()}},150)});
     await loadScript('https://www.youtube.com/iframe_api',pronto);await apiOk;
+    /* volume: confere o valor REAL do YouTube e corrige sempre que estiver diferente
+       (o YouTube ignora comandos antes de começar e guarda o último volume usado) */
+    this._want=100;this._tent=0;
+    this._aplVol=()=>{
+      const p=this.p;if(!p?.setVolume)return;
+      try{
+        const real=p.getVolume?.();
+        if(typeof real!=='number'||Math.abs(real-this._want)>1)p.setVolume(this._want);
+        if(!this.mutedInit&&this._want>0&&p.isMuted?.())p.unMute();
+      }catch{}
+    };
     await new Promise((res,rej)=>{
       const to=setTimeout(()=>rej(new Error('O YouTube demorou para responder. Verifique a internet.')),20000);
       this.p=new YT.Player(this.inner,{videoId:i.id,width:'100%',height:'100%',
         playerVars:{controls:this.controls?1:0,disablekb:this.controls?0:1,modestbranding:1,rel:0,playsinline:1,iv_load_policy:3,fs:0,start:Math.floor(this._pend??0)},
         events:{
-          onReady:()=>{clearTimeout(to);if(this.mutedInit)this.p.mute();this._meta(this.p.getDuration());try{this.titulo=this.p.getVideoData?.().title||''}catch{}res()},
+          onReady:()=>{clearTimeout(to);if(this.mutedInit)this.p.mute();else{try{this.p.unMute()}catch{}}this._meta(this.p.getDuration());try{this.titulo=this.p.getVideoData?.().title||''}catch{}this._aplVol();res()},
           onStateChange:e=>{
             const s=e.data,t=this.p.getCurrentTime?.()??this._t;this._meta(this.p.getDuration?.());
+            if(s===1||s===3||s===5)this._aplVol();
+            if(s===1){this._pedido=0;this._emit('liberado')}
             if(s===1)this._pos(t,true);else if(s===2||s===5)this._pos(t,false);else if(s===0)this._fim();else this._pos(t);
             if(this._seeking&&s!==3){this._seeking=false;this._emit('seeked')}
           },
           onError:e=>{clearTimeout(to);const c=e.data;this.erro=[101,150,153].includes(c)?'O dono deste vídeo não permite que ele toque fora do YouTube. Peça o arquivo ou outro link.':(c===100?'Vídeo do YouTube não encontrado (removido ou privado).':'Erro do YouTube ('+c+').');this._emit('error');rej(new Error(this.erro))}
         }});
     });
-    this._sync=setInterval(()=>{if(this._play&&this.p?.getCurrentTime)this._pos(this.p.getCurrentTime())},200);
-    this._play_=()=>this.p.playVideo();
+    this._sync=setInterval(()=>{
+      if(this._play&&this.p?.getCurrentTime){this._pos(this.p.getCurrentTime());this._aplVol();
+        /* tocando, mas o navegador manteve mudo (precisa de um toque no vídeo) */
+        if(!this.mutedInit&&this._want>0&&this.p.isMuted?.()){if(++this._tent===8)this._emit('mudo')}else this._tent=0}
+      /* pediu para tocar e não começou (bloqueio do navegador ou anúncio esperando clique) */
+      if(this._pedido&&!this._play&&performance.now()-this._pedido>4000){this._pedido=0;if(this.p?.getPlayerState?.()!==1)this._emit('bloqueado')}
+    },200);
+    this._play_=()=>{this._pedido=performance.now();try{if(!this.mutedInit)this.p.unMute()}catch{}this.p.playVideo();this._aplVol()};
     this._pause_=()=>this.p.pauseVideo();
     this._seek_=t=>{
       this._seeking=true;this._pos(t);
@@ -1812,11 +1841,7 @@ class ExtMedia extends EventTarget{
       else this.p.seekTo(t,true);
       setTimeout(()=>{if(this._seeking){this._seeking=false;this._emit('seeked')}},350);
     };
-    this._setVol=v=>{
-      const n=Math.max(0,Math.min(100,Math.round(v*100)));
-      if(n!==this._ytv){this._ytv=n;this.p.setVolume(n)}
-      if(!this.mutedInit&&this.p.isMuted?.())this.p.unMute();
-    };
+    this._setVol=v=>{this._want=Math.max(0,Math.min(100,Math.round(v*100)));this._aplVol()};
     this._destroy=()=>this.p.destroy();
   }
   /* ---- Vimeo ---- */
@@ -3092,8 +3117,13 @@ class Deck{
         const ctx=this.dj.ensureCtx();if(ctx)calcPeaks(m.id,blob,ctx).then(w=>{if(this.m?.id===m.id){this.wave=w;this.dj.drawWave(this,true);this.dj.mostrarGanho(this);this.dj.aplicarGanhos()}});
       }else if(m.link&&linkTocavel(m.link)){
         if(!navigator.onLine)throw new Error('Sem internet: esta música é um link.');
-        this.ext=new ExtMedia(m.link,{mount:$('#extHold')});
+        const box=$(`#dj [data-deck=${this.id}] .dk-ext`);
+        this.ext=new ExtMedia(m.link,{mount:box||$('#extHold')});
+        $(`#dj [data-deck=${this.id}]`)?.classList.add('has-ext');
         this.ext.addEventListener('ended',()=>this.fim());
+        this.ext.addEventListener('mudo',()=>this.dj.alertaSom(this,'mudo'));
+        this.ext.addEventListener('bloqueado',()=>this.dj.alertaSom(this,'bloqueado'));
+        this.ext.addEventListener('liberado',()=>this.dj.alertaSom(this,null));
         await new Promise((r,j)=>{let ok=false;this.ext.addEventListener('loadedmetadata',()=>{ok=true;r()});this.ext.addEventListener('error',()=>j(new Error(this.ext.erro||'Não foi possível abrir o link.')));setTimeout(()=>ok||r(),20000)});
         if(m.avulsa&&this.ext.titulo&&m.semTitulo){m.titulo=this.ext.titulo;m.semTitulo=false;Avulsas.salvar()}
       }else throw new Error('O arquivo desta música ainda não está disponível.');
@@ -3104,6 +3134,7 @@ class Deck{
   unload(){
     try{this.media.pause()}catch{}
     if(this.ext){this.ext.destroy();this.ext=null}
+    $(`#dj [data-deck=${this.id}]`)?.classList.remove('has-ext');this.dj?.alertaSom?.(this,null);
     if(this.url){URL.revokeObjectURL(this.url);this.url=null}
     this.el.removeAttribute('src');this.el.load();this.m=null;this.wave=null;this.k=1;
   }
@@ -3222,13 +3253,16 @@ const DJ={
     this.init();
     if(!state.evento)return toast('Selecione um evento primeiro.','warn');
     if(Player.playing){Player.pauseAll();toast('O player principal foi pausado para usar os decks.','info',3500)}
-    const el=$('#dj');el.hidden=false;this.aberto=true;document.body.classList.add('dj-on');
+    const el=$('#dj');el.hidden=false;el.classList.remove('dj-min');this.aberto=true;document.body.classList.add('dj-on');
+    this.montar();
     Avulsas.carregar().then(()=>this.render());
     if(!this.A.m&&!this.B.m){const L=this.lista();const n1=L.find(m=>m.status!=='tocada')||L[0];if(n1){this.A.load(n1).then(()=>{const n2=this.proxima(n1.id);if(n2)this.B.load(n2)})}}
-    this.montar();this.render();this.loop();
+    this.render();this.loop();
   },
   fechar(){
-    $('#dj').hidden=true;this.aberto=false;document.body.classList.remove('dj-on');
+    /* não esconde de verdade: vídeos do YouTube escondidos podem ser pausados pelo navegador */
+    const el=$('#dj');if(this.tocando()&&this.decks.some(d=>d.ext))el.classList.add('dj-min');else el.hidden=true;
+    this.aberto=false;document.body.classList.remove('dj-on');
     if(this.tocando())toast('Os decks continuam tocando. Toque em <b>DJ ao vivo</b> para voltar.','info',5000);
     renderDjPill();
   },
@@ -3236,7 +3270,8 @@ const DJ={
     const el=$('#dj');if(el.dataset.ok)return;el.dataset.ok='1';
     const deckHTML=id=>`<section class="deck deck-${id}" data-deck="${id}">
       <div class="dk-top"><span class="dk-id">${id}</span><div class="dk-tt"><strong data-f="tt">Vazio</strong><small data-f="st">Carregue uma música da lista</small></div><div class="dk-rem"><b data-f="rem">-0:00</b><small data-f="el">0:00 / 0:00</small></div></div>
-      <div class="dk-wave"><canvas></canvas><div class="dk-load" data-f="ld" hidden>Carregando…</div></div>
+      <div class="dk-wave"><canvas></canvas><div class="dk-ext"></div><div class="dk-load" data-f="ld" hidden>Carregando…</div></div>
+      <div class="dk-alert" data-f="al" hidden></div>
       <div class="dk-mid">
         <div class="dk-eq">${[['hi','AGUDOS'],['mid','MÉDIOS'],['lo','GRAVES']].map(([k,l])=>`<label class="knob" title="Duplo clique: corta/volta esta faixa"><input type="range" min="-24" max="6" step="1" value="0" data-eq="${k}" class="eq-r"><span>${l}</span></label>`).join('')}</div>
         <div class="dk-pitch dk-gain"><span>GANHO</span><input type="range" min="-12" max="12" step="0.5" value="0" data-trim class="pitch-r" title="Ganho do deck em dB. Duplo clique: volta a 0"><b data-f="gn">0 dB</b><small data-f="ga"></small></div>
@@ -3324,6 +3359,15 @@ const DJ={
     $('#djTv').onclick=()=>Telao.toggle();
     window.addEventListener('resize',()=>{if(this.aberto)this.decks.forEach(d=>this.drawWave(d,true))});
     try{const ml=+localStorage.getItem('palco_mixlen');if(ml)this.mixLen=ml;$$('#djLen button').forEach(x=>x.classList.toggle('on',+x.dataset.len===this.mixLen))}catch{}
+  },
+  /* aviso quando o YouTube não libera o som (navegador exige um toque no vídeo) */
+  alertaSom(d,tipo){
+    const s=$(`#dj [data-deck=${d.id}]`);if(!s)return;const a=$('[data-f=al]',s);if(!a)return;
+    if(!tipo){a.hidden=true;return}
+    a.hidden=false;
+    a.innerHTML=`${icon('alert')}<span>${tipo==='mudo'?'O navegador deixou o YouTube <b>sem som</b>.':'O YouTube <b>não começou a tocar</b> (bloqueio do navegador ou anúncio).'} Toque em <b>Liberar som</b> ou toque direto no vídeo.</span><button class="btn sm primary" type="button">Liberar som</button>`;
+    $('button',a).onclick=()=>{try{d.ext?.p?.unMute?.();d.ext?.p?.setVolume?.(Math.max(1,d.ext._want??100));d.ext?.p?.playVideo?.()}catch{}d.play();setTimeout(()=>{if(d.ext&&!d.ext.p?.isMuted?.()&&d.playing)a.hidden=true},800)};
+    if(this.aberto)toast(`Deck ${d.id}: ${tipo==='mudo'?'YouTube sem som':'YouTube não iniciou'} — toque em “Liberar som”.`,'warn',6000);
   },
   mostrarGanho(d){
     const s=$(`#dj [data-deck=${d.id}]`);if(!s)return;
@@ -3443,7 +3487,7 @@ const Avulsas={
 };
 function renderDjPill(soTempo){
   const p=$('#djPill');if(!p)return;
-  const on=DJ.tocando?.()&&!DJ.aberto;p.hidden=!on;if(!on)return;
+  const on=DJ.tocando?.()&&!DJ.aberto;p.hidden=!on;if(!on){const el=$('#dj');if(!DJ.aberto&&el?.classList.contains('dj-min')&&!DJ.tocando?.()){el.classList.remove('dj-min');el.hidden=true}return}
   const d=DJ.decks.find(x=>x.playing&&DJ.xfGain(x)>=.5)||DJ.decks.find(x=>x.playing);
   if(!soTempo||!p.dataset.id||p.dataset.id!==d?.m?.id){p.dataset.id=d?.m?.id||'';$('b',p).textContent=d?.m?.titulo||'Decks'}
   $('small',p).textContent=d?'-'+fmt(d.rem):'';
@@ -4042,7 +4086,7 @@ function openSongForm(m=null,momentoId=null){
    ========================================================= */
 async function selectEvent(id){
   if(state.evento?.id!==id)Avulsas.evId=null;
-  if(DJ.decks.length&&state.evento?.id!==id){DJ.mixing=null;DJ.decks.forEach(d=>d.unload());if(DJ.aberto)DJ.fechar();const el=$('#dj');el.dataset.ok='';el.innerHTML='';renderDjPill()}
+  if(DJ.decks.length&&state.evento?.id!==id){DJ.mixing=null;DJ.decks.forEach(d=>d.unload());if(DJ.aberto)DJ.fechar();const el=$('#dj');el.dataset.ok='';el.innerHTML='';el.hidden=true;el.classList.remove('dj-min');renderDjPill()}
   $('#admin').classList.toggle('sem-evento',!state.eventos.some(e=>e.id===id));
   Player.a.pause();Player.cur=null;
   state.evento=state.eventos.find(e=>e.id===id)||null;
