@@ -105,6 +105,9 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .evpick-ic .ic{width:18px;height:18px}
 .evpick-txt{display:flex;flex-direction:column;min-width:0;flex:1}
 .evpick-txt small{font-size:.66rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);font-weight:600;line-height:1.2}
+.evpick{font:inherit;color:inherit;text-align:left}
+.evpick-txt strong{font-size:.98rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:22px;line-height:1.3}
+.evpick-count{font-size:.72rem;font-weight:700;color:var(--muted);background:rgba(255,255,255,.07);border-radius:999px;padding:3px 8px;margin-right:22px;flex:none}
 .evpick select{appearance:none;-webkit-appearance:none;border:0!important;background:transparent!important;box-shadow:none!important;padding:0 22px 0 0;min-height:0;height:24px;font-size:.98rem;font-weight:600;color:var(--text);cursor:pointer;width:100%;text-overflow:ellipsis}
 .evpick select:disabled{color:var(--muted);cursor:default}
 .evpick select option{background:#161930;color:var(--text)}
@@ -520,6 +523,29 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 .st-video.slot{display:block;aspect-ratio:16/9;max-height:56vh}
 .c-link{background:rgba(79,140,255,.15);color:#8fb4ff}
 
+/* ---------- Central de eventos ---------- */
+.evc-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.evc-top .search{flex:1;min-width:200px}
+.evc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:min(58vh,560px);overflow:auto;padding-right:2px}
+.evc{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);cursor:pointer;transition:border-color .15s,background .15s,transform .1s;text-align:left;width:100%;font:inherit;color:inherit}
+.evc:hover{border-color:#3d4380;background:#222749}
+.evc:active{transform:scale(.995)}
+.evc.cur{border-color:var(--accent);background:linear-gradient(90deg,rgba(var(--accent-rgb),.1),transparent 70%),var(--surface2)}
+.evc-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.13);color:var(--accent2);flex:none}
+.evc-ic .ic{width:22px;height:22px}
+.evc-b{flex:1;min-width:0}
+.evc-b strong{display:block;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evc-b small{display:block;color:var(--muted);font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.evc-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;text-align:right}
+.evc-when{font-size:.78rem;font-weight:700;color:var(--muted);white-space:nowrap}
+.evc-when.hoje{color:var(--ok)}.evc-when.breve{color:var(--accent)}
+.evc-sec{font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);font-weight:700;margin:10px 4px 2px}
+.evc-sec:first-child{margin-top:0}
+.chip.c-uso{background:rgba(var(--accent-rgb),.16);color:var(--accent2)}
+.chip.c-uso .ic{width:13px;height:13px;stroke-width:3}
+@media (max-width:720px){.evc{padding:10px 12px;gap:10px}.evc-ic{width:38px;height:38px}.evc-r .chip{display:none}.evc-list{max-height:none}}
+
 /* ---------- Responsive ---------- */
 @media (max-width:1280px){
   .tb-ico span{display:none}
@@ -683,11 +709,13 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
         <span class="brand-txt"><strong id="brandName">Palco Musical</strong><small id="brandSub">Eventos escolares, 15 anos e casamentos</small></span>
       </div>
       <div class="tb-ev">
-        <label class="evpick" title="Trocar de evento">
-          <span class="evpick-ic"><svg class="ic"><use href="#i-list"/></svg></span>
-          <span class="evpick-txt"><small>Evento</small><select id="evSel" aria-label="Evento selecionado"></select></span>
+        <button type="button" class="evpick" id="evBtn" title="Ver todos os eventos e trocar (tecla E)" aria-haspopup="dialog">
+          <span class="evpick-ic" id="evBtnIc"><svg class="ic"><use href="#i-list"/></svg></span>
+          <span class="evpick-txt"><small id="evBtnLbl">Evento</small><strong id="evBtnName">Nenhum evento</strong></span>
+          <span class="evpick-count" id="evBtnCount" hidden></span>
           <svg class="ic evpick-chev"><use href="#i-down"/></svg>
-        </label>
+        </button>
+        <select id="evSel" aria-hidden="true" tabindex="-1" hidden></select>
         <button class="btn primary tb-new" id="btnNovoEv" title="Criar um novo evento"><svg class="ic"><use href="#i-plus"/></svg><span>Novo evento</span></button>
       </div>
       <div class="tb-act">
@@ -2519,13 +2547,90 @@ const Stage={
 /* =========================================================
    RENDERIZAÇÃO (organizador)
    ========================================================= */
+const TIPO_EMOJI={escolar:'🏫',quinze:'👑',casamento:'💍',cerimonial:'✨'};
+const hojeISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const diasAte=d=>{if(!d)return null;const[y,m,dd]=d.split('-').map(Number);const a=new Date(y,m-1,dd),h=new Date();h.setHours(0,0,0,0);return Math.round((a-h)/864e5)};
+function quando(d){
+  const n=diasAte(d);if(n==null)return{t:'Sem data',c:''};
+  if(n===0)return{t:'Hoje',c:'hoje'};if(n===1)return{t:'Amanhã',c:'breve'};
+  if(n>1&&n<=7)return{t:`Em ${n} dias`,c:'breve'};if(n>7)return{t:d.split('-').reverse().join('/'),c:''};
+  if(n===-1)return{t:'Ontem',c:''};return{t:`Há ${-n} dias`,c:''};
+}
+/* ordem: hoje e próximos (mais perto primeiro) → sem data → passados (mais recente primeiro) */
+function ordenarEventos(list){
+  const h=hojeISO();
+  const grp=e=>!e.data?1:(e.data>=h?0:2);
+  return[...list].sort((a,b)=>grp(a)-grp(b)||(grp(a)===0?a.data.localeCompare(b.data):grp(a)===2?b.data.localeCompare(a.data):String(b.criadoEm).localeCompare(String(a.criadoEm))));
+}
 function renderEvSel(){
   const s=$('#evSel');
-  if(!state.eventos.length){s.innerHTML='<option value="">Nenhum evento criado</option>';s.disabled=true;return}
-  s.disabled=false;
-  const evs=[...state.eventos].sort((a,b)=>String(b.data||b.criadoEm).localeCompare(String(a.data||a.criadoEm)));
-  const pre={escolar:'🏫',quinze:'👑',casamento:'💍',cerimonial:'✨'};
-  s.innerHTML=evs.map(e=>`<option value="${e.id}" ${e.id===state.evento?.id?'selected':''}>${pre[e.tipo||'escolar']||''} ${esc(e.nome)}${e.data?' · '+e.data.split('-').reverse().join('/'):''}</option>`).join('');
+  const evs=ordenarEventos(state.eventos);
+  s.innerHTML=evs.map(e=>`<option value="${e.id}" ${e.id===state.evento?.id?'selected':''}>${esc(e.nome)}</option>`).join('');
+  const ev=state.evento,btn=$('#evBtn');
+  $('#evBtnName').textContent=ev?ev.nome:(evs.length?'Selecionar evento':'Nenhum evento');
+  $('#evBtnLbl').textContent=ev?(ev.data?`Evento · ${quando(ev.data).t}`:'Evento'):`${evs.length} evento${evs.length===1?'':'s'}`;
+  $('#evBtnIc').innerHTML=icon(ev?tipoDe(ev).icon:'list');
+  const c=$('#evBtnCount');c.hidden=evs.length<2;c.textContent=evs.length;c.title=`${evs.length} eventos cadastrados`;
+  btn.title=evs.length?'Ver todos os eventos e trocar (tecla E)':'Criar o primeiro evento';
+}
+async function openEventos(){
+  if(!state.eventos.length)return openEventForm();
+  const todas=await DB.all('musicas');
+  const cont={};for(const m of todas){const c=cont[m.eventoId]||(cont[m.eventoId]={n:0,ok:0,toc:0});c.n++;if(m.status==='pronta')c.ok++;if(m.status==='tocada')c.toc++}
+  let filtro='prox',q='';
+  openModal(`${modalHead('Eventos',`${state.eventos.length} evento${state.eventos.length===1?'':'s'} cadastrado${state.eventos.length===1?'':'s'}. Escolha o evento que vai trabalhar agora.`)}
+    <div class="evc-top">
+      <div class="search">${icon('search')}<input type="search" id="evcQ" placeholder="Buscar por nome, homenageado, local ou cliente" aria-label="Buscar eventos"></div>
+      <div class="seg" id="evcF"><button data-f="prox" class="on">Próximos</button><button data-f="pass">Passados</button><button data-f="todos">Todos</button></div>
+    </div>
+    <ul class="evc-list" id="evcL"></ul>
+    <div class="modal-f" style="justify-content:space-between">
+      <button type="button" class="btn" id="evcReg">${icon('link')}Link de cadastro p/ clientes</button>
+      <button type="button" class="btn primary" id="evcNew">${icon('plus')}Novo evento</button>
+    </div>`,
+  {wide:true,onMount:(md,close)=>{
+    const h=hojeISO();
+    const draw=()=>{
+      let evs=ordenarEventos(state.eventos);
+      if(filtro==='prox')evs=evs.filter(e=>!e.data||e.data>=h);
+      if(filtro==='pass')evs=evs.filter(e=>e.data&&e.data<h);
+      const t=q.trim().toLowerCase();
+      if(t)evs=evs.filter(e=>[e.nome,e.homenageados,e.local,e.cliente?.nome,tipoDe(e).nome].join(' ').toLowerCase().includes(t));
+      if(!evs.length){$('#evcL',md).innerHTML=`<li class="empty" style="padding:30px">${icon('search')}<h3>Nenhum evento aqui</h3><p>${filtro==='prox'&&!t?'Não há eventos futuros. Veja “Passados” ou “Todos”.':'Ajuste a busca ou o filtro.'}</p></li>`;return}
+      let sec='';
+      $('#evcL',md).innerHTML=evs.map(e=>{
+        const g=!e.data?'Sem data':(e.data>=h?'Próximos':'Passados');
+        const head=filtro==='todos'&&g!==sec?`<li class="evc-sec">${(sec=g)}</li>`:'';
+        const c=cont[e.id]||{n:0,ok:0,toc:0},w=quando(e.data),tp=tipoDe(e);
+        const moms=(e.momentos||[]).length;
+        const info=[e.data?fmtDate(e.data):'',e.local].filter(Boolean).join(' · ')||tp.nome;
+        return head+`<li><button type="button" class="evc ${e.id===state.evento?.id?'cur':''}" data-ev="${e.id}">
+          <span class="evc-ic">${icon(tp.icon)}</span>
+          <span class="evc-b"><strong>${esc(e.nome)}</strong><small>${esc(info)}</small>
+            <span class="evc-chips">
+              <span class="chip">${c.n} música${c.n===1?'':'s'}${tp.cer&&moms?` · ${moms} momentos`:''}</span>
+              ${c.toc?`<span class="chip c-tocada">${c.toc} tocada${c.toc===1?'':'s'}</span>`:''}
+              ${e.gistId?`<span class="chip c-pronta">Recebendo por link</span>`:`<span class="chip c-soft">Só neste aparelho</span>`}
+              ${e.origemCliente?`<span class="chip c-soft">Cadastrado pelo cliente</span>`:''}
+            </span></span>
+          <span class="evc-r"><span class="evc-when ${w.c}">${esc(w.t)}</span>${e.id===state.evento?.id?`<span class="chip c-uso">${icon('check')}Em uso</span>`:''}</span>
+        </button></li>`}).join('');
+    };
+    if(!state.eventos.some(e=>!e.data||e.data>=h)){filtro='todos';$$('#evcF button',md).forEach(b=>b.classList.toggle('on',b.dataset.f==='todos'))}
+    draw();
+    $('#evcQ',md).oninput=e=>{q=e.target.value;draw()};
+    $('#evcF',md).onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;filtro=b.dataset.f;$$('#evcF button',md).forEach(x=>x.classList.toggle('on',x===b));draw()};
+    $('#evcL',md).onclick=async e=>{
+      const b=e.target.closest('[data-ev]');if(!b)return;
+      close();
+      if(b.dataset.ev!==state.evento?.id){
+        if(Player.playing&&!(await confirmDialog('Uma música está tocando agora. Trocar de evento vai parar a reprodução.',{title:'Trocar de evento',ok:'Trocar mesmo assim'})))return;
+        await selectEvent(b.dataset.ev);toast(`Evento selecionado: <b>${esc(state.evento?.nome||'')}</b>`,'ok',2500);
+      }
+    };
+    $('#evcNew',md).onclick=()=>{close();setTimeout(()=>openEventForm(),220)};
+    $('#evcReg',md).onclick=()=>{close();setTimeout(openCadastroLink,220)};
+  }});
 }
 
 function renderMain(){
@@ -2555,7 +2660,7 @@ function renderMain(){
   main.innerHTML=`<div class="layout">
     <aside class="side">
       <section class="card ev-card">
-        <span class="eyebrow">${ev.gistId?'<span class="live"></span> Recebendo envios por link':'Somente neste aparelho'}</span>
+        <div class="row" style="justify-content:space-between;gap:6px"><span class="eyebrow">${ev.gistId?'<span class="live"></span> Recebendo envios por link':'Somente neste aparelho'}</span>${state.eventos.length>1?`<button class="btn ghost sm" data-a="trocar" style="min-height:30px;padding:0 10px">${icon('refresh')}Trocar</button>`:''}</div>
         <h1>${esc(ev.nome)}</h1>
         <p class="muted">${info}</p>
         <span class="tipo-tag">${icon(t.icon)}${t.nome}${ev.homenageados&&cer?' · '+esc(ev.homenageados):''}</span>
@@ -2589,7 +2694,7 @@ function renderMain(){
     const b=e.target.closest('[data-a]');if(!b||!main.contains(b))return;
     if(b.tagName==='A')e.preventDefault();
     ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,cron:openCronograma,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent,
-      bkEv:()=>openBackupEvento(),
+      bkEv:()=>openBackupEvento(),trocar:openEventos,
       manter:async()=>{const ev=state.evento;ev.manterSempre=!ev.manterSempre;await saveEvento(ev);renderMain();Player.ui();toast(ev.manterSempre?'Este evento não será apagado automaticamente.':'Exclusão automática reativada para este evento.','ok')}
     })[b.dataset.a]?.();
   };
@@ -3239,7 +3344,7 @@ async function mergeWorkspace(w){
     if(!ev){const novo={id:uid(),gistId:re.gistId,...pick(re,EV_SYNC),atualizadoEm:re.atualizadoEm,links:re.links||[],removidos:re.removidos||[]};await saveEvento(novo,{remote:true});mudou=true;continue}
     if((re.atualizadoEm||'')>(ev.atualizadoEm||'')){const rem=new Set([...(ev.removidos||[]),...(re.removidos||[])]);Object.assign(ev,pick(re,EV_SYNC));ev.removidos=[...rem];ev.atualizadoEm=re.atualizadoEm;await saveEvento(ev,{remote:true});mudou=true}
   }
-  if(mudou){renderEvSel();if(!state.evento&&state.eventos.length)await selectEvent(state.eventos[0].id);else renderMain();Player.ui()}
+  if(mudou){renderEvSel();if(!state.evento&&state.eventos.length)await selectEvent(ordenarEventos(state.eventos)[0].id);else renderMain();Player.ui()}
   return mudou;
 }
 async function pushWorkspace(){
@@ -3327,7 +3432,7 @@ async function apagarEvento(ev,{nuvem=true,silencioso=false}={}){
     }catch(e){if(!silencioso)toast('Evento removido daqui, mas houve erro ao limpar o GitHub: '+esc(e.message),'warn',6000)}
   }
   if(ev.gistId)Nuvem.marcarWs();
-  if(atual){state.evento=null;state.musicas=[];await selectEvent(state.eventos[0]?.id)}
+  if(atual){state.evento=null;state.musicas=[];await selectEvent(ordenarEventos(state.eventos)[0]?.id)}
   else{renderEvSel()}
 }
 
@@ -3526,7 +3631,7 @@ function openSettings(){
       </div>
       <hr class="sep" style="margin:6px 0">
       <div><strong style="display:block;margin-bottom:8px">Atalhos de teclado</strong>
-        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span><kbd>V</kbd><span>Vídeo em tela cheia</span></div>
+        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span><kbd>V</kbd><span>Vídeo em tela cheia</span><kbd>E</kbd><span>Abrir a lista de eventos</span></div>
       </div>
     </div>`,
   {onMount:(md,close)=>{
@@ -3576,6 +3681,7 @@ function bindKeys(){
     else if(k==='s')Player.stop();
     else if(k==='t')Stage.on?Stage.close():Stage.open();
     else if(k==='v'){if(Player.cur?.video)Player.fullscreen()}
+    else if(k==='e'){e.preventDefault();openEventos()}
     else if(e.key==='ArrowRight'){e.preventDefault();Player.seekBy(5)}
     else if(e.key==='ArrowLeft'){e.preventDefault();Player.seekBy(-5)}
   });
@@ -3592,6 +3698,7 @@ async function initAdmin(){
   Player.init();bindKeys();
   $('#btnMarca').onclick=openBrand;
   $('#evSel').onchange=e=>selectEvent(e.target.value);
+  $('#evBtn').onclick=openEventos;
   $('#btnNovoEv').onclick=()=>openEventForm();
   $('#btnConfig').onclick=openSettings;
   $('#syncBtn').onclick=()=>{if(!state.token)return openSettings();if(state.evento&&!state.evento.gistId)return toast('Este evento não recebe envios por link. Use “Ativar envios por link”.','info');Sync.tick(true)};
@@ -3606,7 +3713,7 @@ async function initAdmin(){
   if(navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
   Inbox.start();
   const last=await DB.cfg('ultimoEvento');
-  await selectEvent(state.eventos.find(e=>e.id===last)?.id||state.eventos[0]?.id);
+  await selectEvent(state.eventos.find(e=>e.id===last)?.id||ordenarEventos(state.eventos)[0]?.id);
   Nuvem.start();
   autoLimpeza();setInterval(autoLimpeza,30*60e3);
 }
