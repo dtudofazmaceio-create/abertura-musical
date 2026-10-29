@@ -99,8 +99,10 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .brand .logo{width:46px;height:46px;border-radius:14px}
 .brand .logo:not(.img)+.brand-txt{border-left:0;padding-left:0}
 /* logo da marca no cabeçalho: altura fixa, largura natural (não espreme) */
-.brand .logo.img{height:52px;width:auto;min-width:52px;max-width:clamp(120px,15vw,230px);border-radius:12px;overflow:hidden;flex:0 1 auto}
-.brand .logo.img img{height:100%;width:auto;max-width:100%;object-fit:contain}
+/* logo no cabeçalho: limites em px (sem % de altura, que o Safari do iPhone calcula diferente) — a largura segue a proporção do logo */
+.brand .logo.img{display:flex;align-items:center;justify-content:center;width:auto;height:auto;min-width:0;max-width:none;border-radius:12px;overflow:hidden;flex:0 0 auto;line-height:0}
+.brand .logo.img img{display:block;width:auto;height:auto;max-height:var(--hlogo-h,52px);max-width:var(--hlogo-w,clamp(120px,15vw,230px));object-fit:contain;border-radius:inherit}
+.brand .logo.img.lm-moldura img{border-radius:0}
 .brand .logo.img.lm-branco,.brand .logo.img.lm-escuro{padding:6px 10px}
 .brand .logo.img.lm-moldura{box-shadow:0 8px 22px rgba(0,0,0,.45)!important}
 /* seletor de evento */
@@ -570,7 +572,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   .evpick{flex:1;width:auto;min-width:0}
   .brand-txt small{display:none}
   .brand .logo.img+.brand-txt{display:none}
-  .brand .logo.img{max-width:170px}
+  .brand{--hlogo-w:170px}
   .tb-new span{display:none}
   .tb-new{width:52px;padding:0;justify-content:center}
   .sync span:last-child{display:none}
@@ -595,8 +597,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   .evpick{flex:1;width:auto;min-width:0;height:48px}
   .tb-new{height:48px;width:48px;padding:0;justify-content:center}
   .tb-new span{display:none}
-  .brand .logo.img{height:40px;max-width:150px}
-  .brand .logo.img img{max-width:150px}
+  .brand{--hlogo-h:40px;--hlogo-w:150px}
   .brand .logo{width:40px;height:40px}
   .brand-txt{padding-left:10px}
   .brand-txt small{display:none}
@@ -695,8 +696,9 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   .brand{padding:0;gap:0}
   .brand-txt{display:none!important}
   .brand .logo{width:38px;height:38px;border-radius:11px}
-  .brand .logo.img{height:38px;max-width:96px;border-radius:10px}
-  .brand .logo.img img{max-width:96px}
+  .brand{--hlogo-h:40px;--hlogo-w:124px}
+  .brand .logo.img{border-radius:10px}
+  .brand .logo.img.lm-branco,.brand .logo.img.lm-escuro{padding:4px 7px}
   .tb-ev{grid-area:ev;border:0;padding:0;margin:0;gap:0}
   .tb-new{display:none}
   .evpick{height:44px;width:100%;min-width:0;padding:0 34px 0 6px;gap:8px;border-radius:12px;background:transparent;border-color:transparent}
