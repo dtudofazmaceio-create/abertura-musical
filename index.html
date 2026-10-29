@@ -12,7 +12,7 @@
 :root{
   --bg:#0c0e1a;--surface:#161930;--surface2:#1e2240;--surface3:#272c52;--line:#2b3058;
   --text:#eef0ff;--muted:#9ba1c9;--faint:#6d739c;
-  --accent:#ffb627;--accent2:#ffd36b;--accent-ink:#1d1400;
+  --accent:#ffb627;--accent2:#ffd36b;--accent-ink:#1d1400;--accent-dark:#ff8a1a;--accent-rgb:255,182,39;
   --violet:#8b6cff;--ok:#2fd18b;--warn:#ff9f43;--danger:#ff5470;--rose:#ff7eb6;
   --r:16px;--shadow:0 18px 40px rgba(0,0,0,.4);
   --player-h:104px;--safe-b:env(safe-area-inset-bottom,0px);
@@ -24,7 +24,7 @@ body{
   font-family:'Outfit',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   background:
     radial-gradient(1100px 560px at 0% -10%,rgba(139,108,255,.20),transparent 60%),
-    radial-gradient(900px 480px at 110% 0%,rgba(255,182,39,.10),transparent 60%),
+    radial-gradient(900px 480px at 110% 0%,rgba(var(--accent-rgb),.10),transparent 60%),
     var(--bg);
   background-attachment:fixed;
   color:var(--text);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased;line-height:1.45;
@@ -45,7 +45,7 @@ p{margin:0}
 .btn:hover{background:var(--surface3)}
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.btn.primary{background:linear-gradient(135deg,var(--accent),#ff8f1f);border-color:transparent;color:var(--accent-ink)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-color:transparent;color:var(--accent-ink)}
 .btn.primary:hover{filter:brightness(1.07)}
 .btn.ghost{background:transparent;border-color:transparent}
 .btn.ghost:hover{background:var(--surface2)}
@@ -84,7 +84,7 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
 .brand strong{display:block;font-size:1.1rem;letter-spacing:-.01em}
 .brand small{display:block;color:var(--muted);font-size:.78rem}
-.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),#ff7a1a);color:var(--accent-ink);flex:none;box-shadow:0 8px 20px rgba(255,150,30,.25)}
+.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--accent-ink);flex:none;box-shadow:0 8px 20px rgba(var(--accent-rgb),.25)}
 .logo.xl{width:64px;height:64px;border-radius:18px}
 .logo.xl .ic{width:32px;height:32px}
 .logo.rose{background:linear-gradient(135deg,#ff9ac8,#c86bff);color:#2a0620}
@@ -156,14 +156,14 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap;background:var(--surface3);color:var(--muted)}
 .c-pronta{background:rgba(47,209,139,.14);color:var(--ok)}
 .c-tocada{background:rgba(139,108,255,.16);color:#b6a5ff}
-.c-baixando{background:rgba(255,182,39,.14);color:var(--accent)}
+.c-baixando{background:rgba(var(--accent-rgb),.14);color:var(--accent)}
 .c-erro{background:rgba(255,84,112,.15);color:var(--danger)}
 .c-soft{background:transparent;border:1px solid var(--line);font-weight:600}
 .c-baixando::before{content:"";width:9px;height:9px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .song.st-tocada{opacity:.62}
 .song.st-tocada:hover{opacity:1}
-.song.is-current{border-color:var(--accent);background:linear-gradient(90deg,rgba(255,182,39,.12),transparent 70%),var(--surface);opacity:1}
+.song.is-current{border-color:var(--accent);background:linear-gradient(90deg,rgba(var(--accent-rgb),.12),transparent 70%),var(--surface);opacity:1}
 .song.is-current .pbtn{background:var(--accent);color:var(--accent-ink)}
 .is-new{animation:newIn 1.4s ease}
 @keyframes newIn{0%{transform:translateY(-6px);box-shadow:0 0 0 3px var(--ok)}60%{box-shadow:0 0 0 3px var(--ok)}100%{box-shadow:0 0 0 0 transparent}}
@@ -176,7 +176,7 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 
 /* ---------- Moments (cerimonial) ---------- */
 .moment{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;transition:border-color .2s}
-.moment.has-cur{border-color:rgba(255,182,39,.6)}
+.moment.has-cur{border-color:rgba(var(--accent-rgb),.6)}
 .mo-h{display:flex;align-items:center;gap:10px}
 .mo-n{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.05rem;color:var(--accent);min-width:28px;text-align:center}
 .moment.is-empty .mo-n{color:var(--faint)}
@@ -213,7 +213,7 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .tipo>span .ic{width:24px;height:24px;color:var(--accent2)}
 .tipo b{font-size:.95rem}
 .tipo small{font-size:.76rem;color:var(--muted);line-height:1.3}
-.tipo input:checked+span{border-color:var(--accent);background:rgba(255,182,39,.08)}
+.tipo input:checked+span{border-color:var(--accent);background:rgba(var(--accent-rgb),.08)}
 .tipo input:focus-visible+span{box-shadow:0 0 0 3px rgba(139,108,255,.35)}
 .tpl{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto;padding:6px 10px;border-radius:12px;background:#0f1226;border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -241,7 +241,7 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .pl-txt strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1rem}
 .pl-txt span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem;color:var(--muted)}
 .pl-ctrls{display:flex;align-items:center;gap:8px}
-.pl-ctrls .main{width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 22px rgba(255,170,30,.3);transition:transform .1s}
+.pl-ctrls .main{width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 22px rgba(var(--accent-rgb),.3);transition:transform .1s}
 .pl-ctrls .main:active{transform:scale(.94)}
 .pl-ctrls .main .ic{width:26px;height:26px}
 .pl-extra{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
@@ -249,13 +249,14 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .pl-time small{display:block;font-size:.72rem;color:var(--accent2)}
 .vol{display:flex;align-items:center;gap:6px;color:var(--muted)}
 .vol input{width:90px;accent-color:var(--accent)}
-.tgl.on{background:rgba(255,182,39,.16);color:var(--accent);border-color:rgba(255,182,39,.35)}
+.tgl.on{background:rgba(var(--accent-rgb),.16);color:var(--accent);border-color:rgba(var(--accent-rgb),.35)}
 
 /* ---------- Trim editor ---------- */
 .trim{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
-.trim audio{width:100%;height:42px}
+.trim video{width:100%;max-height:300px;background:#000;border-radius:10px;display:block}
+.trim video.audio-only{height:44px;max-height:44px;background:transparent;border-radius:0}
 .trim-bar{position:relative;height:40px;border-radius:10px;background:repeating-linear-gradient(90deg,#2d3260 0 2px,#252a50 2px 6px);cursor:pointer;overflow:hidden;touch-action:none}
-.trim-sel{position:absolute;top:0;bottom:0;left:0;width:100%;background:rgba(255,182,39,.25);border-left:3px solid var(--accent);border-right:3px solid var(--accent)}
+.trim-sel{position:absolute;top:0;bottom:0;left:0;width:100%;background:rgba(var(--accent-rgb),.25);border-left:3px solid var(--accent);border-right:3px solid var(--accent)}
 .trim-head{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0;box-shadow:0 0 6px rgba(255,255,255,.6)}
 .trim-scale{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:-6px}
 .trim-scale b{color:var(--accent2);font-weight:600}
@@ -293,7 +294,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 
 /* ---------- Drop zone / upload ---------- */
 .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:26px 16px;border:2px dashed #3d4380;border-radius:16px;background:rgba(139,108,255,.06);cursor:pointer;transition:border-color .15s,background .15s}
-.drop:hover,.drop.over{border-color:var(--accent);background:rgba(255,182,39,.07)}
+.drop:hover,.drop.over{border-color:var(--accent);background:rgba(var(--accent-rgb),.07)}
 .drop .ic{width:34px;height:34px;color:var(--accent)}
 .drop span{font-size:.85rem;color:var(--muted)}
 .filebox{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);margin-bottom:10px}
@@ -362,10 +363,61 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .toast.ok{border-color:rgba(47,209,139,.5)}.toast.ok .ic{color:var(--ok)}
 .toast.err{border-color:rgba(255,84,112,.5)}.toast.err .ic{color:var(--danger)}
 .toast.warn{border-color:rgba(255,159,67,.5)}.toast.warn .ic{color:var(--warn)}
-.toast.new{border-color:var(--accent);background:linear-gradient(90deg,rgba(255,182,39,.15),transparent),var(--surface2)}
+.toast.new{border-color:var(--accent);background:linear-gradient(90deg,rgba(var(--accent-rgb),.15),transparent),var(--surface2)}
 .toast.new .ic{color:var(--accent)}
 .toast.out{opacity:0;transform:translateX(20px);transition:.25s}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+
+/* ---------- Brand ---------- */
+.logo.img{background:transparent!important;box-shadow:none!important;width:auto;min-width:40px;padding:0;overflow:hidden}
+.logo.img img{height:100%;width:auto;max-width:150px;object-fit:contain;display:block}
+.logo.xl.img img{max-width:240px}
+.logo.img.white{background:#fff!important;padding:4px 6px}
+.brand-top{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.logo-prev{width:150px;height:110px;border-radius:14px;display:grid;place-items:center;border:1px dashed var(--line);background:repeating-conic-gradient(#20244a 0 25%,#181b36 0 50%) 0 0/18px 18px;flex:none;overflow:hidden;color:var(--faint);font-size:.8rem;text-align:center;padding:8px}
+.logo-prev.white{background:#fff}
+.logo-prev img{max-width:100%;max-height:100%;object-fit:contain}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.swatches button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.swatches button.on{border-color:#fff}
+input[type=color]{width:52px;height:40px;border:1px solid var(--line);border-radius:10px;background:#0f1226;padding:3px;cursor:pointer}
+fieldset.box{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0}
+fieldset.box legend{padding:0 6px;color:var(--muted);font-size:.85rem}
+.bfoot{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.bfoot strong{color:var(--text);font-size:.95rem}
+.bfoot .row{justify-content:center;gap:6px 14px}
+.bfoot a{color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.bfoot a:hover{color:var(--accent2)}
+.bfoot .ic{width:15px;height:15px}
+
+/* ---------- Video ---------- */
+.vpanel{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--player-h) + 12px + var(--safe-b));z-index:41;width:min(420px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.vp-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 14px}
+.vp-h .row{gap:2px;flex-wrap:nowrap}
+.vpanel.min .vp-slot{display:none}
+.vidwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden;font-size:12px}
+.vidwrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.vw-brand{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5em;text-align:center;padding:6%;background:radial-gradient(circle at 50% 35%,rgba(var(--accent-rgb),.16),transparent 65%),#05060c;opacity:0;pointer-events:none;transition:opacity .5s}
+.vidwrap.brand .vw-brand{opacity:1}
+.vw-logo{max-width:42%;max-height:34%;object-fit:contain}
+.vw-logo.white{background:#fff;padding:.6em 1em;border-radius:.6em}
+.vw-title{font-size:2.3em;font-weight:800;line-height:1.1;color:#fff}
+.vw-sub{font-size:1.25em;color:#b9bedf}
+.vw-cue{font-size:1.7em;color:var(--accent2);font-weight:700;margin-top:.3em}
+.vw-cue:empty,.vw-sub:empty,.vw-title:empty{display:none}
+.vw-wm{position:absolute;right:2.5%;bottom:3.5%;max-width:13%;max-height:13%;object-fit:contain;opacity:.85;pointer-events:none}
+.vidwrap:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;font-size:clamp(14px,1.9vw,38px)}
+.vidwrap:-webkit-full-screen{aspect-ratio:auto;width:100vw;height:100vh;font-size:clamp(14px,1.9vw,38px)}
+.st-video{width:min(100%,1100px);margin:12px auto 0;border-radius:14px;overflow:hidden}
+.st-video:empty{display:none}
+.st-video .vidwrap{font-size:clamp(12px,1.6vw,22px)}
+#stage.has-video .st-now{flex:none;padding:12px 0}
+#stage.has-video .st-now h2{font-size:clamp(1.4rem,3.5vw,2.6rem)}
+#tv{position:fixed;inset:0;background:#000;cursor:none}
+#tv .vidwrap{position:absolute;inset:0;aspect-ratio:auto;height:100%;font-size:clamp(14px,1.9vw,40px)}
+.tv-hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(0,0,0,.72);border:1px solid #333;padding:10px 18px;border-radius:999px;font-size:14px;color:#ddd;cursor:pointer;transition:opacity .5s;white-space:nowrap}
+#tv.fs .tv-hint{opacity:0;pointer-events:none}
+#tv.show-cursor{cursor:default}
 
 /* ---------- Responsive ---------- */
 @media (max-width:1100px){
@@ -411,6 +463,9 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   .pl-ctrls{grid-area:ctrls;justify-content:space-evenly;width:100%;gap:2px}
   #plAuto{grid-area:auto}
   #plStageBtn{grid-area:stage}
+  #plTv{display:none}
+  .vpanel{left:12px;right:12px;width:auto;bottom:calc(var(--player-h) + 8px + var(--safe-b))}
+  .top-actions .btn.icon{width:40px}
   .pl-extra{display:contents}
   .pl-cover{width:44px;height:44px}
   .modal-back{align-items:flex-end;padding:0}
@@ -481,14 +536,22 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/></symbol>
   <symbol id="i-cut" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4z"/></symbol>
+  <symbol id="i-tv" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="10.5" r="1.1" fill="currentColor"/><circle cx="8.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="6.5" cy="12.5" r="1.1" fill="currentColor"/><path d="M12 2a10 10 0 0 0 0 20c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16a6 6 0 0 0 6-6c0-4.9-4.5-8.6-10-8.6z"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol>
+  <symbol id="i-insta" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
 </svg>
 
 <!-- =================== ORGANIZADOR =================== -->
 <div id="admin" hidden>
   <header class="topbar">
     <div class="brand">
-      <span class="logo"><svg class="ic"><use href="#i-music"/></svg></span>
-      <div><strong>Palco Musical</strong><small>Eventos escolares, 15 anos e casamentos</small></div>
+      <span class="logo" data-brand-logo="music"><svg class="ic"><use href="#i-music"/></svg></span>
+      <div><strong id="brandName">Palco Musical</strong><small id="brandSub">Eventos escolares, 15 anos e casamentos</small></div>
     </div>
     <div class="top-actions">
       <div class="ev-switch">
@@ -496,6 +559,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
         <button class="btn icon" id="btnNovoEv" title="Novo evento" aria-label="Novo evento"><svg class="ic"><use href="#i-plus"/></svg></button>
       </div>
       <button class="sync" id="syncBtn" title="Sincronizar agora"><span class="dot"></span><span id="syncTxt">—</span></button>
+      <button class="btn icon ghost" id="btnMarca" title="Minha marca (identidade visual)" aria-label="Minha marca"><svg class="ic"><use href="#i-palette"/></svg></button>
       <button class="btn icon ghost" id="btnConfig" title="Configurações" aria-label="Configurações"><svg class="ic"><use href="#i-gear"/></svg></button>
     </div>
   </header>
@@ -521,6 +585,25 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
         <label class="vol" title="Volume"><svg class="ic"><use href="#i-vol"/></svg><input type="range" id="plVol" min="0" max="1" step="0.01" value="1" aria-label="Volume"></label>
         <button class="btn icon ghost tgl" id="plAuto" title="Tocar a próxima automaticamente" aria-label="Tocar próxima automaticamente"><svg class="ic"><use href="#i-auto"/></svg></button>
         <button class="btn icon ghost" id="plStageBtn" title="Modo palco (T)" aria-label="Modo palco"><svg class="ic"><use href="#i-stage"/></svg></button>
+        <button class="btn icon ghost tgl" id="plTv" title="Telão: abrir saída de vídeo em outra tela / projetor" aria-label="Telão"><svg class="ic"><use href="#i-tv"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vpanel" id="vpanel" hidden>
+    <div class="vp-h">
+      <span class="eyebrow"><svg class="ic"><use href="#i-video"/></svg>Vídeo</span>
+      <div class="row">
+        <button class="btn sm ghost" id="vpFs" title="Tela cheia (V)"><svg class="ic"><use href="#i-stage"/></svg>Tela cheia</button>
+        <button class="btn icon sm ghost" id="vpTv" title="Abrir no telão (2ª tela)" aria-label="Telão"><svg class="ic"><use href="#i-tv"/></svg></button>
+        <button class="btn icon sm ghost" id="vpMin" title="Minimizar" aria-label="Minimizar"><svg class="ic"><use href="#i-min"/></svg></button>
+      </div>
+    </div>
+    <div class="vp-slot" id="vpSlot">
+      <div class="vidwrap brand" id="vidWrap">
+        <video id="plVideo" playsinline webkit-playsinline preload="auto"></video>
+        <div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div>
+        <img class="vw-wm" alt="" hidden>
       </div>
     </div>
   </div>
@@ -537,6 +620,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
       <div class="st-cut" id="stCut"></div>
       <div class="st-obs" id="stObs"></div>
     </div>
+    <div class="st-video" id="stVideo"></div>
     <div class="st-prog">
       <div class="st-bar" id="stBar"><i></i></div>
       <div class="st-times"><span id="stCur">0:00</span><span id="stRem">-0:00</span></div>
@@ -556,8 +640,8 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 <div id="prof" hidden>
   <div class="prof-wrap">
     <div class="prof-hero">
-      <span class="logo xl"><svg class="ic"><use href="#i-music"/></svg></span>
-      <span class="eyebrow">Envio de música</span>
+      <span class="logo xl" data-brand-logo="music"><svg class="ic"><use href="#i-music"/></svg></span>
+      <span class="eyebrow">Envio de música ou vídeo</span>
       <h1 id="pEvento">Evento</h1>
       <p class="muted" id="pData"></p>
     </div>
@@ -572,7 +656,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
         <label class="field"><span>Artista / intérprete</span><input name="artista"></label>
       </div>
       <label class="field"><span>Posição da turma no cronograma</span><input name="ordem" type="number" min="1" inputmode="numeric" placeholder="Ex.: 4 (opcional)"></label>
-      <div class="field"><span>Arquivo da música * <small class="muted">— depois de escolher, você pode marcar onde começa e termina</small></span><div id="pAudio"></div></div>
+      <div class="field"><span>Arquivo da música ou vídeo * <small class="muted">— depois de escolher, você pode marcar onde começa e termina</small></span><div id="pAudio"></div></div>
       <label class="field"><span>Observações para quem vai tocar</span><textarea name="obs" rows="2" placeholder="Ex.: entrar com a música quando a turma chegar ao centro da quadra"></textarea></label>
       <div class="progress" id="pProg" hidden><div class="bar"></div><span>0%</span></div>
       <p class="err" id="pErr" hidden></p>
@@ -589,7 +673,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
     </div>
 
     <div class="sent" id="pSent" hidden><h3>Enviadas deste aparelho</h3><ul></ul></div>
-    <p class="foot">Palco Musical · os arquivos vão direto para o organizador do evento</p>
+    <div class="foot" data-brand-foot="Palco Musical · os arquivos vão direto para o organizador do evento"></div>
   </div>
 </div>
 
@@ -597,13 +681,13 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 <div id="cli" hidden>
   <div class="prof-wrap">
     <div class="prof-hero">
-      <span class="logo xl rose" id="cIcon"><svg class="ic"><use href="#i-heart"/></svg></span>
+      <span class="logo xl rose" id="cIcon" data-brand-logo="heart"><svg class="ic"><use href="#i-heart"/></svg></span>
       <span class="eyebrow">Músicas do cerimonial</span>
       <h1 id="cEvento">Evento</h1>
       <p class="muted" id="cData"></p>
     </div>
     <div class="card prof-card stack">
-      <p>Escolha a música de cada momento, na ordem do cerimonial. Em cada música você pode marcar <b>exatamente onde ela começa e onde termina</b> — é assim que ela vai tocar no dia.</p>
+      <p>Escolha a música (ou vídeo) de cada momento, na ordem do cerimonial. Em cada uma você pode marcar <b>exatamente onde ela começa e onde termina</b> — é assim que ela vai tocar no dia.</p>
       <label class="field"><span>Seu nome</span><input id="cNome" placeholder="Quem está enviando" autocomplete="name"></label>
       <div>
         <div class="cprog-t"><span id="cProgTxt">Carregando…</span><button class="btn ghost sm" id="cReload" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Atualizar</button></div>
@@ -612,9 +696,12 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
     </div>
     <ol class="cli-list" id="cList"><li class="skel">Carregando o cronograma…</li></ol>
     <button class="btn block" id="cAdd" type="button"><svg class="ic"><use href="#i-plus"/></svg>Adicionar outro momento</button>
-    <p class="foot">Palco Musical · as músicas vão direto para a equipe de som do evento</p>
+    <div class="foot" data-brand-foot="Palco Musical · as músicas vão direto para a equipe de som do evento"></div>
   </div>
 </div>
+
+<!-- =================== TELÃO (2ª tela / projetor) =================== -->
+<div id="tv" hidden></div>
 
 <div id="modalRoot"></div>
 <div id="toasts" aria-live="polite"></div>
@@ -640,21 +727,30 @@ const fmtSize=b=>b>=1048576?(b/1048576).toFixed(1).replace('.',',')+' MB':Math.m
 const fmtHora=iso=>{try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return''}};
 const b64urlEnc=str=>{const by=new TextEncoder().encode(str);let bin='';by.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 const b64urlDec=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const bin=atob(s);return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))};
-const MIMES={mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',wav:'audio/wav',ogg:'audio/ogg',opus:'audio/ogg',oga:'audio/ogg',webm:'audio/webm',flac:'audio/flac',mp4:'video/mp4',amr:'audio/amr'};
+const MIMES={mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',wav:'audio/wav',ogg:'audio/ogg',opus:'audio/ogg',oga:'audio/ogg',webm:'video/webm',flac:'audio/flac',mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',mkv:'video/x-matroska',amr:'audio/amr'};
 const mimeOf=f=>f.type||MIMES[(f.name.split('.').pop()||'').toLowerCase()]||'audio/mpeg';
-const ACCEPT='audio/*,video/mp4,.mp3,.m4a,.aac,.wav,.ogg,.opus,.oga,.flac,.mp4,.webm';
-const MAX_MB=25;
+const ACCEPT='audio/*,video/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.oga,.flac,.mp4,.m4v,.mov,.webm,.mkv';
+const MAX_MB=25;          /* envios pelo link (vão pelo GitHub Gist) */
+const MAX_LOCAL_MB=4096;  /* arquivos adicionados direto no painel (ficam só no IndexedDB) */
 const FADE_IN=1.5,FADE_OUT=2.5;
 
 const fileToB64=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=()=>rej(new Error('Não foi possível ler o arquivo.'));r.readAsDataURL(file)});
 function b64ToBlob(b64,mime){const bin=atob(b64.replace(/\s/g,''));const n=bin.length;const by=new Uint8Array(n);for(let i=0;i<n;i++)by[i]=bin.charCodeAt(i);return new Blob([by],{type:mime||'audio/mpeg'})}
-const getDuration=blob=>new Promise(res=>{const a=document.createElement('audio');const u=URL.createObjectURL(blob);let ok=false;const done=v=>{if(ok)return;ok=true;URL.revokeObjectURL(u);res(isFinite(v)?v:0)};a.preload='metadata';a.onloadedmetadata=()=>{if(a.duration===Infinity){a.currentTime=1e7;a.ontimeupdate=()=>done(a.duration)}else done(a.duration)};a.onerror=()=>done(0);setTimeout(()=>done(0),8000);a.src=u});
-function checkFile(fl){
+/* Lê duração e descobre se o arquivo tem imagem (vídeo) ou só som */
+const getMediaInfo=blob=>new Promise(res=>{
+  const v=document.createElement('video');v.muted=true;v.preload='metadata';v.playsInline=true;
+  const u=URL.createObjectURL(blob);let ok=false;
+  const done=(d,vid)=>{if(ok)return;ok=true;URL.revokeObjectURL(u);v.removeAttribute('src');res({dur:isFinite(d)?d:0,video:!!vid})};
+  v.onloadedmetadata=()=>{const vid=v.videoWidth>0;if(v.duration===Infinity){v.currentTime=1e7;v.ontimeupdate=()=>done(v.duration,vid)}else done(v.duration,vid)};
+  v.onerror=()=>done(0,/^video\//.test(blob.type));setTimeout(()=>done(0,false),12000);v.src=u;
+});
+function checkFile(fl,max=MAX_MB){
   if(!fl)return'Escolha um arquivo.';
   if(fl.size===0)return'O arquivo está vazio.';
-  if(fl.size>MAX_MB*1048576)return`O arquivo tem ${fmtSize(fl.size)}. O limite é ${MAX_MB} MB — envie em MP3 para ficar menor.`;
   const ext=(fl.name.split('.').pop()||'').toLowerCase();
-  if(!/^(audio|video)\//.test(fl.type)&&!MIMES[ext])return'Escolha um arquivo de áudio (MP3, M4A, WAV, OGG…).';
+  const isVid=/^video\//.test(fl.type)||/^(mp4|m4v|mov|mkv|webm)$/.test(ext);
+  if(fl.size>max*1048576)return`O arquivo tem ${fmtSize(fl.size)}. O limite aqui é ${max} MB — ${isVid?'compacte o vídeo (ex.: 720p) ou envie direto para a equipe do evento':'envie em MP3 para ficar menor'}.`;
+  if(!/^(audio|video)\//.test(fl.type)&&!MIMES[ext])return'Escolha um arquivo de música ou vídeo (MP3, M4A, WAV, OGG, MP4, MOV…).';
   return'';
 }
 const trechoTxt=m=>{
@@ -688,6 +784,130 @@ const TIPOS={
     tpl:['Abertura','Entrada dos homenageados','Homenagem','Momento especial','Encerramento']}
 };
 const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
+
+/* =========================================================
+   IDENTIDADE VISUAL (marca)
+   ========================================================= */
+const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false};
+let marca={...BRAND_DEF};
+const CORES=['#ffb627','#ff7a59','#ff5c8a','#e8b4c8','#c9a227','#b88a4a','#8b6cff','#4f8cff','#2fbfa0','#ffffff'];
+const hexRgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255]};
+const mixHex=(h,t,k)=>{const a=hexRgb(h),b=hexRgb(t);return'#'+a.map((v,i)=>Math.round(v+(b[i]-v)*k).toString(16).padStart(2,'0')).join('')};
+const lumHex=h=>{const[r,g,b]=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*r+.7152*g+.0722*b};
+const publicBrand=()=>{const{nome,slogan,logo,logoBranco,cor,whatsapp,instagram,site,email,cidade}=marca;return{nome,slogan,logo,logoBranco,cor,whatsapp,instagram,site,email,cidade}};
+function applyBrand(b,{keep=false}={}){
+  marca={...BRAND_DEF,...(keep?marca:{}),...(b||{})};
+  const r=document.documentElement.style,c=/^#[0-9a-f]{6}$/i.test(marca.cor)?marca.cor:BRAND_DEF.cor;
+  r.setProperty('--accent',c);
+  r.setProperty('--accent-dark',mixHex(c,'#000000',.2));
+  r.setProperty('--accent2',mixHex(c,'#ffffff',.35));
+  r.setProperty('--accent-ink',lumHex(c)>.42?'#141005':'#ffffff');
+  r.setProperty('--accent-rgb',hexRgb(c).join(','));
+  refreshLogos();
+  const bn=$('#brandName'),bs=$('#brandSub');
+  if(bn)bn.textContent=marca.nome||'Palco Musical';
+  if(bs)bs.textContent=marca.slogan||(marca.nome?'Organizador de músicas do evento':'Eventos escolares, 15 anos e casamentos');
+  if(!$('#admin').hidden&&!state.badge)document.title=marca.nome||'Palco Musical';
+  $$('[data-brand-foot]').forEach(el=>el.innerHTML=brandFootHTML(el.dataset.brandFoot));
+  if(typeof Player!=='undefined'&&!$('#admin').hidden)paintVidBrand($('#vidWrap'),vidLabels());
+}
+function refreshLogos(){
+  $$('[data-brand-logo]').forEach(el=>{
+    if(marca.logo){el.classList.add('img');el.classList.toggle('white',!!marca.logoBranco);el.innerHTML=`<img src="${marca.logo}" alt="${esc(marca.nome||'Logo')}">`}
+    else{el.classList.remove('img','white');el.innerHTML=icon(el.dataset.brandLogo||'music')}
+  });
+}
+const waLink=n=>{let d=String(n||'').replace(/\D/g,'');if(!d)return'';if(d.length<=11)d='55'+d;return'https://wa.me/'+d};
+const igLink=h=>{h=String(h||'').trim().replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'');return h?'https://instagram.com/'+h:''};
+const siteLink=u=>{u=String(u||'').trim();return u?(/^https?:\/\//.test(u)?u:'https://'+u):''};
+function brandFootHTML(def=''){
+  const m=marca;
+  const links=[
+    m.whatsapp&&`<a href="${esc(waLink(m.whatsapp))}" target="_blank" rel="noopener">${icon('wa')}${esc(m.whatsapp)}</a>`,
+    m.instagram&&`<a href="${esc(igLink(m.instagram))}" target="_blank" rel="noopener">${icon('insta')}@${esc(m.instagram.replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,''))}</a>`,
+    m.site&&`<a href="${esc(siteLink(m.site))}" target="_blank" rel="noopener">${icon('globe')}${esc(m.site.replace(/^https?:\/\//,''))}</a>`,
+    m.email&&`<a href="mailto:${esc(m.email)}">${icon('mail')}${esc(m.email)}</a>`,
+    m.cidade&&`<a>${icon('pin')}${esc(m.cidade)}</a>`
+  ].filter(Boolean);
+  if(!m.nome&&!links.length)return esc(def);
+  return`<div class="bfoot">${m.nome?`<strong>${esc(m.nome)}</strong>`:''}${m.slogan?`<span>${esc(m.slogan)}</span>`:''}${links.length?`<div class="row">${links.join('')}</div>`:''}</div>`;
+}
+/* reduz o logo para no máx. 480px (fica leve para ir junto nos links) */
+function resizeLogo(file){
+  return new Promise((res,rej)=>{
+    const u=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth||480,h=img.naturalHeight||480;const k=Math.min(1,480/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+      const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      let d=c.toDataURL('image/webp',.9);if(!d.startsWith('data:image/webp'))d=c.toDataURL('image/png');
+      res(d);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Não foi possível ler esta imagem.'))};
+    img.src=u;
+  });
+}
+function openBrand(){
+  const salvo={...marca};let logo=marca.logo;let fechouSalvando=false;
+  openModal(`${modalHead('Minha marca','Sua identidade visual aparece no painel, nos links enviados a clientes e professoras, no telão, na tela cheia dos vídeos e no modo palco.')}
+    <form id="bf" class="stack">
+      <div class="brand-top">
+        <div class="logo-prev" id="bfPrev"></div>
+        <div class="stack" style="flex:1;min-width:220px;gap:10px">
+          <div class="row">
+            <label class="btn sm primary">${icon('upload')}Enviar logo<input type="file" accept="image/*" id="bfLogo" hidden></label>
+            <button type="button" class="btn sm ghost danger" id="bfLogoRm">Remover</button>
+          </div>
+          <label class="chk"><input type="checkbox" name="logoBranco" ${marca.logoBranco?'checked':''}> Mostrar o logo sobre fundo branco</label>
+          <div class="field"><span>Cor principal</span>
+            <div class="swatches"><input type="color" name="cor" value="${esc(marca.cor||BRAND_DEF.cor)}" aria-label="Cor principal">${CORES.map(c=>`<button type="button" data-cor="${c}" style="background:${c}" aria-label="Cor ${c}"></button>`).join('')}</div></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Nome da empresa / profissional</span><input name="nome" value="${esc(marca.nome)}" placeholder="Ex.: DJ Alex Eventos"></label>
+        <label class="field"><span>Slogan</span><input name="slogan" value="${esc(marca.slogan)}" placeholder="Ex.: Som e iluminação para momentos inesquecíveis"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>WhatsApp</span><input name="whatsapp" value="${esc(marca.whatsapp)}" placeholder="(82) 99999-9999" inputmode="tel"></label>
+        <label class="field"><span>Instagram</span><input name="instagram" value="${esc(marca.instagram)}" placeholder="@seuperfil"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Site</span><input name="site" value="${esc(marca.site)}" placeholder="www.seusite.com.br"></label>
+        <label class="field"><span>E-mail</span><input name="email" value="${esc(marca.email)}" placeholder="contato@…" inputmode="email"></label>
+      </div>
+      <label class="field"><span>Cidade / região</span><input name="cidade" value="${esc(marca.cidade)}" placeholder="Ex.: Maceió - AL"></label>
+      <fieldset class="box"><legend>Telão e tela cheia</legend>
+        <label class="chk"><input type="checkbox" name="telaoMomento" ${marca.telaoMomento?'checked':''}> Mostrar o nome do momento entre os vídeos (ex.: “Entrada da noiva”)</label>
+        <label class="chk"><input type="checkbox" name="logoNoVideo" ${marca.logoNoVideo?'checked':''}> Mostrar meu logo no canto dos vídeos</label>
+      </fieldset>
+      <p class="hint">O logo é reduzido automaticamente. Use PNG com fundo transparente para o melhor resultado.</p>
+      <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}Salvar marca</button></div>
+    </form>`,
+  {wide:true,onClose:()=>{if(!fechouSalvando)applyBrand(salvo)},onMount:(md,close)=>{
+    const f=$('#bf',md);
+    const val=()=>({nome:f.elements.nome.value.trim(),slogan:f.elements.slogan.value.trim(),logo,logoBranco:f.elements.logoBranco.checked,cor:f.elements.cor.value,
+      whatsapp:f.elements.whatsapp.value.trim(),instagram:f.elements.instagram.value.trim(),site:f.elements.site.value.trim(),email:f.elements.email.value.trim(),cidade:f.elements.cidade.value.trim(),
+      telaoMomento:f.elements.telaoMomento.checked,logoNoVideo:f.elements.logoNoVideo.checked});
+    const prev=()=>{
+      const p=$('#bfPrev',md);p.classList.toggle('white',f.elements.logoBranco.checked&&!!logo);
+      p.innerHTML=logo?`<img src="${logo}" alt="Logo">`:'Sem logo<br>(use o botão ao lado)';
+      $$('[data-cor]',md).forEach(b=>b.classList.toggle('on',b.dataset.cor.toLowerCase()===f.elements.cor.value.toLowerCase()));
+      applyBrand(val());
+    };
+    prev();
+    f.addEventListener('input',prev);f.addEventListener('change',prev);
+    md.addEventListener('click',e=>{const b=e.target.closest('[data-cor]');if(b){f.elements.cor.value=b.dataset.cor;prev()}});
+    $('#bfLogo',md).onchange=async e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;try{logo=await resizeLogo(fl);prev()}catch(x){toast(esc(x.message),'err')}};
+    $('#bfLogoRm',md).onclick=()=>{logo='';prev()};
+    f.onsubmit=async e=>{
+      e.preventDefault();const b=val();
+      await DB.setCfg('marca',b);fechouSalvando=true;applyBrand(b);close();
+      renderMain();Player.ui();Telao.sendBrand();
+      const evs=state.eventos.filter(x=>x.gistId);
+      if(evs.length&&state.token){for(const ev of evs)await pushMeta(ev,true);toast('Marca salva e aplicada aos links dos eventos.','ok')}
+      else toast('Marca salva.','ok');
+    };
+  }});
+}
 
 /* =========================================================
    MODAIS
@@ -731,8 +951,8 @@ function promptDialog(title,label,value=''){
 /* =========================================================
    COMPONENTES: escolha de arquivo + editor de início/fim
    ========================================================= */
-function filePicker(host,onFile,label='Toque para escolher a música'){
-  host.innerHTML=`<label class="drop"><input type="file" accept="${ACCEPT}" hidden>${icon('upload')}<strong>${label}</strong><span>ou arraste o arquivo aqui · MP3, M4A, WAV, OGG/OPUS (áudio do WhatsApp)</span></label>`;
+function filePicker(host,onFile,label='Toque para escolher a música ou o vídeo'){
+  host.innerHTML=`<label class="drop"><input type="file" accept="${ACCEPT}" hidden>${icon('upload')}<strong>${label}</strong><span>ou arraste o arquivo aqui · MP3, M4A, WAV, OGG/OPUS (WhatsApp) ou vídeo MP4/MOV</span></label>`;
   const drop=$('.drop',host),inp=$('input',host);
   inp.onchange=()=>{const f=inp.files[0];inp.value='';if(f)onFile(f)};
   ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
@@ -744,7 +964,7 @@ function filePicker(host,onFile,label='Toque para escolher a música'){
 function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
   host.innerHTML=`<div class="trim">
     <div class="trim-load" hidden></div>
-    <audio controls preload="metadata"></audio>
+    <video controls preload="metadata" playsinline></video>
     <div class="trim-bar" title="Toque para ir até este ponto"><div class="trim-sel"></div><div class="trim-head"></div></div>
     <div class="trim-scale"><span>0:00</span><b class="tr-len">Música inteira</b><span class="tr-dur">—</span></div>
     <div class="grid2">
@@ -762,7 +982,7 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
     </div>
     <p class="hint">Como marcar: dê play, pause no ponto exato e toque em “Marcar”. Pode digitar também (ex.: 1:23.5). “Terminar suave” faz o volume baixar e chegar a zero exatamente no ponto final.</p>
   </div>`;
-  const a=$('audio',host),iIn=$('[name=inicio]',host),iOut=$('[name=fim]',host),bar=$('.trim-bar',host),sel=$('.trim-sel',host),head=$('.trim-head',host),load=$('.trim-load',host);
+  const a=$('video',host),iIn=$('[name=inicio]',host),iOut=$('[name=fim]',host),bar=$('.trim-bar',host),sel=$('.trim-sel',host),head=$('.trim-head',host),load=$('.trim-load',host);
   let stopAt=null,raf=null,ownSeek=false;
   const vals=()=>({inicio:parseTime(iIn.value),fim:parseTime(iOut.value)});
   const endOf=()=>{const d=a.duration||0,{inicio,fim}=vals();return fim&&fim>inicio&&(!d||fim<=d)?fim:d};
@@ -775,6 +995,7 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
   const loop=()=>{draw();if(stopAt!==null&&a.currentTime>=stopAt-0.02){a.pause();stopAt=null}if(!a.paused)raf=requestAnimationFrame(loop)};
   a.addEventListener('play',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)});
   ['pause','loadedmetadata','seeked','durationchange'].forEach(ev=>a.addEventListener(ev,draw));
+  a.addEventListener('loadedmetadata',()=>a.classList.toggle('audio-only',!a.videoWidth));
   a.addEventListener('seeking',()=>{if(!ownSeek)stopAt=null;ownSeek=false});
   iIn.addEventListener('input',draw);iOut.addEventListener('input',draw);
   const go=t=>{ownSeek=true;a.currentTime=Math.max(0,t)};
@@ -809,18 +1030,18 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
 }
 
 /* Campo de áudio completo: escolher arquivo, ver arquivo atual e editar o trecho */
-function audioField(host,{atual=null,loadAtual=null,valores={}}={}){
+function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB}={}){
   const st={file:null,url:null,trim:null,usandoAtual:false};
   const free=()=>{st.trim?.stop();if(st.url){URL.revokeObjectURL(st.url);st.url=null}};
   const boxHTML=(name,size,extra)=>`<div class="filebox">${icon('music')}<div><strong>${esc(name)}</strong><small>${size?fmtSize(size):''}${extra||''}</small></div><button type="button" class="btn sm" data-fb="rm">${icon('refresh')}Trocar arquivo</button></div><div class="af-trim"></div>`;
   function showPicker(){
     free();st.file=null;st.usandoAtual=false;st.trim=null;
     host.innerHTML='<div class="af-pick"></div>';
-    filePicker($('.af-pick',host),f=>{const e=checkFile(f);if(e){toast(esc(e),'err',6000);return}useFile(f)});
+    filePicker($('.af-pick',host),f=>{const e=checkFile(f,maxMB);if(e){toast(esc(e),'err',6000);return}useFile(f)});
   }
   function useFile(f){
     free();st.file=f;st.usandoAtual=false;st.url=URL.createObjectURL(f);
-    host.innerHTML=boxHTML(f.name,f.size,f.size>15*1048576?' · arquivo grande, o envio pode demorar':'');
+    host.innerHTML=boxHTML(f.name,f.size,f.size>15*1048576&&maxMB===MAX_MB?' · arquivo grande, o envio pode demorar':'');
     $('[data-fb=rm]',host).onclick=showPicker;
     st.trim=trimEditor($('.af-trim',host),{fadeOut:true});st.trim.setSrc(st.url);
   }
@@ -830,7 +1051,7 @@ function audioField(host,{atual=null,loadAtual=null,valores={}}={}){
     $('[data-fb=rm]',host).onclick=showPicker;
     st.trim=trimEditor($('.af-trim',host),valores);
     if(loadAtual){
-      st.trim.setLoading(true,'Carregando a música enviada para você ajustar…');
+      st.trim.setLoading(true,'Carregando o arquivo enviado para você ajustar…');
       Promise.resolve(loadAtual()).then(b=>{if(!b)throw 0;if(!st.usandoAtual)return;st.url=URL.createObjectURL(b);st.trim.setSrc(st.url)})
         .catch(()=>st.trim&&st.trim.setLoading(false,'Não foi possível carregar a prévia, mas você pode digitar os tempos.'));
     }
@@ -994,7 +1215,7 @@ async function removeLocal(m){
 }
 
 /* Metadados do evento publicados no Gist (cronograma lido pelo link do cliente) */
-const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',local:ev.local||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome}))},null,1);
+const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',local:ev.local||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome})),marca:publicBrand()},null,1);
 let pushT=null;
 function pushMeta(ev=state.evento,now=false){
   if(!ev?.gistId||!state.token)return Promise.resolve();
@@ -1078,7 +1299,7 @@ async function processGist(ev,gist){
       audioGistId:meta.audioGistId,audioArquivo:meta.audioArquivo,
       enviadoEm:meta.enviadoEm||'',recebidoEm:new Date().toISOString(),status:'baixando',duracao:0
     };
-    if(reuse){await DB.put('audios',reuse,m.id);m.status='pronta';m.duracao=await getDuration(reuse)}
+    if(reuse){await DB.put('audios',reuse,m.id);m.status='pronta';const inf=await getMediaInfo(reuse);m.duracao=inf.dur;m.video=inf.video}
     await saveMusica(m);known.add(m.id);novos.push(m);
   }
   if(evChanged){await saveEvento(ev);pushMeta(ev)}
@@ -1099,7 +1320,7 @@ async function baixarAudio(m){
     m.status='baixando';await saveMusica(m);renderList();
     const blob=await fetchAudioBlob(m.audioGistId,m.audioArquivo,m.mime,state.token);
     await DB.put('audios',blob,m.id);
-    m.duracao=await getDuration(blob);
+    const inf=await getMediaInfo(blob);m.duracao=inf.dur;m.video=inf.video;
     m.tamanho=blob.size;m.status='pronta';m.erro='';
     await saveMusica(m);
   }catch(e){
@@ -1125,7 +1346,7 @@ function notifyNew(list,trocas=new Set()){
   });
   if(Player.a.paused)chime(); // nunca toca o aviso por cima de uma apresentação
   if(document.hidden){
-    state.badge+=list.length;document.title=`(${state.badge}) Palco Musical`;
+    state.badge+=list.length;document.title=`(${state.badge}) ${marca.nome||'Palco Musical'}`;
     if('Notification'in window&&Notification.permission==='granted'){
       try{new Notification(list.length>1?`${list.length} músicas recebidas`:'Música recebida',{body:list.map(m=>`${cueOf(m)}${isCer()?' — '+m.titulo:''}`).join('\n'),tag:'palco'})}catch{}
     }
@@ -1140,14 +1361,19 @@ async function requestWake(){try{if('wakeLock'in navigator&&!document.hidden&&!w
    PLAYER — corte exato de início/fim, fades e controle por frame
    ========================================================= */
 const Player={
-  a:new Audio(),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,ctx:null,gain:null,lv:1,
+  a:document.getElementById('plVideo'),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,ctx:null,gain:null,lv:1,vis:1,
   init(){
     const a=this.a;a.preload='auto';
     a.addEventListener('timeupdate',()=>this.onTime());
     a.addEventListener('play',()=>{this.watch();this.ui()});
     a.addEventListener('pause',()=>{this.unwatch();this.ui()});
     a.addEventListener('ended',()=>this.afterEnd());
-    a.addEventListener('error',()=>{if(this.cur&&a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Baixe-o e converta para MP3.','err',6000)});
+    a.addEventListener('error',()=>{if(this.cur&&a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Baixe-o e converta (MP3 para música, MP4/H.264 para vídeo).','err',7000)});
+    $('#vpFs').onclick=()=>this.fullscreen();
+    $('#vpTv').onclick=()=>Telao.toggle();
+    $('#plTv').onclick=()=>Telao.toggle();
+    $('#vpMin').onclick=()=>{const p=$('#vpanel');p.classList.toggle('min');$('#vpMin').innerHTML=icon(p.classList.contains('min')?'up':'min')};
+    $('#vidWrap').addEventListener('dblclick',()=>this.fullscreen());
     const sk=$('#plSeek');
     sk.addEventListener('input',()=>{this.seeking=true;sk.style.setProperty('--p',sk.value/10+'%')});
     sk.addEventListener('change',()=>{
@@ -1155,7 +1381,7 @@ const Player={
       this.seeking=false;
     });
     const vol=$('#plVol');vol.value=state.volume;
-    vol.addEventListener('input',()=>{state.volume=+vol.value;if(a.paused&&!this.fadeT)this.setVol(state.volume);DB.setCfg('volume',state.volume)});
+    vol.addEventListener('input',()=>{state.volume=+vol.value;if(a.paused&&!this.fadeT)this.setVol(state.volume*this.vis);DB.setCfg('volume',state.volume)});
     $('#plPlay').onclick=()=>this.toggle();
     $('#plNext').onclick=()=>this.next();
     $('#plPrev').onclick=()=>this.prev();
@@ -1181,6 +1407,25 @@ const Player={
     if(this.gain&&this.ctx){try{this.gain.gain.setTargetAtTime(v,this.ctx.currentTime,0.008);return}catch{}}
     this.a.volume=v;
   },
+  /* k = fator de fade (0..1): baixa o volume e escurece o vídeo juntos */
+  setK(k){
+    k=Math.max(0,Math.min(1,k));
+    const v=state.volume*k;if(Math.abs(v-this.lv)>0.002||k===0||k===1)this.setVol(v);
+    if(Math.abs(k-this.vis)>0.004||k===0||k===1){this.vis=k;this.a.style.opacity=k}
+  },
+  /* tela de marca no lugar do vídeo: sem vídeo, preparado no início ou já encerrado */
+  brandMode(){
+    const m=this.cur;if(!m||!m.video||this.done)return true;
+    const{ini}=this.bounds();
+    return this.a.paused&&Math.abs(this.a.currentTime-ini)<0.3;
+  },
+  fullscreen(){
+    const w=$('#vidWrap'),fe=document.fullscreenElement||document.webkitFullscreenElement;
+    if(fe){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
+    if(w.requestFullscreen)w.requestFullscreen().catch(()=>{});
+    else if(w.webkitRequestFullscreen)w.webkitRequestFullscreen();
+    else if(this.a.webkitEnterFullscreen)this.a.webkitEnterFullscreen();
+  },
   bounds(){
     const m=this.cur,d=isFinite(this.a.duration)?this.a.duration:0;
     let ini=m?.inicio||0;if(d)ini=Math.min(ini,Math.max(0,d-0.3));
@@ -1202,9 +1447,12 @@ const Player={
     this.cur=m;this.done=false;this.fadeInOn=false;
     const a=this.a;a.src=this.url;
     await new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;a.removeEventListener('loadedmetadata',h);r()};a.addEventListener('loadedmetadata',h);setTimeout(h,5000)});
+    if(a.videoWidth>0&&!m.video){m.video=true;const x=state.musicas.find(y=>y.id===m.id);if(x){x.video=true;saveMusica(x)}}
+    if(!a.videoWidth&&m.video)m.video=false;
     await this.seekTo(this.bounds().ini);
+    Telao.sendLoad();
     if('mediaSession'in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:isCer()?cueOf(m):m.titulo,artist:descOf(m),album:state.evento?.nome||'Palco Musical'})}catch{}}
-    if(autoplay)await this.play();else{this.setVol(state.volume);this.ui();this.onTime()}
+    if(autoplay)await this.play();else{this.setK(1);this.ui();this.onTime()}
     renderList();
   },
   async play(){
@@ -1214,7 +1462,7 @@ const Player={
     if(a.currentTime<ini-0.05||(end&&a.currentTime>=end-0.05))await this.seekTo(ini);
     this.clearFade();this.done=false;
     this.fadeInOn=!!this.cur.fadeIn&&a.currentTime-ini<0.25;
-    this.setVol(this.fadeInOn?0:state.volume);
+    this.setK(this.fadeInOn?0:1);
     try{await a.play()}catch{toast('Toque no botão ▶ para iniciar a reprodução.','warn')}
   },
   /* chamado a cada frame: aplica fades e corta exatamente no ponto final */
@@ -1223,10 +1471,10 @@ const Player={
     const t=a.currentTime,{ini,end,cut}=this.bounds();
     if(cut&&t>=end-0.012&&!this.done){this.clearFade();a.pause();this.afterEnd();return}
     if(this.fadeT)return;
-    let v=state.volume;
-    if(this.fadeInOn){const k=(t-ini)/FADE_IN;if(k>=1||k<0)this.fadeInOn=false;else v*=k}
-    if(cut&&m.fadeOut!==false){const fo=Math.min(FADE_OUT,(end-ini)/3);if(t>end-fo)v*=Math.max(0,(end-t)/fo)}
-    if(Math.abs(v-this.lv)>0.002)this.setVol(v);
+    let k=1;
+    if(this.fadeInOn){const f=(t-ini)/FADE_IN;if(f>=1||f<0)this.fadeInOn=false;else k*=f}
+    if(cut&&m.fadeOut!==false){const fo=Math.min(FADE_OUT,(end-ini)/3);if(t>end-fo)k*=Math.max(0,(end-t)/fo)}
+    this.setK(k);
   },
   watch(){this.unwatch();const loop=()=>{this.tick();this.raf=requestAnimationFrame(loop)};this.raf=requestAnimationFrame(loop);this.iv=setInterval(()=>this.tick(),30)},
   unwatch(){cancelAnimationFrame(this.raf);clearInterval(this.iv)},
@@ -1237,16 +1485,16 @@ const Player={
   async stop(){
     if(!this.cur)return;this.clearFade();
     const{ini}=this.bounds();const played=this.a.currentTime-ini;
-    this.a.pause();await this.seekTo(ini);this.setVol(state.volume);
+    this.a.pause();await this.seekTo(ini);this.setK(1);
     if(played>15)this.markPlayed(this.cur);
     this.ui();this.onTime();
   },
   clearFade(){if(this.fadeT){clearInterval(this.fadeT);this.fadeT=null}},
   fade(ms=3000){
     const a=this.a;if(!this.cur||a.paused||this.fadeT)return;
-    const v0=this.lv,t0=performance.now();
+    const k0=this.vis,t0=performance.now();
     this.fadeT=setInterval(()=>{
-      const k=Math.min(1,(performance.now()-t0)/ms);this.setVol(v0*(1-k));
+      const k=Math.min(1,(performance.now()-t0)/ms);this.setK(k0*(1-k));
       if(k>=1){this.clearFade();a.pause();this.afterEnd()}
     },30);
   },
@@ -1256,7 +1504,7 @@ const Player={
     await this.markPlayed(cur);
     const n=this.nextOf(cur);
     if(n)await this.load(n,state.auto);
-    else{this.setVol(state.volume);this.ui();toast('Fim do cronograma. 🎉','ok')}
+    else{this.setK(1);this.ui();toast('Fim do cronograma. 🎉','ok')}
   },
   async markPlayed(m){
     const x=state.musicas.find(y=>y.id===m.id);
@@ -1279,6 +1527,7 @@ const Player={
     if(!this.seeking){const p=d?c/d*1000:0;sk.value=p;sk.style.setProperty('--p',p/10+'%')}
     const trimmed=this.cur&&(ini>0||cut);
     $('#plTime').innerHTML=this.cur?`${fmt(Math.max(0,c-ini))} / ${fmt(Math.max(0,end-ini))}${trimmed?`<small>✂ ${fmtP(ini)} → ${fmtP(end)}</small>`:''}`:'0:00 / 0:00';
+    $('#vidWrap').classList.toggle('brand',this.brandMode());
     Stage.tick();
   },
   ui(){
@@ -1292,14 +1541,78 @@ const Player={
     $$('.song').forEach(li=>{const cur=m&&li.dataset.id===m.id;li.classList.toggle('is-current',!!cur);const b=$('.pbtn',li);if(b)b.innerHTML=icon(cur&&playing?'pause':'play')});
     $$('.moment[data-drag]').forEach(li=>li.classList.toggle('has-cur',!!(m&&m.momentoId===li.dataset.drag)));
     if(!m){$('#plSeek').value=0;['--p','--a'].forEach(v=>$('#plSeek').style.setProperty(v,'0%'));$('#plSeek').style.setProperty('--b','100%')}
-    this.onTime();renderNextCard();Stage.render();
+    $('#vpanel').hidden=!(m&&m.video);
+    $('#plTv').classList.toggle('on',Telao.open);
+    if(m&&!m.video&&(document.fullscreenElement||document.webkitFullscreenElement)===$('#vidWrap')){/* mantém a tela de marca em tela cheia entre vídeos */}
+    paintVidBrand($('#vidWrap'),vidLabels());
+    this.onTime();renderNextCard();Stage.render();Telao.sendState();
   }
 };
+
+/* Textos da tela de marca (entre vídeos / músicas sem vídeo) */
+function vidLabels(){
+  const ev=state.evento,m=Player.cur;
+  const title=ev?.nome||marca.nome||'';
+  const hom=isCer(ev)&&ev?.homenageados&&!title.toLowerCase().includes(ev.homenageados.toLowerCase())?ev.homenageados:'';
+  return{
+    title,
+    sub:hom||(fmtDate(ev?.data)||''),
+    cue:m&&marca.telaoMomento?(isCer(ev)?cueOf(m):m.titulo):''
+  };
+}
+function paintVidBrand(wrap,{title,sub,cue}){
+  if(!wrap)return;
+  const lg=$('.vw-logo',wrap),wm=$('.vw-wm',wrap);
+  if(marca.logo){lg.src=marca.logo;lg.hidden=false;lg.classList.toggle('white',!!marca.logoBranco)}else lg.hidden=true;
+  if(marca.logo&&marca.logoNoVideo){wm.src=marca.logo;wm.hidden=false}else wm.hidden=true;
+  $('.vw-title',wrap).textContent=title||'';
+  $('.vw-sub',wrap).textContent=sub||'';
+  $('.vw-cue',wrap).textContent=cue||'';
+}
+
+/* ---------- Telão: janela separada (projetor/TV), sincronizada com o player ---------- */
+const Telao={
+  win:null,iv:null,lastId:undefined,
+  get open(){return!!(this.win&&!this.win.closed)},
+  toggle(){
+    if(this.open){this.win.close();this.win=null;clearInterval(this.iv);Player.ui();return}
+    const w=window.open(baseUrl()+'#telao','palco_telao','popup=yes,width=1280,height=720');
+    if(!w)return toast('O navegador bloqueou a janela do telão. Permita pop-ups para este site e tente de novo.','warn',7000);
+    this.win=w;this.lastId=undefined;
+    clearInterval(this.iv);this.iv=setInterval(()=>this.sendState(),150);
+    toast('<b>Telão aberto.</b> Arraste a janela para o projetor/TV e clique nela (ou tecle F) para tela cheia.','info',8000);
+    Player.ui();
+  },
+  post(msg){if(!this.open)return false;try{this.win.postMessage(msg,'*');return true}catch{return false}},
+  sendBrand(){this.post({t:'brand',brand:publicBrand(),opts:{telaoMomento:marca.telaoMomento,logoNoVideo:marca.logoNoVideo}})},
+  async sendLoad(){
+    if(!this.open)return;
+    const m=Player.cur;
+    let blob=null;if(m?.video)blob=await DB.get('audios',m.id);
+    this.lastId=m?.id||null;
+    this.post({t:'load',id:m?.id||null,video:!!m?.video,blob});
+  },
+  sendState(){
+    if(!this.open){if(this.win){this.win=null;clearInterval(this.iv);$('#plTv')?.classList.remove('on')}return}
+    const a=Player.a;
+    this.post({t:'state',id:Player.cur?.id||null,playing:!a.paused,time:a.currentTime,brand:Player.brandMode(),op:Player.vis,labels:vidLabels()});
+  }
+};
+window.addEventListener('message',e=>{
+  if(!Telao.win||e.source!==Telao.win||!e.data)return;
+  if(e.data.t==='hello'){Telao.sendBrand();Telao.sendLoad();Telao.sendState()}
+});
 
 /* ---------- Modo palco ---------- */
 const Stage={
   open(){$('#stage').hidden=false;this.render();try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch{}},
-  close(){$('#stage').hidden=true;try{if(document.fullscreenElement)document.exitFullscreen()}catch{}},
+  close(){$('#stage').hidden=true;this.placeVideo();try{if(document.fullscreenElement)document.exitFullscreen()}catch{}},
+  /* move o quadro de vídeo para o modo palco quando ele está aberto (sem interromper a reprodução) */
+  placeVideo(){
+    const w=$('#vidWrap'),want=this.on&&Player.cur?.video?$('#stVideo'):$('#vpSlot');
+    if(w.parentElement!==want)want.appendChild(w);
+    $('#stage').classList.toggle('has-video',want.id==='stVideo');
+  },
   get on(){return!$('#stage').hidden},
   render(){
     if(!this.on)return;
@@ -1311,6 +1624,7 @@ const Stage={
     $('#stObs').textContent=m?.obs||'';
     $('#stNext').textContent=n?`${cueOf(n)}${isCer()?' — '+n.titulo:' · '+n.turma}`:'—';
     $('#stPlayIc').innerHTML=`<use href="#i-${m&&!Player.a.paused?'pause':'play'}"/>`;
+    this.placeVideo();
     this.tick();
   },
   tick(){
@@ -1338,18 +1652,21 @@ function renderMain(){
   const main=$('#main'),ev=state.evento;
   if(!ev){
     main.innerHTML=`<section class="welcome"><div class="card hero">
-      <span class="logo xl" style="margin:0 auto">${icon('music')}</span>
-      <h1>As músicas do seu evento, na ordem certa</h1>
+      <span class="logo xl" style="margin:0 auto" data-brand-logo="music">${icon('music')}</span>
+      <h1>As músicas e vídeos do seu evento, na ordem certa</h1>
       <p>Envie um link para professoras, noivos ou debutante. Eles anexam as músicas e marcam onde cada uma começa e termina — você recebe tudo em tempo real e toca daqui, sem baixar nada do WhatsApp.</p>
       <div class="types-row">${Object.values(TIPOS).map(t=>`<span class="tipo-tag">${icon(t.icon)}${t.nome}</span>`).join('')}</div>
       <div class="steps">
         <div class="step ${state.token?'done':''}"><b>${state.token?icon('check'):'1'}</b><div><strong>Conecte ao GitHub Gist</strong><span>${state.token?'Conectado'+(state.login?' como @'+esc(state.login):''):'É a “caixa de entrada” na nuvem que recebe os envios.'}</span></div><button class="btn ${state.token?'':'primary'} sm" data-w="cfg">${state.token?'Ver':'Configurar'}</button></div>
+        <div class="step ${marca.nome||marca.logo?'done':''}"><b>${marca.nome||marca.logo?icon('check'):icon('palette')}</b><div><strong>Cadastre sua marca</strong><span>${marca.nome||marca.logo?esc(marca.nome||'Logo cadastrado'):'Logo, cor, contatos — aparecem nos links, no telão e na tela cheia.'}</span></div><button class="btn sm" data-w="marca">${marca.nome||marca.logo?'Editar':'Cadastrar'}</button></div>
         <div class="step"><b>2</b><div><strong>Crie o evento</strong><span>Escolar, 15 anos, casamento ou outro cerimonial — com o cronograma de momentos pronto.</span></div><button class="btn ${state.token?'primary':''} sm" data-w="ev">Criar evento</button></div>
         <div class="step"><b>3</b><div><strong>Envie o link</strong><span>Para cada professora, ou para os noivos / a debutante escolherem a música de cada momento.</span></div></div>
-        <div class="step"><b>4</b><div><strong>Toque na hora</strong><span>Cada música começa e para exatamente onde foi marcado. Use o modo palco no dia.</span></div></div>
+        <div class="step"><b>4</b><div><strong>Toque na hora</strong><span>Músicas e vídeos começam e param exatamente onde foi marcado. Vídeos em tela cheia ou no telão (2ª tela).</span></div></div>
       </div></div></section>`;
     $('[data-w=cfg]',main).onclick=openSettings;
     $('[data-w=ev]',main).onclick=()=>openEventForm();
+    $('[data-w=marca]',main).onclick=openBrand;
+    refreshLogos();
     return;
   }
   const t=tipoDe(ev),cer=isCer(ev);
@@ -1430,6 +1747,7 @@ function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
     </div>
     <div class="meta">
       <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
+      ${m.video?`<span class="chip c-soft">${icon('video')}Vídeo</span>`:''}
       ${m.posicaoSugerida&&!cer?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
       <span class="via">${m.origem==='link'?'via link · '+fmtHora(m.recebidoEm):'manual'}</span>
     </div>
@@ -1664,7 +1982,7 @@ function openSongMenu(m){
 
 async function downloadAudio(m){
   const blob=await DB.get('audios',m.id);if(!blob)return toast('Áudio não encontrado.','err');
-  const ext=(m.nomeArquivo&&m.nomeArquivo.includes('.'))?m.nomeArquivo.split('.').pop():({'audio/mpeg':'mp3','audio/mp4':'m4a','audio/ogg':'ogg','audio/wav':'wav','video/mp4':'mp4'}[blob.type]||'mp3');
+  const ext=(m.nomeArquivo&&m.nomeArquivo.includes('.'))?m.nomeArquivo.split('.').pop():({'audio/mpeg':'mp3','audio/mp4':'m4a','audio/ogg':'ogg','audio/wav':'wav','video/mp4':'mp4','video/quicktime':'mov','video/webm':'webm'}[blob.type]||'mp3');
   const n=String(sorted().findIndex(x=>x.id===m.id)+1).padStart(2,'0');
   const name=(isCer()?`${n} - ${cueOf(m)} - ${m.titulo}`:`${n} - ${m.turma} - ${m.titulo}`).replace(/[\\/:*?"<>|]/g,'')+'.'+ext;
   const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);
@@ -1700,7 +2018,7 @@ function openSongForm(m=null,momentoId=null){
         <label class="field"><span>Música *</span><input name="titulo" value="${esc(m?.titulo)}"></label>
         <label class="field"><span>Artista</span><input name="artista" value="${esc(m?.artista)}"></label>
       </div>
-      <div class="field"><span>Arquivo de áudio${isNew?' *':''} — início, fim e fades</span><div id="sfAudio"></div></div>
+      <div class="field"><span>Arquivo (música ou vídeo)${isNew?' *':''} — início, fim e fades</span><div id="sfAudio"></div></div>
       <label class="field"><span>Observações</span><textarea name="obs" rows="2">${esc(m?.obs)}</textarea></label>
       <p class="err" id="sfErr" hidden></p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}${isNew?'Adicionar':'Salvar'}</button></div>
@@ -1709,7 +2027,8 @@ function openSongForm(m=null,momentoId=null){
     af=audioField($('#sfAudio',md),{
       atual:!isNew&&hasAudio(m)?{nome:m.nomeArquivo||'Arquivo atual',tamanho:m.tamanho}:null,
       loadAtual:m?()=>DB.get('audios',m.id):null,
-      valores:{inicio:m?.inicio||0,fim:m?.fim||0,fadeIn:!!m?.fadeIn,fadeOut:m?m.fadeOut!==false:true}
+      valores:{inicio:m?.inicio||0,fim:m?.fim||0,fadeIn:!!m?.fadeIn,fadeOut:m?m.fadeOut!==false:true},
+      maxMB:MAX_LOCAL_MB
     });
     const f=$('#sf',md);
     f.onsubmit=async e=>{
@@ -1719,7 +2038,7 @@ function openSongForm(m=null,momentoId=null){
       const v=k=>(f.elements[k]?.value||'').trim();
       if(!v('titulo'))return fail('Informe o nome da música.');
       if(!cer&&(!v('professora')||!v('turma')))return fail('Preencha professora e turma.');
-      if(isNew&&!af.file)return fail('Escolha o arquivo de áudio.');
+      if(isNew&&!af.file)return fail('Escolha o arquivo da música ou do vídeo.');
       const ve=af.validate();if(ve)return fail(ve);
       const btn=$('[type=submit]',f);btn.disabled=true;
       try{
@@ -1731,7 +2050,8 @@ function openSongForm(m=null,momentoId=null){
         if(af.file){
           const blob=new Blob([af.file],{type:mimeOf(af.file)});
           await DB.put('audios',blob,x.id);
-          x.mime=blob.type;x.nomeArquivo=af.file.name;x.tamanho=af.file.size;x.duracao=await getDuration(blob);
+          const inf=await getMediaInfo(blob);
+          x.mime=blob.type;x.nomeArquivo=af.file.name;x.tamanho=af.file.size;x.duracao=inf.dur;x.video=inf.video;
           if(x.status!=='tocada')x.status='pronta';x.erro='';
         }
         await saveMusica(x);
@@ -1866,6 +2186,10 @@ function makeLink(ev,prof='',turma=''){
   return baseUrl()+'#enviar='+b64urlEnc(JSON.stringify(p));
 }
 function waMsg(ev,link,prof='',turma=''){
+  const sig=marca.nome?`\n\n— ${marca.nome}${marca.whatsapp?' · '+marca.whatsapp:''}`:'';
+  return waMsgBase(ev,link,prof,turma)+sig;
+}
+function waMsgBase(ev,link,prof='',turma=''){
   const dt=ev.data?' ('+ev.data.split('-').reverse().join('/')+')':'';
   if(isCer(ev))return`Olá${prof?', '+prof:''}! ✨\nAqui está o link para enviar as músicas do cerimonial de *${ev.nome}*${dt}:\n\n${link}\n\nEm cada momento você anexa a música e pode marcar exatamente onde ela começa e termina — é assim que ela vai tocar no dia. 🎶`;
   return`Olá${prof?', '+prof:''}! 🎵\nPara o evento *${ev.nome}*${dt}, envie a música da turma${turma?' *'+turma+'*':''} por este link:\n\n${link}\n\nÉ só preencher os dados, anexar o arquivo e, se quiser, marcar onde a música começa e termina. Obrigado!`;
@@ -1951,8 +2275,13 @@ function openSettings(){
         <button class="btn sm" id="ntf" ${!notif||Notification.permission!=='default'?'disabled':''}>${icon('bell')}${!notif?'Indisponível':Notification.permission==='granted'?'Ativadas':Notification.permission==='denied'?'Bloqueadas':'Ativar'}</button>
       </div>
       <hr class="sep" style="margin:6px 0">
+      <div class="row" style="justify-content:space-between">
+        <div><strong>Minha marca</strong><p class="muted" style="font-size:.88rem">Logo, cor, contatos e opções do telão.</p></div>
+        <button class="btn sm" id="goMarca" type="button">${icon('palette')}Abrir</button>
+      </div>
+      <hr class="sep" style="margin:6px 0">
       <div><strong style="display:block;margin-bottom:8px">Atalhos de teclado</strong>
-        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span></div>
+        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span><kbd>V</kbd><span>Vídeo em tela cheia</span></div>
       </div>
     </div>`,
   {onMount:(md,close)=>{
@@ -1972,6 +2301,7 @@ function openSettings(){
       }catch(e){st.className='tk-status err';st.textContent=e.message}
     };
     const rm=$('#tkRm',md);if(rm)rm.onclick=async()=>{state.token='';state.login='';await DB.setCfg('token','');await DB.setCfg('login','');close();renderMain();Sync.tick();toast('Token removido.','ok')};
+    $('#goMarca',md).onclick=()=>{close();setTimeout(openBrand,220)};
     const nb=$('#ntf',md);nb.onclick=async()=>{const p=await Notification.requestPermission();nb.disabled=true;nb.innerHTML=icon('bell')+(p==='granted'?'Ativadas':'Bloqueadas')};
   }});
 }
@@ -1991,6 +2321,7 @@ function bindKeys(){
     else if(k==='f')Player.fade();
     else if(k==='s')Player.stop();
     else if(k==='t')Stage.on?Stage.close():Stage.open();
+    else if(k==='v'){if(Player.cur?.video)Player.fullscreen()}
     else if(e.key==='ArrowRight'){e.preventDefault();Player.seekBy(5)}
     else if(e.key==='ArrowLeft'){e.preventDefault();Player.seekBy(-5)}
   });
@@ -2003,7 +2334,9 @@ async function initAdmin(){
   const vol=await DB.cfg('volume');state.volume=typeof vol==='number'?vol:1;
   state.auto=!!(await DB.cfg('auto'));
   state.eventos=await DB.all('eventos');
+  applyBrand(await DB.cfg('marca'));
   Player.init();bindKeys();
+  $('#btnMarca').onclick=openBrand;
   $('#evSel').onchange=e=>selectEvent(e.target.value);
   $('#btnNovoEv').onclick=()=>openEventForm();
   $('#btnConfig').onclick=openSettings;
@@ -2013,7 +2346,7 @@ async function initAdmin(){
   $('#stBar').onclick=e=>{if(!Player.cur||!Player.a.duration)return;const r=e.currentTarget.getBoundingClientRect();const{ini,end}=Player.bounds();Player.a.currentTime=Math.min(end-0.15,ini+(e.clientX-r.left)/r.width*(end-ini));Player.fadeInOn=false};
   window.addEventListener('online',()=>Sync.tick(true));
   window.addEventListener('offline',()=>setSync('off'));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){state.badge=0;document.title='Palco Musical';Sync.tick();requestWake()}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){state.badge=0;document.title=marca.nome||'Palco Musical';Sync.tick();requestWake()}});
   window.addEventListener('beforeunload',e=>{if(Player.cur&&!Player.a.paused){e.preventDefault();e.returnValue=''}});
   if(navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
   const last=await DB.cfg('ultimoEvento');
@@ -2032,6 +2365,8 @@ async function initProf(P){
   let saved={};try{saved=JSON.parse(localStorage.getItem('palco_prof')||'{}')}catch{}
   f.elements.professora.value=P.p||saved.professora||'';
   f.elements.turma.value=P.u||saved.turma||'';
+  applyBrand(null);
+  gh(`/gists/${P.g}`,{token:P.t}).then(r=>readGistFile(r.data.files['evento.json'])).then(t=>{const m=JSON.parse(t);if(m.marca)applyBrand(m.marca);if(m.nome)$('#pEvento').textContent=m.nome}).catch(()=>{});
   let af=audioField($('#pAudio'));
   const showErr=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'center'})};
 
@@ -2087,8 +2422,9 @@ async function initCli(P){
     document.title='Músicas · '+(nome||'Evento');
     $('#cEvento').textContent=nome||'Evento';
     $('#cData').textContent=fmtDate(data);
-    $('#cIcon').innerHTML=icon(t.icon);
+    $('#cIcon').dataset.brandLogo=t.icon;refreshLogos();
   };
+  applyBrand(null);
   setHero(P.e,P.d,P.k);
   const nomeIn=$('#cNome');
   let saved='';try{saved=localStorage.getItem('palco_cli_'+P.g)||''}catch{}
@@ -2106,6 +2442,7 @@ async function initCli(P){
       const r=await gh(`/gists/${P.g}`,{token:P.t});
       const files=r.data.files||{};
       let meta={};try{meta=JSON.parse(await readGistFile(files['evento.json']))}catch{}
+      if(meta.marca)applyBrand(meta.marca);
       setHero(meta.nome||P.e,meta.data||P.d,meta.tipo||P.k);
       const moms=(meta.momentos||[]).map(m=>({id:m.id,nome:m.nome}));
       const subs=[];
@@ -2147,7 +2484,7 @@ async function initCli(P){
           <label class="field"><span>Nome da música *</span><input name="titulo" value="${esc(sub?.titulo)}"></label>
           <label class="field"><span>Artista / intérprete</span><input name="artista" value="${esc(sub?.artista)}"></label>
         </div>
-        <div class="field"><span>Música — onde começa e onde termina</span><div id="ceAudio"></div></div>
+        <div class="field"><span>Música ou vídeo — onde começa e onde termina</span><div id="ceAudio"></div></div>
         <label class="field"><span>Observações para a equipe de som</span><textarea name="obs" rows="2" placeholder="Ex.: soltar a música quando a porta abrir">${esc(sub?.obs)}</textarea></label>
         <div class="progress" hidden><div class="bar"></div><span></span></div>
         <p class="err" hidden></p>
@@ -2192,6 +2529,55 @@ async function initCli(P){
   await load();
 }
 
+/* =========================================================
+   JANELA DO TELÃO (2ª tela / projetor)
+   ========================================================= */
+function initTelao(){
+  const tv=$('#tv');tv.hidden=false;document.title='Telão';
+  document.body.style.background='#000';
+  tv.innerHTML=`<div class="vidwrap brand"><video playsinline muted preload="auto"></video><div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div><img class="vw-wm" alt="" hidden></div>
+    <div class="tv-hint">Clique aqui (ou tecle F) para tela cheia · arraste esta janela para o projetor/TV</div>`;
+  const wrap=$('.vidwrap',tv),v=$('video',tv);v.muted=true;
+  let curId=null,url=null;
+  const fs=()=>{const fe=document.fullscreenElement||document.webkitFullscreenElement;if(fe)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else(tv.requestFullscreen||tv.webkitRequestFullscreen)?.call(tv)};
+  tv.addEventListener('click',fs);
+  document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='f')fs()});
+  document.addEventListener('fullscreenchange',()=>tv.classList.toggle('fs',!!document.fullscreenElement));
+  let ct;tv.addEventListener('mousemove',()=>{tv.classList.add('show-cursor');clearTimeout(ct);ct=setTimeout(()=>tv.classList.remove('show-cursor'),1500)});
+  if(!window.opener){applyBrand(null);paintVidBrand(wrap,{title:'Telão',sub:'Abra o telão pelo botão no painel do organizador.'});return}
+  window.addEventListener('message',e=>{
+    if(e.source!==window.opener||!e.data)return;
+    const d=e.data;
+    if(d.t==='brand'){applyBrand({...d.brand,...d.opts})}
+    else if(d.t==='load'){
+      if(d.id!==curId||(!url&&d.video&&d.blob)){
+        curId=d.id;if(url){URL.revokeObjectURL(url);url=null}
+        v.pause();v.removeAttribute('src');v.load();
+        if(d.video&&d.blob){url=URL.createObjectURL(d.blob);v.src=url}
+      }
+    }
+    else if(d.t==='state'){
+      if(d.labels)paintVidBrand(wrap,d.labels);
+      const showBrand=d.brand||!url||d.id!==curId;
+      wrap.classList.toggle('brand',showBrand);
+      v.style.opacity=d.op;
+      if(!url)return;
+      const diff=v.currentTime-d.time;
+      if(showBrand||!d.playing){
+        if(!v.paused)v.pause();
+        v.playbackRate=1;
+        if(Math.abs(diff)>0.05&&v.readyState>0)v.currentTime=d.time;
+        return;
+      }
+      if(Math.abs(diff)>0.35){v.currentTime=d.time+0.04}
+      else v.playbackRate=Math.abs(diff)<0.04?1:(diff>0?0.96:1.04);
+      if(v.paused)v.play().catch(()=>{});
+    }
+  });
+  window.addEventListener('beforeunload',()=>{if(url)URL.revokeObjectURL(url)});
+  window.opener.postMessage({t:'hello'},'*');
+}
+
 function invalidLink(){
   $('#prof').hidden=false;
   $('#pEvento').textContent='Link inválido';
@@ -2205,6 +2591,7 @@ function invalidLink(){
 (async()=>{
   try{await DB.open()}catch{toast('Não foi possível abrir o banco local (IndexedDB). Saia do modo anônimo ou libere o armazenamento.','err',9000)}
   const h=location.hash;
+  if(h==='#telao'){initTelao();return}
   if(h.startsWith('#enviar=')){
     let P=null;try{P=JSON.parse(b64urlDec(h.slice(8)))}catch{}
     if(P&&P.g&&P.t){if(P.m==='c')initCli(P);else initProf(P)}
