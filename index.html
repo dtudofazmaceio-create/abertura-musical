@@ -83,23 +83,23 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,rgba(14,16,30,.94),rgba(12,14,26,.86));backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border-bottom:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px -18px rgba(0,0,0,.8)}
 .topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.45),transparent);opacity:.7}
 .tb-in{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;min-height:76px;padding:12px max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
-.brand{display:flex;align-items:center;gap:14px;min-width:0;text-decoration:none;color:var(--text);justify-self:start;border-radius:14px;padding:4px 6px 4px 0}
+.brand{display:flex;align-items:center;gap:14px;min-width:0;max-width:100%;overflow:hidden;text-decoration:none;color:var(--text);justify-self:stretch;border-radius:14px;padding:4px 6px 4px 0}
 .brand:focus-visible{outline:2px solid var(--violet);outline-offset:4px}
-.brand-txt{display:flex;flex-direction:column;min-width:0;padding-left:14px;border-left:1px solid rgba(255,255,255,.12)}
+.brand-txt{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;overflow:hidden;padding-left:14px;border-left:1px solid rgba(255,255,255,.12)}
 .brand-txt strong{font-size:1.08rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand-txt small{color:var(--muted);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--accent-ink);flex:none;box-shadow:0 8px 20px rgba(var(--accent-rgb),.25)}
 .brand .logo{width:46px;height:46px;border-radius:14px}
 .brand .logo:not(.img)+.brand-txt{border-left:0;padding-left:0}
 /* logo da marca no cabeçalho: altura fixa, largura natural (não espreme) */
-.brand .logo.img{height:52px;width:auto;min-width:52px;max-width:230px;border-radius:12px;overflow:hidden}
-.brand .logo.img img{height:100%;width:auto;max-width:230px;object-fit:contain}
+.brand .logo.img{height:52px;width:auto;min-width:52px;max-width:clamp(120px,15vw,230px);border-radius:12px;overflow:hidden;flex:0 1 auto}
+.brand .logo.img img{height:100%;width:auto;max-width:100%;object-fit:contain}
 .brand .logo.img.lm-branco,.brand .logo.img.lm-escuro{padding:6px 10px}
 .brand .logo.img.lm-moldura{box-shadow:0 8px 22px rgba(0,0,0,.45)!important}
 /* seletor de evento */
 .tb-ev{display:flex;align-items:center;gap:10px;justify-self:end;min-width:0;padding-right:14px;margin-right:2px;border-right:1px solid rgba(255,255,255,.08)}
-.evpick{position:relative;display:flex;align-items:center;gap:12px;height:52px;padding:0 14px 0 8px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);cursor:pointer;transition:border-color .15s,background .15s;width:min(440px,32vw);min-width:240px}
-.evpick:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
+.evpick{position:relative;display:flex;align-items:center;gap:12px;height:52px;padding:0 14px 0 8px;border-radius:14px;background:#171a31;border:1px solid rgba(255,255,255,.09);cursor:pointer;transition:border-color .15s,background .15s;width:min(420px,27vw);min-width:240px}
+.evpick:hover{background:#1c2040;border-color:rgba(255,255,255,.16)}
 .evpick:focus-within{border-color:var(--violet);box-shadow:0 0 0 3px rgba(139,108,255,.22)}
 .evpick-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.14);color:var(--accent2);flex:none}
 .evpick-ic .ic{width:18px;height:18px}
@@ -125,11 +125,11 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .sync{display:inline-flex;align-items:center;gap:9px;height:52px;padding:0 16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);cursor:pointer;font-size:.86rem;font-weight:600;color:var(--muted);white-space:nowrap;transition:background .15s,border-color .15s}
 .sync:hover{background:rgba(255,255,255,.07)}
 .sync .dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
-.sync.live .dot{background:var(--ok);animation:pulse 2s infinite}
-.sync.live{color:var(--ok);border-color:rgba(47,209,139,.25);background:rgba(47,209,139,.06)}
-.sync.busy .dot{background:var(--accent)}
-.sync.err .dot{background:var(--danger)}
-.sync.err{color:var(--danger);border-color:rgba(255,84,112,.3);background:rgba(255,84,112,.06)}
+.sync.s-live .dot{background:var(--ok);animation:pulse 2s infinite}
+.sync.s-live{color:var(--ok);border-color:rgba(47,209,139,.28);background:rgba(47,209,139,.07)}
+.sync.s-busy .dot{background:var(--accent)}
+.sync.s-err .dot{background:var(--danger)}
+.sync.s-err{color:var(--danger);border-color:rgba(255,84,112,.3);background:rgba(255,84,112,.06)}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,209,139,.6)}70%{box-shadow:0 0 0 8px rgba(47,209,139,0)}100%{box-shadow:0 0 0 0 rgba(47,209,139,0)}}
 
 /* ---------- Layout ---------- */
@@ -547,9 +547,15 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 @media (max-width:720px){.evc{padding:10px 12px;gap:10px}.evc-ic{width:38px;height:38px}.evc-r .chip{display:none}.evc-list{max-height:none}}
 
 /* ---------- Responsive ---------- */
+@media (max-width:1440px){
+  .brand-txt small{font-size:.76rem}
+  .tb-ev{padding-right:10px}
+}
 @media (max-width:1280px){
   .tb-ico span{display:none}
   .tb-ico{padding:0 11px}
+  .sync span:last-child{display:none}
+  .sync{padding:0 16px}
 }
 @media (max-width:1100px) and (min-width:721px){
   .tb-in{grid-template-columns:auto minmax(0,1fr) auto;gap:14px}
@@ -1969,7 +1975,7 @@ const Sync={
 };
 function setSync(k,msg=''){
   const b=$('#syncBtn'),t=$('#syncTxt');if(!b)return;
-  b.className='sync '+({live:'live',busy:'busy',err:'err',off:'err'}[k]||'');
+  b.className='sync '+({live:'s-live',busy:'s-busy',err:'s-err',off:'s-err'}[k]||'');
   t.textContent={live:'Ao vivo',busy:'Sincronizando…',err:'Erro',off:'Offline',local:'Só local',notoken:'Sem token',none:'—'}[k]||'—';
   b.title={live:'Recebendo envios em tempo real. Clique para atualizar agora.',err:'Erro: '+msg,off:'Sem internet. Os áudios já baixados continuam tocando.',local:'Este evento não recebe envios por link.',notoken:'Configure o token do GitHub.'}[k]||'Sincronizar agora';
 }
