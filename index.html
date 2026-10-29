@@ -421,6 +421,33 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .ci-b small.ok{color:var(--ok)}
 .skel{padding:30px;text-align:center;color:var(--muted)}
 
+/* ---------- Cronograma na página do cliente ---------- */
+.ci2{padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.ci2.ok{border-color:rgba(47,209,139,.45)}
+.ci2-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ci2-h strong{font-size:1.05rem;flex:1;min-width:0;word-break:break-word}
+.ci2-h small{color:var(--muted);font-size:.86rem;width:100%;padding-left:50px;margin-top:-8px}
+.ci2.ok .ci-n{background:var(--ok);color:#04210f}
+.ci2-list{display:flex;flex-direction:column;gap:8px}
+.ci2-s{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--surface2);flex-wrap:wrap}
+.ci2-i{flex:1;min-width:180px}
+.ci2-i b{display:block;font-size:.98rem;word-break:break-word}
+.ci2-i b span{font-weight:500;color:var(--muted)}
+.ci2-i small{display:block;color:var(--muted);font-size:.84rem;margin-top:2px}
+.ci2-who{display:flex!important;align-items:center;gap:5px;color:var(--accent-text)!important;font-weight:600}
+.ci2-who .ic{width:14px;height:14px}
+.ci2-a{display:flex;gap:6px;flex-wrap:wrap}
+.ci2-more{align-self:flex-start}
+.ci2-send{align-self:stretch}
+.ouvir-box{position:relative}
+.ouvir-media{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.ouvir-media.aud{aspect-ratio:auto;height:166px;background:transparent}
+.ouvir-media video{width:100%;height:100%;display:block;background:#000}
+.ouvir-media.aud-file{aspect-ratio:auto;height:auto;background:transparent}
+.ouvir-media.aud-file video{height:54px;background:transparent}
+.ouvir-box .trim-load{margin-top:8px}
+@media (max-width:720px){.ci2-a{width:100%}.ci2-a .btn{flex:1}.ci2-more{align-self:stretch}}
+
 /* ---------- Stage mode ---------- */
 #stage{position:fixed;inset:0;z-index:90;background:radial-gradient(900px 500px at 50% 0%,rgba(139,108,255,var(--glow,.28)),transparent 70%),var(--stage-bg);color:var(--text);display:flex;flex-direction:column;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,var(--safe-b)) max(20px,env(safe-area-inset-left));overflow:auto}
 .st-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -2299,7 +2326,9 @@ async function processGist(ev,gist){
     if(meta.substitui){
       const old=state.musicas.find(x=>x.id===meta.substitui);
       if(old){
-        if(old.audioGistId&&old.audioGistId===meta.audioGistId&&hasAudio(old))reuse=await DB.get('audios',old.id);
+        const mesmoArquivo=(old.audioGistId&&old.audioGistId===meta.audioGistId)||(!meta.audioGistId&&!meta.link&&!old.link);
+        if(mesmoArquivo&&hasAudio(old))reuse=await DB.get('audios',old.id);
+        if(!meta.audioGistId&&!meta.link&&old.link)meta.link=old.link;
         for(const p of PARTS){const x=old.montagem?.[p]?.midia?.audioGistId,y=meta.montagem?.[p]?.midia?.audioGistId;if(x&&x===y){const bl=await DB.get('audios',partKey(old.id,p));if(bl)reuseParts[p]=bl}}
         ordem=old.ordem;
         if(Player.cur?.id===old.id&&!Player.playing){Player.cur=null;Player.freeParts()}
@@ -3966,12 +3995,21 @@ function waMsgBase(ev,link,prof='',turma=''){
   if(isCer(ev))return`Olá${prof?', '+prof:''}! ✨\nAqui está o link para enviar as músicas do cerimonial de *${ev.nome}*${dt}:\n\n${link}\n\nEm cada momento você anexa a música e pode marcar exatamente onde ela começa e termina — é assim que ela vai tocar no dia. 🎶`;
   return`Olá${prof?', '+prof:''}! 🎵\nPara o evento *${ev.nome}*${dt}, envie a música da turma${turma?' *'+turma+'*':''} por este link:\n\n${link}\n\nÉ só preencher os dados, anexar o arquivo e, se quiser, marcar onde a música começa e termina. Obrigado!`;
 }
+/* garante que as músicas adicionadas no painel estejam na nuvem, para o cliente ver e ouvir pelo link */
+async function prepararParaCliente(ev){
+  if(!ev?.gistId||!state.token)return;
+  const pend=state.musicas.filter(m=>m.eventoId===ev.id&&!m.audioGistId&&!m.link&&!m.soLocal&&hasAudio(m));
+  if(pend.length)toast(`Enviando ${pend.length} música(s) do painel para o link do cliente…`,'info',4000);
+  for(const m of pend)await subirManual(m);
+  try{await pushEstado(ev);Nuvem.dirty.delete(ev.id)}catch(e){Nuvem.falha(e)}
+}
 async function openLinks(){
   const ev=state.evento;
   if(!ev.gistId)return ativarEnvios();
   if(!state.token)return openSettings();
   const cer=isCer(ev),t=tipoDe(ev);
   if(cer)pushMeta(ev,true);
+  prepararParaCliente(ev);
   const local=location.protocol==='file:';
   const geral=makeLink(ev);
   const linksHTML=()=>(ev.links||[]).length?(ev.links||[]).map((l,i)=>`<li><div><strong>${esc(l.professora||(cer?'Cliente':'Professora'))} ${l.turma?'· '+esc(l.turma):''}</strong><small>Criado em ${fmtHora(l.criadoEm)}</small></div>
@@ -4336,6 +4374,39 @@ async function initProf(P){
   renderSent();
 }
 
+/* Ouvir uma música do cronograma no trecho marcado (arquivo enviado ou link) */
+function openOuvir(it,P){
+  let media=null,url=null,stopT=null;
+  const ini=+it.inicio||0,fim=+it.fim||0;
+  openModal(`${modalHead(esc(it.titulo||'Música'),esc([it.artista,it.momentoNome].filter(Boolean).join(' · ')))}
+    <div class="ouvir-box"><div class="ouvir-media"></div><p class="trim-load">Carregando…</p></div>
+    <p class="muted" style="font-size:.9rem;margin-top:10px">${trechoTxt(it)?'Trecho marcado: <b>'+esc(trechoTxt(it))+'</b> — é assim que vai tocar no evento.':'Toca a música inteira.'}</p>
+    <div class="modal-f"><button type="button" class="btn" data-close>Fechar</button><button type="button" class="btn primary" id="ouPlay" disabled>${icon('play')}Ouvir o trecho</button></div>`,
+  {onClose:()=>{clearInterval(stopT);try{media?.pause()}catch{}if(media?.destroy)media.destroy();if(url)URL.revokeObjectURL(url)},onMount:async md=>{
+    const box=$('.ouvir-media',md),st=$('.trim-load',md),bt=$('#ouPlay',md);
+    const pronto=()=>{st.hidden=true;bt.disabled=false;try{media.currentTime=ini}catch{}};
+    try{
+      if(it.link&&linkTocavel(it.link)){
+        box.classList.toggle('aud',!(it.link.video||it.link.tipo==='stream'));
+        media=new ExtMedia(it.link,{mount:box,controls:true});
+        media.addEventListener('loadedmetadata',pronto);
+        media.addEventListener('error',()=>{st.className='err';st.textContent=media.erro||'Não foi possível abrir este link.'});
+      }else if(it.audioGistId){
+        st.textContent='Baixando a música para você ouvir…';
+        const b=await fetchAudioBlob(it.audioGistId,it.audioArquivo,it.mime,P.t);
+        url=URL.createObjectURL(b);
+        const v=document.createElement('video');v.controls=true;v.playsInline=true;v.src=url;box.appendChild(v);media=v;
+        v.addEventListener('loadedmetadata',()=>{box.classList.toggle('aud-file',!v.videoWidth);pronto()},{once:true});
+      }else{st.textContent='Este arquivo ficou só no aparelho da equipe e não pode ser ouvido por aqui. Você ainda pode trocá-lo.';return}
+    }catch(e){st.className='err';st.textContent=e.message;return}
+    bt.onclick=()=>{
+      clearInterval(stopT);try{media.currentTime=ini}catch{}
+      setTimeout(()=>{media.play()?.catch?.(()=>{})},media.v||media.tagName==='VIDEO'?0:250);
+      if(fim>ini)stopT=setInterval(()=>{if(media.currentTime>=fim-.03){media.pause();clearInterval(stopT)}},50);
+    };
+  }});
+}
+
 /* =========================================================
    PÁGINA DO CLIENTE (noivos / debutante / cerimonial)
    ========================================================= */
@@ -4360,13 +4431,7 @@ async function initCli(P){
     if(!C.loaded)return;
     const m=C.meta||{};
     const ev={nome:m.nome||P.e,tipo:m.tipo||P.k||'cerimonial',data:m.data||P.d||'',local:m.local||'',homenageados:m.homenageados||'',cliente:m.cliente||null};
-    const est=C.estado,rem=new Set(est?.ev?.removidos||[]),mus=[];
-    for(const[id,r]of Object.entries(est?.musicas||{}))if(!rem.has(id))mus.push({id,...r});
-    const tem=new Set(mus.map(x=>x.id)),subst=new Set((C.allSubs||[]).map(x=>x.substitui).filter(Boolean));
-    for(const x of C.allSubs||[])if(!tem.has(x.id)&&!rem.has(x.id)&&!subst.has(x.id))mus.push({...x,ordem:1e6});
-    for(const x of mus)if(x.substitui){const i=mus.findIndex(y=>y.id===x.substitui);if(i>=0)mus.splice(i,1)}
-    mus.sort((a,b)=>(a.ordem??1e6)-(b.ordem??1e6)||String(a.enviadoEm||'').localeCompare(String(b.enviadoEm||'')));
-    const grupos=C.momentos.map((mo,i)=>({n:i+1,titulo:mo.nome,musicas:mus.filter(x=>x.momentoId===mo.id)}));
+    const grupos=C.momentos.map((mo,i)=>({n:i+1,titulo:mo.nome,musicas:C.porMom.get(mo.id)||[]}));
     try{await gerarFichaPDF({ev,grupos})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
   };
   $('#cAdd').onclick=()=>{
@@ -4386,15 +4451,21 @@ async function initCli(P){
       const subs=[];
       for(const[n,f]of Object.entries(files)){if(!n.startsWith('sub_'))continue;try{subs.push(JSON.parse(await readGistFile(f)))}catch{}}
       subs.sort((a,b)=>String(a.enviadoEm).localeCompare(String(b.enviadoEm)));
-      C.subs=new Map();
-      for(const s of subs){
-        if(!s.momentoId)continue;
-        if(!moms.some(m=>m.id===s.momentoId)){const i=moms.findIndex(m=>m.id===s.momentoApos);moms.splice(i>=0?i+1:moms.length,0,{id:s.momentoId,nome:s.momentoNome||'Momento'})}
-        C.subs.set(s.momentoId,s);
+      /* estado do evento salvo pela equipe: inclui as músicas adicionadas no painel e os ajustes feitos lá */
+      let est=null;try{if(files['estado.json'])est=JSON.parse(await readGistFile(files['estado.json']))}catch{}
+      for(const m of est?.ev?.momentos||[])if(!moms.some(x=>x.id===m.id))moms.push({id:m.id,nome:m.nome});
+      const rem=new Set(est?.ev?.removidos||[]),itens=new Map();
+      for(const[id,r]of Object.entries(est?.musicas||{}))if(!rem.has(id))itens.set(id,{...r,id,_equipe:r.origem==='manual'});
+      for(const x of subs){
+        if(rem.has(x.id))continue;
+        if(x.substitui)itens.delete(x.substitui);                 /* envio novo substitui o anterior */
+        if(!itens.has(x.id))itens.set(x.id,{...x,ordem:1e6,_equipe:false});
+        if(x.momentoId&&!moms.some(m=>m.id===x.momentoId)){const i=moms.findIndex(m=>m.id===x.momentoApos);moms.splice(i>=0?i+1:moms.length,0,{id:x.momentoId,nome:x.momentoNome||'Momento'})}
       }
-      /* estado completo do evento (inclui músicas e ajustes feitos pela equipe) — usado na ficha */
-      C.estado=null;try{if(files['estado.json'])C.estado=JSON.parse(await readGistFile(files['estado.json']))}catch{}
-      C.allSubs=subs;
+      for(const x of subs)if(x.substitui)itens.delete(x.substitui);
+      const lista=[...itens.values()].sort((a,b)=>(a.ordem??1e6)-(b.ordem??1e6)||String(a.enviadoEm||'').localeCompare(String(b.enviadoEm||'')));
+      C.porMom=new Map();for(const it of lista){if(!it.momentoId)continue;if(!C.porMom.has(it.momentoId))C.porMom.set(it.momentoId,[]);C.porMom.get(it.momentoId).push(it)}
+      C.itens=itens;C.estado=est;C.allSubs=subs;
       C.momentos=moms;C.meta=meta;C.loaded=true;render();$('#cFicha').disabled=false;
     }catch(e){
       let msg=esc(e.message);if(e.status===401||e.status===404)msg+=' Peça um novo link à equipe do evento.';
@@ -4402,18 +4473,33 @@ async function initCli(P){
       $('#cRetry').onclick=load;$('#cProgTxt').textContent='—';
     }finally{$('#cReload').disabled=false}
   }
+  const podeOuvir=it=>(it.link&&linkTocavel(it.link))||!!it.audioGistId;
   function render(){
-    const tot=C.momentos.length,done=C.momentos.filter(m=>C.subs.has(m.id)).length;
+    const tot=C.momentos.length,done=C.momentos.filter(m=>(C.porMom.get(m.id)||[]).length).length;
     $('#cProgTxt').textContent=tot?`${done} de ${tot} momentos com música`:'Nenhum momento no cronograma ainda';
     $('#cProgBar').style.width=(tot?done/tot*100:0)+'%';
     $('#cList').innerHTML=tot?C.momentos.map((mo,i)=>{
-      const s=C.subs.get(mo.id);
-      return`<li class="ci ${s?'ok':''}"><span class="ci-n">${s?icon('check'):i+1}</span>
-        <div class="ci-b"><strong>${esc(mo.nome)}</strong>${s?`<small class="ok">${esc(s.titulo)}${s.artista?' — '+esc(s.artista):''}</small><small>${s.link?'🔗 '+esc(s.link.nome)+' · ':''}${s.video?'🎬 vídeo · ':''}${trechoTxt(s)?'✂ '+esc(trechoTxt(s)):'Inteira'}${temMontagem(s)?' · ✨ montagem':''}${s.enviadoPor?' · por '+esc(s.enviadoPor):''}</small>`:'<small>Ainda sem música</small>'}</div>
-        <button class="btn ${s?'':'primary'} sm" data-ci="${i}">${s?icon('edit')+'Trocar / ajustar':icon('upload')+'Enviar música'}</button></li>`}).join('')
+      const its=C.porMom.get(mo.id)||[];
+      return`<li class="ci2 ${its.length?'ok':''}">
+        <div class="ci2-h"><span class="ci-n">${its.length?icon('check'):i+1}</span><strong>${esc(mo.nome)}</strong>${its.length?'':'<small>Ainda sem música</small>'}</div>
+        ${its.length?`<div class="ci2-list">${its.map(it=>`<div class="ci2-s">
+            <div class="ci2-i"><b>${esc(it.titulo||'Sem título')}${it.artista?`<span> — ${esc(it.artista)}</span>`:''}</b>
+              <small>${it.link?'🔗 '+esc(it.link.nome)+' · ':''}${it.video?'🎬 vídeo · ':''}${trechoTxt(it)?'✂ '+esc(trechoTxt(it)):'Inteira'}${temMontagem(it)?' · ✨ montagem':''}</small>
+              <small class="ci2-who">${it._equipe?`${icon('sparkle')}Adicionada pela equipe do evento`:it.enviadoPor?`Enviada por ${esc(it.enviadoPor)}`:'Enviada pelo link'}</small></div>
+            <div class="ci2-a">
+              <button class="btn sm" data-ouvir="${esc(it.id)}" ${podeOuvir(it)?'':'disabled title="Arquivo disponível só no aparelho da equipe"'}>${icon('play')}Ouvir</button>
+              <button class="btn sm" data-trocar="${esc(it.id)}" data-mo="${i}">${icon('edit')}Trocar / ajustar</button>
+            </div></div>`).join('')}
+          <button class="btn ghost sm ci2-more" data-ci="${i}">${icon('plus')}Adicionar outra música neste momento</button></div>`
+          :`<button class="btn primary sm ci2-send" data-ci="${i}">${icon('upload')}Enviar música</button>`}
+      </li>`}).join('')
       :`<li class="ci"><div class="ci-b"><strong>O cronograma ainda está vazio</strong><small>Use “Adicionar outro momento” ou aguarde a equipe do evento montar a sequência.</small></div></li>`;
   }
-  $('#cList').addEventListener('click',e=>{const b=e.target.closest('[data-ci]');if(!b)return;const mo=C.momentos[+b.dataset.ci];openCliEditor(mo,C.subs.get(mo.id)||null)});
+  $('#cList').addEventListener('click',e=>{
+    const o=e.target.closest('[data-ouvir]');if(o){const it=C.itens.get(o.dataset.ouvir);if(it)openOuvir(it,P);return}
+    const t=e.target.closest('[data-trocar]');if(t){const it=C.itens.get(t.dataset.trocar);const mo=C.momentos[+t.dataset.mo];if(it&&mo)openCliEditor(mo,it);return}
+    const b=e.target.closest('[data-ci]');if(!b)return;openCliEditor(C.momentos[+b.dataset.ci],null);
+  });
 
   function openCliEditor(mo,sub){
     let af=null,mv=null;
@@ -4433,9 +4519,12 @@ async function initCli(P){
         <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('upload')}${sub?'Salvar alterações':'Enviar música'}</button></div>
       </form>`,
     {wide:true,onClose:()=>af?.destroy(),onMount:(md,close)=>{
+      /* declarado antes do campo de mídia: um link de vídeo já carregado chama a montagem na hora */
+      function mountMv(val){mv=montageEditor($('#ceMontBody',md),{valores:val,maxMB:MAX_MB,getMain:()=>af?.mainInfo(),
+        loadPart:p=>{const md_=sub?.montagem?.[p]?.midia;return md_?fetchAudioBlob(md_.audioGistId,md_.audioArquivo,md_.mime,P.t):null}})}
       af=audioField($('#ceAudio',md),{
-        atual:sub?{nome:sub.nomeArquivo||'Música enviada',tamanho:sub.tamanho}:null,
-        loadAtual:sub?()=>fetchAudioBlob(sub.audioGistId,sub.audioArquivo,sub.mime,P.t):null,
+        atual:sub?{nome:sub.nomeArquivo||'Música enviada',tamanho:sub.tamanho,link:!sub.audioGistId&&sub.link&&linkTocavel(sub.link)?sub.link:null}:null,
+        loadAtual:sub?.audioGistId?()=>fetchAudioBlob(sub.audioGistId,sub.audioArquivo,sub.mime,P.t):null,
         valores:sub?{inicio:+sub.inicio||0,fim:+sub.fim||0,fadeIn:!!sub.fadeIn,fadeOut:sub.fadeOut!==false}:{},
         onMedia:vid=>{
           const box=$('#ceMont',md);if(!box)return;
@@ -4444,9 +4533,7 @@ async function initCli(P){
           if(vid){box.hidden=false;if(!mv)mountMv(af?.file?null:sub?.montagem)}
         }
       });
-      const mountMv=val=>{mv=montageEditor($('#ceMontBody',md),{valores:val,maxMB:MAX_MB,getMain:()=>af.mainInfo(),
-        loadPart:p=>{const md_=sub?.montagem?.[p]?.midia;return md_?fetchAudioBlob(md_.audioGistId,md_.audioArquivo,md_.mime,P.t):null}})};
-      if(sub&&(sub.video||sub.montagem)){$('#ceMont',md).hidden=false;mountMv(sub.montagem||null)}
+      if(sub&&(sub.video||sub.montagem)&&!mv){$('#ceMont',md).hidden=false;mountMv(sub.montagem||null)}
       const f=$('#ce',md),err=$('.err',md),prog=$('.progress',md);
       const fail=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'nearest'})};
       f.onsubmit=async e=>{
