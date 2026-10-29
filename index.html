@@ -111,7 +111,7 @@ p{margin:0}
 /* ---------- Fields ---------- */
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field>span{font-size:.85rem;color:var(--muted);font-weight:500}
-input[type=text],input[type=search],input[type=password],input[type=number],input[type=date],input:not([type]),select,textarea{
+input[type=text],input[type=search],input[type=password],input[type=number],input[type=date],input[type=time],input[type=email],input[type=tel],input[type=url],input:not([type]),select,textarea{
   width:100%;min-height:46px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--input);outline:none;transition:border-color .15s,box-shadow .15s;font-size:1rem}
 textarea{resize:vertical;min-height:70px}
 input:focus,select:focus,textarea:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(139,108,255,.25)}
@@ -420,6 +420,20 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .ci-b small{display:block;color:var(--muted);font-size:.86rem;word-break:break-word}
 .ci-b small.ok{color:var(--ok)}
 .skel{padding:30px;text-align:center;color:var(--muted)}
+
+/* ---------- Dados do evento e foto (página do cliente) ---------- */
+.ev-foto{width:100%;aspect-ratio:16/9;border-radius:14px;background:center/cover no-repeat;margin:12px 0 4px;box-shadow:0 10px 24px -14px rgba(0,0,0,.6)}
+.ev-obs{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:.88rem;color:var(--accent-text);padding:10px 12px;border-radius:12px;background:rgba(var(--accent-rgb),.08)}
+.ev-obs .ic{width:16px;height:16px;margin-top:2px;flex:none}
+.c-foto{width:min(260px,70vw);aspect-ratio:4/3;margin:16px auto 6px;border-radius:22px;background:center/cover no-repeat;box-shadow:0 18px 40px -12px rgba(0,0,0,.5);border:3px solid rgba(var(--ink-rgb),.12)}
+.c-dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:12px 0 0}
+.c-dl div{min-width:0}
+.c-dl dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-weight:700}
+.c-dl dd{margin:2px 0 0;font-size:.95rem;word-break:break-word}
+@media (max-width:520px){.c-dl{grid-template-columns:1fr}}
+.foto-pick{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+.foto-prev{width:110px;aspect-ratio:4/3;border-radius:12px;background:var(--surface3) center/cover no-repeat;display:grid;place-items:center;color:var(--faint);flex:none}
+.foto-prev .ic{width:28px;height:28px}
 
 /* ---------- Cronograma na página do cliente ---------- */
 .ci2{padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
@@ -1097,8 +1111,13 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
       <span class="logo xl rose" id="cIcon" data-brand-logo="heart"><svg class="ic"><use href="#i-heart"/></svg></span>
       <div class="brand-cap" data-brand-name></div>
       <span class="eyebrow">Músicas do cerimonial</span>
+      <div class="c-foto" id="cFoto" hidden></div>
       <h1 id="cEvento">Evento</h1>
       <p class="muted" id="cData"></p>
+    </div>
+    <div class="card prof-card c-dados" id="cDados" hidden>
+      <div class="row" style="justify-content:space-between;align-items:center"><strong style="font-size:1.05rem">Dados do evento</strong><button class="btn sm" id="cEditDados" type="button"><svg class="ic"><use href="#i-edit"/></svg>Editar dados e foto</button></div>
+      <dl class="c-dl" id="cDadosL"></dl>
     </div>
     <div class="card prof-card stack">
       <p>Escolha a música (ou vídeo) de cada momento, na ordem do cerimonial. Em cada uma você pode marcar <b>exatamente onde ela começa e onde termina</b> — é assim que ela vai tocar no dia.</p>
@@ -2269,7 +2288,8 @@ async function removeLocal(m){
 }
 
 /* Metadados do evento publicados no Gist (cronograma lido pelo link do cliente) */
-const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',local:ev.local||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome})),marca:publicBrand(),cliente:ev.cliente||null},null,1);
+const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',hora:ev.hora||'',local:ev.local||'',endereco:ev.endereco||'',obsEvento:ev.obsEvento||'',
+  foto:ev.foto?.gistId?ev.foto:null,atualizadoEm:ev.atualizadoEm||'',dadosClienteAt:ev.dadosClienteAt||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome})),marca:publicBrand(),cliente:ev.cliente||null},null,1);
 let pushT=null;
 function pushMeta(ev=state.evento,now=false){
   if(!ev?.gistId||!state.token)return Promise.resolve();
@@ -2310,6 +2330,18 @@ function setSync(k,msg=''){
   b.title={live:'Recebendo envios em tempo real. Clique para atualizar agora.',err:'Erro: '+msg,off:'Sem internet. Os áudios já baixados continuam tocando.',local:'Este evento não recebe envios por link.',notoken:'Configure o token do GitHub.'}[k]||'Sincronizar agora';
 }
 
+async function aplicarDadosCliente(ev,d){
+  const c=d.campos||{};
+  for(const k of DADOS_CAMPOS)if(typeof c[k]==='string')ev[k]=c[k].slice(0,2000);
+  if(!ev.nome)ev.nome=tipoDe(ev).auto?.(ev.homenageados)||'Evento';
+  if(c.cliente&&typeof c.cliente==='object')ev.cliente={nome:String(c.cliente.nome||''),whatsapp:String(c.cliente.whatsapp||''),email:String(c.cliente.email||'')};
+  if('foto' in d){const velho=ev.foto;ev.foto=d.foto&&d.foto.gistId?d.foto:null;if(ev.foto)obterFoto(ev.foto,state.token,ev.id);if(velho?.gistId&&velho.gistId!==ev.foto?.gistId)DB.del('audios',fotoKey(velho,ev.id)).catch(()=>{})}
+  ev.dadosClienteAt=d.atualizadoEm;
+  await saveEvento(ev);pushMeta(ev,true);
+  if(state.evento?.id===ev.id){renderEvSel();renderMain();Player.ui()}else renderEvSel();
+  toast(`<b>${esc(d.por||'O cliente')}</b> atualizou os dados do evento${'foto' in d&&d.foto?' (incluindo a foto)':''}.`,'new',7000);
+  if(!Player.playing)chime();
+}
 async function processGist(ev,gist){
   const known=new Set(state.musicas.map(m=>m.id));
   const removed=new Set(ev.removidos||[]);
@@ -2363,6 +2395,9 @@ async function processGist(ev,gist){
     await saveMusica(m,{remote:true});known.add(m.id);novos.push(m);
   }
   if(evChanged){await saveEvento(ev);pushMeta(ev)}
+  /* dados do evento editados pelo cliente (nome, data, local, foto…) */
+  const fd=gist.files?.['dados_cliente.json'];
+  if(fd){try{const d=JSON.parse(await readGistFile(fd));if(d?.atualizadoEm&&d.atualizadoEm>(ev.dadosClienteAt||''))await aplicarDadosCliente(ev,d)}catch{}}
   const fe=gist.files?.['estado.json'];
   if(fe){try{await mergeEstado(ev,JSON.parse(await readGistFile(fe)))}catch{}}
   if(novos.length){
@@ -2995,13 +3030,16 @@ function renderMain(){
     return;
   }
   const t=tipoDe(ev),cer=isCer(ev);
-  const info=[fmtDate(ev.data),ev.local].filter(Boolean).map(esc).join(' · ')||'Sem data definida';
+  const info=[ev.data?fmtDate(ev.data)+(ev.hora?' às '+ev.hora:''):'',ev.local].filter(Boolean).map(esc).join(' · ')||'Sem data definida';
   main.innerHTML=`<div class="layout">
     <aside class="side">
       <section class="card ev-card">
         <div class="row" style="justify-content:space-between;gap:6px"><span class="eyebrow">${ev.gistId?'<span class="live"></span> Recebendo envios por link':'Somente neste aparelho'}</span>${state.eventos.length>1?`<button class="btn ghost sm" data-a="trocar" style="min-height:30px;padding:0 10px">${icon('refresh')}Trocar</button>`:''}</div>
+        <div class="ev-foto" id="evFoto" hidden></div>
         <h1>${esc(ev.nome)}</h1>
         <p class="muted">${info}</p>
+        ${ev.endereco?`<p class="muted" style="font-size:.88rem;margin-top:2px">${esc(ev.endereco)}</p>`:''}
+        ${ev.obsEvento?`<p class="ev-obs">${icon('note')}<span>${esc(ev.obsEvento)}</span></p>`:''}
         <span class="tipo-tag">${icon(t.icon)}${t.nome}${ev.homenageados&&cer?' · '+esc(ev.homenageados):''}</span>
         ${(()=>{const lim=limiteEvento(ev);return`<div class="cli-info" style="margin-top:10px">${ev.manterSempre?`<span>🛡️ Mantido — não será apagado automaticamente</span>`:lim?`<span>🗑️ Apagado automaticamente em <b>${lim.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</b></span>`:`<span>Sem data — não será apagado automaticamente</span>`}<a href="#" data-a="manter">${ev.manterSempre?'Permitir exclusão automática':'Manter este evento'}</a></div>`})()}
         ${ev.cliente?.nome?`<div class="cli-info"><span>${ev.origemCliente?'Cadastrado por':'Cliente'}: <b>${esc(ev.cliente.nome)}</b></span>${ev.cliente.whatsapp?`<a href="${esc(waLink(ev.cliente.whatsapp))}" target="_blank" rel="noopener">${esc(ev.cliente.whatsapp)}</a>`:''}${ev.cliente.email?`<a href="mailto:${esc(ev.cliente.email)}">${esc(ev.cliente.email)}</a>`:''}</div>`:''}
@@ -3039,6 +3077,7 @@ function renderMain(){
     })[b.dataset.a]?.();
   };
   $('#q').oninput=e=>{state.busca=e.target.value;renderList()};
+  if(ev.foto)obterFoto(ev.foto,state.token,ev.id).then(b=>{const el=$('#evFoto');if(!b||!el||state.evento?.id!==ev.id)return;if(el._u)URL.revokeObjectURL(el._u);el._u=URL.createObjectURL(b);el.style.backgroundImage=`url('${el._u}')`;el.hidden=false});
   $('#filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;state.filtro=b.dataset.f;renderList()};
   bindSongs($('#songs'));
   renderList();
@@ -3438,6 +3477,7 @@ async function selectEvent(id){
 
 function openEventForm(ev=null){
   const isNew=!ev,tipo0=ev?.tipo||'escolar';
+  let fp=null;
   openModal(`${modalHead(isNew?'Novo evento':'Editar evento')}
     <form id="ef" class="stack">
       ${isNew?`<div class="note">${icon('sparkle')}<div style="flex:1">Prefere que a debutante ou os noivos cadastrem o evento? <button type="button" class="btn sm" id="efReg" style="margin-top:8px">${icon('link')}Link de cadastro para clientes</button></div></div>`:''}
@@ -3448,6 +3488,8 @@ function openEventForm(ev=null){
         <label class="field"><span>Data</span><input type="date" name="data" value="${esc(ev?.data)}"></label>
         <label class="field"><span>Local</span><input name="local" value="${esc(ev?.local)}" placeholder="Ex.: Salão de festas"></label>
       </div>
+      ${dadosExtrasHTML(ev||{})}
+      <div id="efFoto"></div>
       <div class="field" id="efTpl" hidden><span>Momentos do cronograma (pode mudar depois)</span><div class="tpl" id="efTplL"></div></div>
       ${isNew?`<details class="adv"><summary>Abrir um evento já existente em outro aparelho</summary>
         <label class="field" style="margin-top:10px"><span>ID do Gist do evento</span><input name="gist" placeholder="Ex.: 3f9a1c…"></label>
@@ -3456,12 +3498,16 @@ function openEventForm(ev=null){
       <p class="err" id="efErr" hidden></p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}${isNew?'Criar evento':'Salvar'}</button></div>
     </form>`,
-  {wide:true,onMount:(md,close)=>{
+  {wide:true,onClose:()=>fp?.destroy(),onMount:(md,close)=>{
     const f=$('#ef',md);
+    let fpUrl=null;
+    const montaFoto=url=>{fp=fotoPicker($('#efFoto',md),{atualUrl:url,rotulo:'Foto do casal / da debutante'})};
+    montaFoto(null);
+    if(ev?.foto)obterFoto(ev.foto,state.token,ev.id).then(b=>{if(b&&!fp.blob&&!fp.removida){fpUrl=URL.createObjectURL(b);montaFoto(fpUrl)}});
     const rb=$('#efReg',md);if(rb)rb.onclick=()=>{close();setTimeout(openCadastroLink,220)};
     const upd=()=>{
       const t=TIPOS[f.elements.tipo.value];
-      $('#efHom',md).hidden=!t.cer;
+      $('#efHom',md).hidden=!t.cer;$('#efFoto',md).hidden=!t.cer;
       $('#efHomL',md).textContent=t.hom||'';
       f.elements.homenageados.placeholder=t.ph||'';
       f.elements.nome.placeholder=t.cer?(t.auto('…')+' (opcional, preenche sozinho)'):'Ex.: Abertura dos Jogos Internos 2026';
@@ -3482,10 +3528,21 @@ function openEventForm(ev=null){
       const gistIn=(f.elements.gist?.value||'').trim().split('/').pop();
       if(!nome&&t.cer&&hom)nome=t.auto(hom);
       const tplSel=$('#efTpl',md).hidden?null:$$('#efTplL input:checked',md).map(i=>({id:uid(),nome:i.value}));
+      const extras=lerDadosExtras(f);
+      /* foto: envia para a nuvem quando o evento recebe envios por link; senão fica só neste aparelho */
+      const salvarFoto=async alvo=>{
+        if(fp?.removida){if(alvo.foto?.gistId)gh(`/gists/${alvo.foto.gistId}`,{method:'DELETE'}).catch(()=>{});alvo.foto=null;return}
+        if(!fp?.blob)return;
+        const velho=alvo.foto;
+        if(alvo.gistId&&state.token){alvo.foto=await subirFoto(fp.blob,state.token,alvo.nome)}
+        else alvo.foto={local:true,at:agoraISO()};
+        await DB.put('audios',fp.blob,fotoKey(alvo.foto,alvo.id));
+        if(velho?.gistId&&velho.gistId!==alvo.foto.gistId)gh(`/gists/${velho.gistId}`,{method:'DELETE'}).catch(()=>{});
+      };
       btn.disabled=true;
       try{
         if(isNew){
-          const novo={id:uid(),tipo,homenageados:t.cer?hom:'',nome,data,local,criadoEm:new Date().toISOString(),gistId:'',links:[],removidos:[],momentos:tplSel||[]};
+          const novo={id:uid(),tipo,homenageados:t.cer?hom:'',nome,data,local,...extras,criadoEm:new Date().toISOString(),gistId:'',links:[],removidos:[],momentos:tplSel||[]};
           if(gistIn){
             if(!state.token)return fail('Configure o token do GitHub para abrir um evento existente.');
             if(state.eventos.some(x=>x.gistId===gistIn))return fail('Este evento já está aberto neste aparelho.');
@@ -3496,12 +3553,14 @@ function openEventForm(ev=null){
             if(!nome)return fail(t.cer?`Informe o ${t.hom.toLowerCase()} ou o nome do evento.`:'Informe o nome do evento.');
             if(state.token)novo.gistId=await criarGistEvento(novo);
           }
-          await saveEvento(novo);close();await selectEvent(novo.id);
+          if(t.cer)await salvarFoto(novo);
+          await saveEvento(novo);if(novo.foto?.gistId)pushMeta(novo,true);close();await selectEvent(novo.id);
           toast(novo.gistId?'Evento criado! Agora envie o link.':'Evento criado (somente neste aparelho).','ok');
           if(novo.gistId&&!gistIn)setTimeout(openLinks,400);
         }else{
           if(!nome)return fail('Informe o nome do evento.');
-          Object.assign(ev,{nome,data,local,tipo,homenageados:t.cer?hom:''});
+          Object.assign(ev,{nome,data,local,tipo,homenageados:t.cer?hom:'',...extras});
+          if(t.cer)await salvarFoto(ev);
           if(t.cer&&!(ev.momentos||[]).length&&tplSel)ev.momentos=tplSel;
           await saveEvento(ev);pushMeta(ev,true);
           close();renderEvSel();renderMain();Player.ui();toast('Evento atualizado.','ok');
@@ -3533,7 +3592,7 @@ async function deleteEvent(){
 /* =========================================================
    NUVEM: sincronização entre aparelhos, limpeza automática e backup
    ========================================================= */
-const EV_SYNC=['nome','data','local','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
+const EV_SYNC=['nome','data','hora','local','endereco','obsEvento','foto','dadosClienteAt','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
 const M_SYNC=['titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal','link'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};
 const evSyncObj=ev=>pick(ev,EV_SYNC);
@@ -3748,6 +3807,8 @@ async function apagarEvento(ev,{nuvem=true,silencioso=false}={}){
   if(atual){Player.pauseAll();Player.freeParts();Player.cur=null;Player.mt=null}
   const mus=await DB.byIndex('musicas','eventoId',ev.id);
   const gids=new Set();
+  if(ev.foto?.gistId)gids.add(ev.foto.gistId);
+  await DB.del('audios',fotoKey(ev.foto,ev.id)).catch(()=>{});
   for(const m of mus){
     [m.audioGistId,...PARTS.map(p=>m.montagem?.[p]?.midia?.audioGistId)].forEach(g=>g&&gids.add(g));
     await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p));
@@ -3763,6 +3824,7 @@ async function apagarEvento(ev,{nuvem=true,silencioso=false}={}){
             const j=JSON.parse(await readGistFile(f));
             if(n.startsWith('sub_'))[j.audioGistId,...PARTS.map(p=>j.montagem?.[p]?.midia?.audioGistId)].forEach(x=>x&&gids.add(x));
             if(n==='estado.json')for(const r of Object.values(j.musicas||{}))[r.audioGistId,...PARTS.map(p=>r.montagem?.[p]?.midia?.audioGistId)].forEach(x=>x&&gids.add(x));
+            if((n==='evento.json'||n==='dados_cliente.json')&&j.foto?.gistId)gids.add(j.foto.gistId);
           }catch{}
         }
       }
@@ -3847,6 +3909,90 @@ function escolherBackup(){
 }
 
 /* =========================================================
+   DADOS DO EVENTO E FOTO (editáveis pela equipe e pelo cliente)
+   ========================================================= */
+const DADOS_CAMPOS=['nome','homenageados','data','hora','local','endereco','obsEvento'];
+/* campos extras do evento (usados nos dois formulários) */
+function dadosExtrasHTML(d={}){
+  const c=d.cliente||{};
+  return`<div class="grid2">
+      <label class="field"><span>Horário</span><input type="time" name="hora" value="${esc(d.hora)}"></label>
+      <label class="field"><span>Endereço</span><input name="endereco" value="${esc(d.endereco)}" placeholder="Rua, número, bairro, cidade"></label>
+    </div>
+    <fieldset class="box"><legend>Contato do cliente</legend>
+      <div class="grid2">
+        <label class="field"><span>Nome</span><input name="cNomeC" value="${esc(c.nome)}" autocomplete="name"></label>
+        <label class="field"><span>WhatsApp</span><input name="cWa" value="${esc(c.whatsapp)}" inputmode="tel" autocomplete="tel" placeholder="(82) 99999-9999"></label>
+      </div>
+      <label class="field" style="margin-top:10px"><span>E-mail</span><input name="cMail" value="${esc(c.email)}" inputmode="email" autocomplete="email"></label>
+    </fieldset>
+    <label class="field"><span>Observações gerais do evento</span><textarea name="obsEvento" rows="3" placeholder="Ex.: cerimonialista Ana (82) 9…; entrada pelo jardim; noiva entra às 20h">${esc(d.obsEvento)}</textarea></label>`;
+}
+function lerDadosExtras(f){
+  const v=k=>(f.elements[k]?.value||'').trim();
+  const cliente={nome:v('cNomeC'),whatsapp:v('cWa'),email:v('cMail')};
+  return{hora:v('hora'),endereco:v('endereco'),obsEvento:v('obsEvento'),cliente:(cliente.nome||cliente.whatsapp||cliente.email)?cliente:null};
+}
+/* foto do casal / da debutante: reduz para no máx. 1600px (JPEG) */
+function resizeFoto(file){
+  return new Promise((res,rej)=>{
+    if(!/^image\//.test(file.type))return rej(new Error('Escolha uma foto (JPG, PNG, HEIC convertido…).'));
+    const u=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{const k=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.round(img.naturalWidth*k),h=Math.round(img.naturalHeight*k);
+      const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      c.toBlob(b=>b?res(b):rej(new Error('Não foi possível processar a foto.')),'image/jpeg',.84)};
+    img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Não foi possível ler esta foto. Se for do iPhone (HEIC), envie como JPG.'))};img.src=u;
+  });
+}
+/* campo de foto com prévia */
+function fotoPicker(host,{atualUrl=null,rotulo='Foto do casal'}={}){
+  const st={blob:null,url:atualUrl,removida:false,own:null};
+  const draw=()=>{
+    host.innerHTML=`<div class="foto-pick">
+      <div class="foto-prev ${st.url?'on':''}" style="${st.url?`background-image:url('${st.url}')`:''}">${st.url?'':icon('heart')}</div>
+      <div class="stack" style="gap:8px;flex:1;min-width:180px">
+        <strong style="font-size:.95rem">${esc(rotulo)}</strong>
+        <span class="hint">Aparece na página do evento e como fundo suave da ficha em PDF.</span>
+        <div class="row"><label class="btn sm primary">${icon('upload')}${st.url?'Trocar foto':'Enviar foto'}<input type="file" accept="image/*" hidden></label>${st.url?`<button type="button" class="btn sm ghost danger" data-fr>Remover</button>`:''}</div>
+      </div></div>`;
+    $('input[type=file]',host).onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+      try{const b=await resizeFoto(f);if(st.own)URL.revokeObjectURL(st.own);st.blob=b;st.removida=false;st.url=st.own=URL.createObjectURL(b);draw()}catch(x){toast(esc(x.message),'err',6000)}};
+    const r=$('[data-fr]',host);if(r)r.onclick=()=>{st.blob=null;st.removida=true;st.url=null;draw()};
+  };
+  draw();
+  return{get blob(){return st.blob},get removida(){return st.removida},destroy(){if(st.own)URL.revokeObjectURL(st.own)}};
+}
+async function subirFoto(blob,token,rotulo){
+  const b64=await fileToB64(blob),arq=`foto_${uid()}.b64`;
+  const g=await ghUpload('/gists','POST',token,{description:`[Palco Musical] Foto: ${rotulo}`,public:false,files:{[arq]:{content:b64}}},()=>{});
+  return{gistId:g.id,arquivo:arq,mime:'image/jpeg',at:agoraISO()};
+}
+/* busca a foto (com cache no aparelho) */
+async function obterFoto(ref,token,evId=''){
+  if(!ref)return null;
+  const key='foto:'+(ref.gistId||('local-'+evId));
+  let b=await DB.get('audios',key).catch(()=>null);
+  if(b)return b;
+  if(!ref.gistId||!token)return null;
+  try{b=await fetchAudioBlob(ref.gistId,ref.arquivo,ref.mime||'image/jpeg',token);await DB.put('audios',b,key);return b}catch{return null}
+}
+const fotoKey=(ref,evId)=>'foto:'+(ref?.gistId||('local-'+evId));
+/* versão esmaecida da foto, do tamanho de uma folha A4, para fundo da ficha */
+async function fotoParaPDF(blob){
+  if(!blob)return null;
+  const u=URL.createObjectURL(blob);
+  const img=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=u});
+  URL.revokeObjectURL(u);if(!img)return null;
+  const W=1240,H=1754,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const k=Math.max(W/img.naturalWidth,H/img.naturalHeight),w=img.naturalWidth*k,h=img.naturalHeight*k;
+  x.drawImage(img,(W-w)/2,(H-h)*.35,w,h);
+  /* véu branco: a foto fica visível (~14%) sem atrapalhar a leitura; topo um pouco mais claro por causa do cabeçalho */
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(255,255,255,.90)');g.addColorStop(.22,'rgba(255,255,255,.86)');g.addColorStop(1,'rgba(255,255,255,.84)');
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  return c.toDataURL('image/jpeg',.8);
+}
+
+/* =========================================================
    FICHA DO EVENTO EM PDF (para imprimir e acompanhar)
    ========================================================= */
 const JSPDF_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
@@ -3873,7 +4019,7 @@ async function logoPNG(url){
     res({data:c.toDataURL('image/png'),w:c.width,h:c.height})}catch{res(null)}};img.onerror=()=>res(null);img.src=url});
 }
 /* dados: {ev:{nome,tipo,data,local,homenageados,cliente}, grupos:[{n,titulo,musicas:[...]}] } */
-async function gerarFichaPDF({ev,grupos,nomeArquivo}){
+async function gerarFichaPDF({ev,grupos,nomeArquivo,fotoBlob=null}){
   toast('Gerando a ficha em PDF…','info',2500);
   await loadScript(JSPDF_URL,()=>window.jspdf&&window.jspdf.jsPDF);
   await loadScript(AUTOTABLE_URL,()=>window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable);
@@ -3883,6 +4029,10 @@ async function gerarFichaPDF({ev,grupos,nomeArquivo}){
   const cor=hexRgb(/^#[0-9a-f]{6}$/i.test(marca.cor||'')?marca.cor:BRAND_DEF.cor);
   const corTxt=lumHex(marca.cor||BRAND_DEF.cor)>.6?[60,60,60]:cor; /* cores muito claras ficam ilegíveis no papel */
   const cer=!!tipoDe(ev).cer;
+  /* ---- foto do casal/debutante como fundo esmaecido em todas as páginas ---- */
+  const fundo=await fotoParaPDF(fotoBlob);
+  const pintarFundo=()=>{if(fundo)doc.addImage(fundo,'JPEG',0,0,210,297,'fundoFicha','FAST')};
+  pintarFundo();
   /* ---- cabeçalho ---- */
   let y=M;
   const lg=await logoPNG(marca.logo);
@@ -3901,10 +4051,19 @@ async function gerarFichaPDF({ev,grupos,nomeArquivo}){
   y+=9;doc.setFont('helvetica','bold');doc.setFontSize(19);doc.setTextColor(20,20,20);
   const tl=doc.splitTextToSize(pdfTxt(ev.nome||'Evento'),W-2*M);doc.text(tl,M,y);y+=tl.length*7.4;
   doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(80,80,80);
-  const linha=[tipoDe(ev).nome,ev.data?fmtDate(ev.data):'',ev.local].filter(Boolean).map(pdfTxt).join('   •   ');
-  doc.text(linha,M,y);y+=5.5;
-  const linha2=[cer&&ev.homenageados?`${tipoDe(ev).hom}: ${ev.homenageados}`:'',ev.cliente?.nome?`Contato: ${ev.cliente.nome}${ev.cliente.whatsapp?' ('+ev.cliente.whatsapp+')':''}`:''].filter(Boolean).map(pdfTxt).join('   •   ');
-  if(linha2){doc.text(linha2,M,y);y+=5.5}
+  const linha=[tipoDe(ev).nome,ev.data?fmtDate(ev.data)+(ev.hora?` às ${ev.hora}`:''):'',ev.local].filter(Boolean).map(pdfTxt).join('   •   ');
+  doc.text(doc.splitTextToSize(linha,W-2*M),M,y);y+=5.5*doc.splitTextToSize(linha,W-2*M).length;
+  if(ev.endereco){const L=doc.splitTextToSize(pdfTxt('Endereço: '+ev.endereco),W-2*M);doc.text(L,M,y);y+=5.2*L.length}
+  if(cer&&ev.homenageados){doc.text(pdfTxt(`${tipoDe(ev).hom}: ${ev.homenageados}`),M,y);y+=5.5}
+  const cc=ev.cliente||{};
+  if(cc.nome||cc.whatsapp||cc.email){const L=doc.splitTextToSize(pdfTxt('Contato: '+[cc.nome,cc.whatsapp,cc.email].filter(Boolean).join('  •  ')),W-2*M);doc.text(L,M,y);y+=5.5*L.length}
+  if(ev.obsEvento){
+    y+=1.5;const L=doc.splitTextToSize(pdfTxt(ev.obsEvento),W-2*M-8),h=L.length*4.4+9;
+    doc.setFillColor(255,255,255);doc.setDrawColor(...cor);doc.setLineWidth(.3);doc.roundedRect(M,y-1,W-2*M,h,2,2,fundo?'FD':'D');
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(...corTxt);doc.text('OBSERVAÇÕES DO EVENTO',M+4,y+3.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60,60,60);doc.text(L,M+4,y+8);
+    y+=h+4;doc.setFontSize(10);
+  }
   const totM=grupos.reduce((a,g)=>a+g.musicas.length,0),semM=grupos.filter(g=>!g.musicas.length).length;
   doc.setFontSize(9);doc.setTextColor(...corTxt);
   doc.text(pdfTxt(cer?`${grupos.length} momentos  •  ${totM} música(s)${semM?`  •  ${semM} momento(s) ainda sem música`:''}`:`${totM} apresentação(ões)`),M,y);
@@ -3929,9 +4088,10 @@ async function gerarFichaPDF({ev,grupos,nomeArquivo}){
     startY:y+2,margin:{left:M,right:M,bottom:20},
     head:[['#',cer?'Momento':'Turma / Professora','Música','Trecho','Observações','OK']],
     body,theme:'grid',
-    styles:{font:'helvetica',fontSize:9,cellPadding:{top:2.6,bottom:2.6,left:2.4,right:2.4},textColor:[30,30,30],lineColor:[205,205,210],lineWidth:.2,valign:'middle'},
+    styles:{font:'helvetica',fontSize:9,cellPadding:{top:2.6,bottom:2.6,left:2.4,right:2.4},textColor:[30,30,30],lineColor:[205,205,210],lineWidth:.2,valign:'middle',fillColor:fundo?false:[255,255,255]},
     headStyles:{fillColor:cor,textColor:lumHex(marca.cor||BRAND_DEF.cor)>.42?[20,20,20]:[255,255,255],fontStyle:'bold',fontSize:8.5,halign:'left'},
-    alternateRowStyles:{fillColor:[248,248,250]},
+    alternateRowStyles:{fillColor:fundo?false:[248,248,250]},
+    willDrawPage:d=>{if(d.pageNumber>1)pintarFundo()},
     columnStyles:{0:{cellWidth:9,halign:'center',fontStyle:'bold',textColor:corTxt},1:{cellWidth:38,fontStyle:'bold'},2:{cellWidth:52},3:{cellWidth:24,fontSize:8.2},4:{cellWidth:'auto',fontSize:8.2,textColor:[70,70,70]},5:{cellWidth:11,halign:'center'}},
     /* linha menor e cinza sob a música (arquivo / link): reserva espaço no rodapé da célula e desenha depois */
     didParseCell:d=>{if(d.section==='body'&&d.column.index===2&&d.cell.raw?._sub){d.cell._subL=doc.setFontSize(7.2).splitTextToSize(d.cell.raw._sub,48);d.cell.styles.cellPadding={top:2.6,bottom:2.6+d.cell._subL.length*2.9+1.2,left:2.4,right:2.4}}},
@@ -3947,7 +4107,7 @@ async function gerarFichaPDF({ev,grupos,nomeArquivo}){
   });
   /* ---- anotações ---- */
   let fy=doc.lastAutoTable.finalY+10;
-  if(fy>297-48){doc.addPage();fy=M+6}
+  if(fy>297-48){doc.addPage();pintarFundo();fy=M+6}
   doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...corTxt);doc.text('ANOTAÇÕES',M,fy);
   doc.setDrawColor(210,210,215);doc.setLineWidth(.2);for(let i=1;i<=4;i++)doc.line(M,fy+i*7.5,W-M,fy+i*7.5);
   /* ---- rodapé em todas as páginas ---- */
@@ -3973,7 +4133,8 @@ async function fichaDoEvento(ev=state.evento){
     const orf=mus.filter(m=>!(ev.momentos||[]).some(mo=>mo.id===m.momentoId));
     if(orf.length)grupos.push({n:grupos.length+1,titulo:'Sem momento definido',musicas:orf});
   }else grupos=mus.map((m,i)=>({n:i+1,titulo:[m.turma,m.professora&&('Prof. '+m.professora)].filter(Boolean).join('\n')||'—',musicas:[m]}));
-  try{await gerarFichaPDF({ev,grupos})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
+  const fotoBlob=ev.foto?await obterFoto(ev.foto,state.token,ev.id):null;
+  try{await gerarFichaPDF({ev,grupos,fotoBlob})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
 }
 
 /* =========================================================
@@ -4417,7 +4578,7 @@ async function initCli(P){
     const t=TIPOS[tipo]||TIPOS.cerimonial;
     document.title='Músicas · '+(nome||'Evento');
     $('#cEvento').textContent=nome||'Evento';
-    $('#cData').textContent=fmtDate(data);
+    $('#cData').textContent=[fmtDate(data),C.ev?.hora?'às '+C.ev.hora:''].filter(Boolean).join(' ');
     $('#cIcon').dataset.brandLogo=t.icon;refreshLogos();
   };
   applyBrand(null);
@@ -4427,12 +4588,71 @@ async function initCli(P){
   nomeIn.value=P.p||saved;
   nomeIn.addEventListener('change',()=>{try{localStorage.setItem('palco_cli_'+P.g,nomeIn.value.trim())}catch{}});
   $('#cReload').onclick=()=>load();
+  let fotoUrl=null;
+  async function mostrarFoto(){
+    const box=$('#cFoto'),ref=C.ev?.foto;
+    if(!ref){box.hidden=true;return}
+    const b=await obterFoto(ref,P.t);if(!b){box.hidden=true;return}
+    if(fotoUrl)URL.revokeObjectURL(fotoUrl);fotoUrl=URL.createObjectURL(b);
+    box.style.backgroundImage=`url('${fotoUrl}')`;box.hidden=false;
+  }
+  function renderDados(){
+    const E=C.ev||{},t=TIPOS[E.tipo]||TIPOS.cerimonial,c=E.cliente||{};
+    const li=(k,v)=>v?`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`:'';
+    $('#cDadosL').innerHTML=li(t.hom||'Homenageados',E.homenageados)+li('Data',[fmtDate(E.data),E.hora?'às '+E.hora:''].filter(Boolean).join(' '))+li('Local',E.local)+li('Endereço',E.endereco)
+      +li('Contato',[c.nome,c.whatsapp,c.email].filter(Boolean).join(' · '))+li('Observações',E.obsEvento)
+      ||'<p class="muted" style="font-size:.9rem">Preencha local, horário, contato e a foto — tudo aparece na ficha do evento.</p>';
+  }
+  $('#cEditDados').onclick=()=>{
+    const E=C.ev||{},t=TIPOS[E.tipo]||TIPOS.cerimonial;let fp=null;
+    openModal(`${modalHead('Dados do evento','Tudo o que você preencher aqui aparece para a equipe e na ficha do evento em PDF.')}
+      <form id="cdF" class="stack">
+        <label class="field"><span>${esc(t.hom||'Homenageados')}</span><input name="homenageados" value="${esc(E.homenageados)}" placeholder="${esc(t.ph||'')}"></label>
+        <label class="field"><span>Nome do evento</span><input name="nome" value="${esc(E.nome)}"></label>
+        <div class="grid2">
+          <label class="field"><span>Data</span><input type="date" name="data" value="${esc(E.data)}"></label>
+          <label class="field"><span>Local</span><input name="local" value="${esc(E.local)}" placeholder="Ex.: Recanto Giardino"></label>
+        </div>
+        ${dadosExtrasHTML(E)}
+        <div id="cdFoto"></div>
+        <div class="progress" hidden><div class="bar"></div><span></span></div>
+        <p class="err" hidden></p>
+        <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}Salvar dados</button></div>
+      </form>`,
+    {wide:true,onClose:()=>fp?.destroy(),onMount:(md,close)=>{
+      fp=fotoPicker($('#cdFoto',md),{atualUrl:fotoUrl,rotulo:E.tipo==='quinze'?'Foto da debutante':'Foto do casal'});
+      const f=$('#cdF',md),err=$('.err',md),prog=$('.progress',md);
+      f.onsubmit=async e=>{
+        e.preventDefault();err.hidden=true;
+        const v=k=>(f.elements[k]?.value||'').trim();
+        if(!v('nome')&&!v('homenageados')){err.innerHTML=icon('alert')+'Informe o nome do evento.';err.hidden=false;return}
+        if(!navigator.onLine){err.innerHTML=icon('alert')+'Você está sem internet.';err.hidden=false;return}
+        $$('input,textarea,button',f).forEach(x=>x.disabled=true);
+        try{
+          const ex=lerDadosExtras(f);
+          let foto=E.foto||null;
+          if(fp.removida)foto=null;
+          if(fp.blob){setProg(prog,.3,'Enviando a foto…');foto=await subirFoto(fp.blob,P.t,v('nome')||E.nome)}
+          setProg(prog,.85,'Salvando…');
+          const quem=nomeIn.value.trim();
+          const dados={app:'palco-musical',tipo:'dados_cliente',atualizadoEm:agoraISO(),por:quem,
+            campos:{nome:v('nome')||((TIPOS[E.tipo]||TIPOS.cerimonial).auto?.(v('homenageados'))||E.nome),homenageados:v('homenageados'),data:v('data'),local:v('local'),hora:ex.hora,endereco:ex.endereco,obsEvento:ex.obsEvento,cliente:ex.cliente||{nome:'',whatsapp:'',email:''}},foto};
+          await ghRetry(`/gists/${P.g}`,{method:'PATCH',token:P.t,body:{files:{'dados_cliente.json':{content:JSON.stringify(dados,null,1)}}}});
+          if(fp.blob&&foto)await DB.put('audios',fp.blob,fotoKey(foto)).catch(()=>{});
+          if((fp.blob||fp.removida)&&E.foto?.gistId&&E.foto.gistId!==foto?.gistId)gh(`/gists/${E.foto.gistId}`,{method:'DELETE',token:P.t}).catch(()=>{});
+          setProg(prog,1,'Pronto!');close();toast('Dados do evento salvos. A equipe já recebeu.','ok',5000);
+          await load();
+        }catch(x){err.innerHTML=icon('alert')+esc(x.message);err.hidden=false;$$('input,textarea,button',f).forEach(y=>y.disabled=false);prog.hidden=true}
+      };
+    }});
+  };
   $('#cFicha').onclick=async()=>{
     if(!C.loaded)return;
-    const m=C.meta||{};
-    const ev={nome:m.nome||P.e,tipo:m.tipo||P.k||'cerimonial',data:m.data||P.d||'',local:m.local||'',homenageados:m.homenageados||'',cliente:m.cliente||null};
+    const m=C.ev||C.meta||{};
+    const ev={nome:m.nome||P.e,tipo:m.tipo||P.k||'cerimonial',data:m.data||P.d||'',hora:m.hora||'',local:m.local||'',endereco:m.endereco||'',obsEvento:m.obsEvento||'',homenageados:m.homenageados||'',cliente:m.cliente||null};
+    const fotoBlob=m.foto?await obterFoto(m.foto,P.t):null;
     const grupos=C.momentos.map((mo,i)=>({n:i+1,titulo:mo.nome,musicas:C.porMom.get(mo.id)||[]}));
-    try{await gerarFichaPDF({ev,grupos})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
+    try{await gerarFichaPDF({ev,grupos,fotoBlob})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
   };
   $('#cAdd').onclick=()=>{
     if(!C.loaded)return;
@@ -4446,7 +4666,13 @@ async function initCli(P){
       const files=r.data.files||{};
       let meta={};try{meta=JSON.parse(await readGistFile(files['evento.json']))}catch{}
       if(meta.marca)applyBrand(meta.marca);
-      setHero(meta.nome||P.e,meta.data||P.d,meta.tipo||P.k);
+      /* dados editados pelo cliente que a equipe ainda não aplicou valem por cima */
+      let dc=null;try{if(files['dados_cliente.json'])dc=JSON.parse(await readGistFile(files['dados_cliente.json']))}catch{}
+      const E={...meta};
+      if(dc?.atualizadoEm&&dc.atualizadoEm>(meta.dadosClienteAt||'')){for(const k of DADOS_CAMPOS)if(typeof dc.campos?.[k]==='string')E[k]=dc.campos[k];if(dc.campos?.cliente)E.cliente=dc.campos.cliente;if('foto' in dc)E.foto=dc.foto}
+      E.nome=E.nome||P.e;E.tipo=E.tipo||P.k||'cerimonial';E.data=E.data??P.d??'';
+      C.ev=E;
+      setHero(E.nome,E.data,E.tipo);renderDados();mostrarFoto();
       const moms=(meta.momentos||[]).map(m=>({id:m.id,nome:m.nome}));
       const subs=[];
       for(const[n,f]of Object.entries(files)){if(!n.startsWith('sub_'))continue;try{subs.push(JSON.parse(await readGistFile(f)))}catch{}}
@@ -4466,7 +4692,7 @@ async function initCli(P){
       const lista=[...itens.values()].sort((a,b)=>(a.ordem??1e6)-(b.ordem??1e6)||String(a.enviadoEm||'').localeCompare(String(b.enviadoEm||'')));
       C.porMom=new Map();for(const it of lista){if(!it.momentoId)continue;if(!C.porMom.has(it.momentoId))C.porMom.set(it.momentoId,[]);C.porMom.get(it.momentoId).push(it)}
       C.itens=itens;C.estado=est;C.allSubs=subs;
-      C.momentos=moms;C.meta=meta;C.loaded=true;render();$('#cFicha').disabled=false;
+      C.momentos=moms;C.meta=meta;C.loaded=true;render();$('#cFicha').disabled=false;$('#cDados').hidden=false;
     }catch(e){
       let msg=esc(e.message);if(e.status===401||e.status===404)msg+=' Peça um novo link à equipe do evento.';
       $('#cList').innerHTML=`<li class="ci"><div class="ci-b"><strong>Não foi possível carregar o cronograma</strong><small>${msg}</small></div><button class="btn sm" id="cRetry">${icon('refresh')}Tentar de novo</button></li>`;
