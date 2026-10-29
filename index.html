@@ -462,6 +462,110 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .ouvir-box .trim-load{margin-top:8px}
 @media (max-width:720px){.ci2-a{width:100%}.ci2-a .btn{flex:1}.ci2-more{align-self:stretch}}
 
+/* ---------- Modo DJ (dois decks) ---------- */
+#dj{position:fixed;inset:0;z-index:92;background:radial-gradient(1000px 500px at 50% -10%,rgba(139,108,255,var(--glow,.28)),transparent 70%),var(--stage-bg);color:var(--text);display:flex;flex-direction:column;overflow:auto;padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,var(--safe-b)) max(16px,env(safe-area-inset-left))}
+body.dj-on{overflow:hidden}
+.dj-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.dj-tl{display:flex;align-items:center;gap:12px;min-width:0}
+.dj-tl strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dj-tl>div{min-width:0}
+.dj-head>.row{flex:none}
+.dj-tl small{color:var(--muted);font-size:.8rem}
+.dj-badge{font-weight:800;letter-spacing:.08em;padding:8px 10px;border-radius:10px;background:linear-gradient(135deg,#8b6cff,var(--accent));color:#fff;font-size:.85rem}
+.dj-body{display:flex;flex-direction:column;gap:12px;max-width:1500px;width:100%;margin:0 auto}
+.dj-decks{display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:12px}
+.deck{--dk:#8b6cff;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0;transition:border-color .2s,box-shadow .2s}
+.deck-B{--dk:var(--accent)}
+.deck.on{border-color:var(--dk);box-shadow:0 0 0 1px var(--dk),0 14px 40px -18px var(--dk)}
+.deck.alerta .dk-rem b{color:var(--danger);animation:piscar 1s steps(2) infinite}
+@keyframes piscar{50%{opacity:.35}}
+.deck.vazio .dk-btns .dkb:not([data-act=next]){opacity:.4;pointer-events:none}
+.dk-top{display:flex;align-items:center;gap:12px;min-width:0}
+.dk-id{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:1.2rem;background:var(--dk);color:#fff;flex:none}
+.deck-B .dk-id{color:var(--accent-ink)}
+.dk-tt{flex:1;min-width:0}
+.dk-tt strong{display:block;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-tt small{display:block;color:var(--muted);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-rem{text-align:right;flex:none}
+.dk-rem b{display:block;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1}
+.dk-rem small{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+.dk-wave{position:relative;height:84px;border-radius:12px;overflow:hidden;cursor:pointer;touch-action:none}
+.dk-wave canvas{width:100%;height:100%;display:block}
+.dk-load{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.35);color:#fff;font-weight:600;font-size:.9rem}
+.dk-mid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:stretch}
+.dk-eq{display:flex;flex-direction:column;gap:8px;justify-content:center}
+.knob{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;font-size:.68rem;letter-spacing:.1em;color:var(--faint);font-weight:700}
+.knob span{order:-1}
+.eq-r,.pitch-r{width:100%;accent-color:var(--dk)}
+.eq-r:disabled{opacity:.35}
+.dk-pitch{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.68rem;letter-spacing:.1em;color:var(--faint);font-weight:700;width:76px}
+.dk-pitch .pitch-r{writing-mode:vertical-lr;direction:rtl;width:26px;height:110px}
+.dk-pitch b{font-size:.8rem;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:0}
+.dk-fader{display:flex;gap:8px;align-items:stretch}
+.fader-r{writing-mode:vertical-lr;direction:rtl;width:30px;height:130px;accent-color:var(--dk)}
+.vu{width:10px;border-radius:6px;background:var(--track1);position:relative;overflow:hidden;align-self:stretch}
+.vu i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#2fd18b 0 60%,#ffd36b 60% 85%,#ff5470 85%);transition:height .06s linear}
+.vu.big{width:14px}
+.dk-btns{display:grid;grid-template-columns:1fr 1.6fr 1fr 1fr;gap:8px}
+.dkb{height:56px;border-radius:14px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font-weight:800;letter-spacing:.06em;cursor:pointer;display:grid;place-items:center;font-size:.95rem;transition:transform .08s,background .15s}
+.dkb:active{transform:scale(.96)}
+.dkb .ic{width:24px;height:24px}
+.dkb.play{background:var(--dk);border-color:transparent;color:#fff}
+.deck-B .dkb.play{color:var(--accent-ink)}
+.dkb.cue{color:var(--dk);border-color:var(--dk)}
+.dj-mixer{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.mx-vol{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.66rem;letter-spacing:.12em;color:var(--faint);font-weight:700}
+.mx-vol>div,.mx-vol{--dk:var(--text)}
+.mx-vol .vu{height:130px;align-self:auto}
+.mx-vol{flex-direction:column}
+.mx-vol .fader-r{accent-color:var(--text)}
+.mx-vol{display:grid;grid-template-columns:auto auto;grid-template-rows:auto 1fr;gap:6px 8px;justify-items:center}
+.mx-vol span{grid-column:1/3}
+.mx-mix{display:flex;flex-direction:column;gap:8px;width:100%}
+.mix-btn{height:64px;border-radius:16px;border:0;font-weight:900;font-size:1.25rem;letter-spacing:.12em;cursor:pointer;color:#fff;background:linear-gradient(135deg,#8b6cff,var(--accent));box-shadow:0 12px 26px -12px rgba(var(--accent-rgb),.8)}
+.mix-btn.on{animation:pulse 1.2s infinite}
+.mx-len{display:grid;grid-template-columns:repeat(4,1fr);padding:3px}
+.mx-len button{padding:6px 0;font-size:.78rem}
+.auto-btn{display:flex;align-items:center;justify-content:center;gap:6px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font-weight:800;font-size:.78rem;letter-spacing:.06em;cursor:pointer}
+.auto-btn .ic{width:16px;height:16px}
+.auto-btn.on{background:rgba(47,209,139,.14);border-color:rgba(47,209,139,.5);color:var(--ok)}
+.dj-xf{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 18px;font-weight:800;color:var(--muted)}
+.dj-xf input{flex:1;height:36px;accent-color:var(--accent)}
+.dj-list{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px}
+.dj-lh{display:flex;align-items:baseline;gap:10px;margin:0 4px 8px}
+.dj-lh small{color:var(--muted);font-size:.8rem}
+#djList{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px;max-height:34vh;overflow:auto}
+#djList li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--surface2);border:1px solid transparent}
+#djList li.tocada{opacity:.55}
+#djList li.in-a{border-color:#8b6cff}#djList li.in-b{border-color:var(--accent)}
+#djList .n{font-weight:800;color:var(--faint);font-variant-numeric:tabular-nums;font-size:.85rem}
+#djList .i{flex:1;min-width:0}
+#djList .i b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.92rem}
+#djList .i small{display:block;color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#djList .b{display:flex;gap:4px}
+#djList .b button{width:36px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-weight:800;cursor:pointer}
+#djList .b button[data-load=A]:hover,#djList .b button[data-load=A].on{background:#8b6cff;color:#fff;border-color:transparent}
+#djList .b button[data-load=B]:hover,#djList .b button[data-load=B].on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+#djList li.vazio{justify-content:center;color:var(--muted)}
+.dj-open{gap:6px}
+.dj-open .ic{width:18px;height:18px}
+.dj-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(84px + env(safe-area-inset-top));z-index:46;display:flex;align-items:center;gap:10px;padding:8px 16px 8px 12px;border-radius:999px;border:1px solid rgba(47,209,139,.45);background:rgba(var(--bar-rgb),.95);color:var(--text);cursor:pointer;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
+.dj-pill .dot{width:10px;height:10px;border-radius:50%;background:var(--ok);animation:pulse 1.6s infinite}
+.dj-pill .t small{display:block;font-size:.64rem;letter-spacing:.12em;color:var(--ok);font-weight:800;text-transform:uppercase}
+.dj-pill .t b{display:block;font-size:.9rem;max-width:40vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dj-pill>small{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}
+@media (max-width:1100px){.dj-decks{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.dj-mixer{grid-column:1/3;grid-row:2;flex-direction:row;justify-content:center;flex-wrap:wrap}.mx-mix{width:auto;flex:1;max-width:420px}.mx-vol{grid-template-columns:auto auto;}}
+@media (max-width:720px){
+  .dj-decks{grid-template-columns:1fr}.dj-mixer{grid-column:auto;grid-row:auto}
+  .deck-B{order:3}.dj-mixer{order:2}
+  .dk-mid{grid-template-columns:minmax(0,1fr) auto}.dk-pitch{display:none}
+  .fader-r{height:100px}.mx-vol .vu{height:100px}
+  .hide-sm{display:none}
+  .dj-pill{top:calc(70px + env(safe-area-inset-top))}
+  #djList{grid-template-columns:1fr;max-height:none}
+  .dk-rem b{font-size:1.35rem}
+}
+
 /* ---------- Stage mode ---------- */
 #stage{position:fixed;inset:0;z-index:90;background:radial-gradient(900px 500px at 50% 0%,rgba(139,108,255,var(--glow,.28)),transparent 70%),var(--stage-bg);color:var(--text);display:flex;flex-direction:column;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,var(--safe-b)) max(20px,env(safe-area-inset-left));overflow:auto}
 .st-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -932,6 +1036,7 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7z"/></symbol>
   <symbol id="i-contrast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></symbol>
+  <symbol id="i-decks" viewBox="0 0 24 24"><circle cx="7" cy="12" r="4.5"/><circle cx="17" cy="12" r="4.5"/><circle cx="7" cy="12" r="1" fill="currentColor"/><circle cx="17" cy="12" r="1" fill="currentColor"/></symbol>
   <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></symbol>
   <symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4z"/></symbol>
@@ -997,6 +1102,7 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
         <button class="btn icon ghost tgl" id="plAuto" title="Tocar a próxima automaticamente" aria-label="Tocar próxima automaticamente"><svg class="ic"><use href="#i-auto"/></svg></button>
         <button class="btn icon ghost" id="plStageBtn" title="Modo palco (T)" aria-label="Modo palco"><svg class="ic"><use href="#i-stage"/></svg></button>
         <button class="btn icon ghost tgl" id="plTv" title="Telão: abrir saída de vídeo em outra tela / projetor" aria-label="Telão"><svg class="ic"><use href="#i-tv"/></svg></button>
+        <button class="btn sm dj-open" id="plDj" title="Modo DJ: dois decks com mixagem (D)"><svg class="ic"><use href="#i-decks"/></svg>Decks</button>
       </div>
     </div>
   </div>
@@ -1030,6 +1136,8 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
     </div>
   </div>
 
+  <div id="dj" hidden></div>
+  <button class="dj-pill" id="djPill" type="button" hidden title="Voltar aos decks"><span class="dot"></span><span class="t"><small>DJ ao vivo</small><b>Decks</b></span><small></small></button>
   <div id="stage" hidden>
     <div class="st-top">
       <button class="btn icon st-down" id="stDown" aria-label="Minimizar player"><svg class="ic"><use href="#i-down"/></svg></button>
@@ -2655,6 +2763,7 @@ const Player={
   bgPlay(){if(this.parts.trilha&&this.bg.paused){this.setBg(0);this.bg.play().catch(()=>{})}},
   async play(){
     if(!this.cur)return;
+    if(DJ.tocando?.()){DJ.pauseAll();toast('Os decks foram pausados para tocar no player principal.','info',3500)}
     this.ensureGraph();this.clearFade();this.mf=1;this.started=true;this.done=false;
     if(this.phase!=='main')return this.startCard();
     const a=this.a;const{ini,end}=this.bounds();
@@ -2820,7 +2929,7 @@ const Player={
 
 /* Textos da tela de marca (entre vídeos / músicas sem vídeo) */
 function vidLabels(){
-  const ev=state.evento,m=Player.cur;
+  const ev=state.evento,dl=DJ.tocando?.()?(DJ.decks.find(x=>x.playing&&DJ.xfGain(x)>=.5)||DJ.decks.find(x=>x.playing)):null,m=dl?.m||Player.cur;
   const title=ev?.nome||marca.nome||'';
   const hom=isCer(ev)&&ev?.homenageados&&!title.toLowerCase().includes(ev.homenageados.toLowerCase())?ev.homenageados:'';
   return{
@@ -2873,6 +2982,348 @@ window.addEventListener('message',e=>{
   if(!Telao.win||e.source!==Telao.win||!e.data)return;
   if(e.data.t==='hello'){Telao.sendBrand();Telao.sendLoad();Telao.sendState()}
 });
+
+/* =========================================================
+   MODO DJ — dois decks, mixer, crossfader e mixagem automática
+   ========================================================= */
+const djDb=v=>Math.pow(10,v/20);
+const _peaks=new Map();
+/* forma de onda (picos) calculada a partir do arquivo */
+async function calcPeaks(id,blob,ctx,n=900){
+  if(_peaks.has(id))return _peaks.get(id);
+  if(!blob||blob.size>80*1048576)return null; /* arquivos muito grandes (vídeos longos): sem forma de onda */
+  try{
+    const buf=await blob.arrayBuffer();
+    const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(buf,res,rej);if(p&&p.then)p.then(res,rej)});
+    const ch=ab.numberOfChannels>1?[ab.getChannelData(0),ab.getChannelData(1)]:[ab.getChannelData(0)];
+    const len=ab.length,step=Math.max(1,Math.floor(len/n)),out=new Float32Array(n);
+    for(let i=0;i<n;i++){let mx=0;const s=i*step,e=Math.min(len,s+step);for(let j=s;j<e;j+=8){for(const c of ch){const v=Math.abs(c[j]);if(v>mx)mx=v}}out[i]=mx}
+    let top=0;for(const v of out)if(v>top)top=v;if(top>0)for(let i=0;i<n;i++)out[i]/=top;
+    const r={peaks:out,dur:ab.duration};_peaks.set(id,r);return r;
+  }catch{return null}
+}
+class Deck{
+  constructor(id,dj){
+    this.id=id;this.dj=dj;this.m=null;this.url=null;this.ext=null;this.wave=null;
+    this.el=new Audio();this.el.preload='auto';try{this.el.preservesPitch=true;this.el.mozPreservesPitch=true;this.el.webkitPreservesPitch=true}catch{}
+    this.fader=1;this.pitch=0;this.eq={hi:0,mid:0,lo:0};this.k=1;this.loading=false;this.played=false;
+    this.el.addEventListener('ended',()=>this.fim());
+    this.el.addEventListener('error',()=>{if(this.m&&this.el.src)toast(`Deck ${id}: não foi possível tocar este arquivo.`,'err',6000)});
+  }
+  get media(){return this.ext||this.el}
+  get playing(){return!!this.m&&!this.media.paused}
+  get t(){return this.media.currentTime||0}
+  get dur(){const d=this.media.duration;return isFinite(d)?d:(this.wave?.dur||0)}
+  get ini(){const d=this.dur;let i=+this.m?.inicio||0;if(d)i=Math.min(i,Math.max(0,d-.3));return i}
+  get end(){const d=this.dur,f=+this.m?.fim||0;return f&&f>this.ini&&(!d||f<d)?f:d}
+  get cut(){const d=this.dur,f=+this.m?.fim||0;return!!(f&&f>this.ini&&(!d||f<d))}
+  get rem(){return Math.max(0,this.end-this.t)}
+  graph(){
+    const ctx=this.dj.ensureCtx();if(!ctx||this.g)return;
+    try{
+      const src=ctx.createMediaElementSource(this.el);
+      const lo=ctx.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=250;
+      const mid=ctx.createBiquadFilter();mid.type='peaking';mid.frequency.value=1000;mid.Q.value=.8;
+      const hi=ctx.createBiquadFilter();hi.type='highshelf';hi.frequency.value=3500;
+      const gain=ctx.createGain(),an=ctx.createAnalyser();an.fftSize=1024;
+      src.connect(lo).connect(mid).connect(hi).connect(gain).connect(an);gain.connect(this.dj.master);
+      this.g={lo,mid,hi,gain,an,buf:new Float32Array(1024)};this.el.volume=1;this.applyEq();
+    }catch{this.g=null}
+  }
+  applyEq(){if(!this.g)return;const t=this.dj.ctx.currentTime;this.g.lo.gain.setTargetAtTime(this.eq.lo,t,.02);this.g.mid.gain.setTargetAtTime(this.eq.mid,t,.02);this.g.hi.gain.setTargetAtTime(this.eq.hi,t,.02)}
+  setGain(v){
+    v=Math.max(0,Math.min(1.5,v));
+    if(this.ext){this.ext.volume=Math.min(1,v);return}
+    if(this.g){this.g.gain.gain.setTargetAtTime(v,this.dj.ctx.currentTime,.015);return}
+    this.el.volume=Math.min(1,v);
+  }
+  level(){
+    if(!this.g||!this.playing)return this.playing&&this.ext?.5*this.k:0;
+    this.g.an.getFloatTimeDomainData(this.g.buf);let s=0;for(const v of this.g.buf)s+=v*v;
+    return Math.min(1,Math.sqrt(s/this.g.buf.length)*3.2);
+  }
+  async load(m){
+    if(this.playing&&!(await confirmDialog(`O deck ${this.id} está tocando <b>${esc(this.m.titulo)}</b>. Carregar outra música vai parar esta.`,{title:'Deck tocando',ok:'Carregar mesmo assim'})))return false;
+    this.unload();this.m=m;this.loading=true;this.played=false;this.dj.render();
+    const blob=await DB.get('audios',m.id);
+    try{
+      if(blob){
+        this.url=URL.createObjectURL(blob);this.el.src=this.url;
+        await new Promise(r=>{const h=()=>{this.el.removeEventListener('loadedmetadata',h);r()};this.el.addEventListener('loadedmetadata',h);setTimeout(r,6000)});
+        const ctx=this.dj.ensureCtx();if(ctx)calcPeaks(m.id,blob,ctx).then(w=>{if(this.m?.id===m.id){this.wave=w;this.dj.drawWave(this,true)}});
+      }else if(m.link&&linkTocavel(m.link)){
+        if(!navigator.onLine)throw new Error('Sem internet: esta música é um link.');
+        this.ext=new ExtMedia(m.link,{mount:$('#extHold')});
+        this.ext.addEventListener('ended',()=>this.fim());
+        await new Promise((r,j)=>{let ok=false;this.ext.addEventListener('loadedmetadata',()=>{ok=true;r()});this.ext.addEventListener('error',()=>j(new Error(this.ext.erro||'Não foi possível abrir o link.')));setTimeout(()=>ok||r(),20000)});
+      }else throw new Error('O arquivo desta música ainda não está disponível.');
+      this.media.currentTime=this.ini;this.k=1;
+    }catch(e){toast(`Deck ${this.id}: ${esc(e.message)}`,'err',7000);this.unload()}
+    this.loading=false;this.dj.render();return!!this.m;
+  }
+  unload(){
+    try{this.media.pause()}catch{}
+    if(this.ext){this.ext.destroy();this.ext=null}
+    if(this.url){URL.revokeObjectURL(this.url);this.url=null}
+    this.el.removeAttribute('src');this.el.load();this.m=null;this.wave=null;this.k=1;
+  }
+  async play(){
+    if(!this.m||this.loading)return;
+    this.graph();const ctx=this.dj.ensureCtx();if(ctx?.state==='suspended')await ctx.resume();
+    if(this.t>=this.end-.05)this.media.currentTime=this.ini;
+    this.fadeIn=!!this.m.fadeIn&&this.t-this.ini<.25;
+    this.el.playbackRate=1+this.pitch;
+    Player.pauseAll?.();
+    try{await this.media.play()}catch{toast('Toque em PLAY novamente para liberar o áudio.','warn')}
+    this.dj.loop();
+  }
+  pause(){try{this.media.pause()}catch{}this.dj.render()}
+  toggle(){this.playing?this.pause():this.play()}
+  cue(){this.pause();if(this.m)this.media.currentTime=this.ini;this.k=1;this.dj.render()}
+  seekFrac(f){if(!this.m||!this.dur)return;this.media.currentTime=Math.max(0,Math.min(this.dur-.2,f*this.dur));this.fadeIn=false}
+  fim(){
+    if(!this.m)return;
+    try{this.media.pause()}catch{}
+    this.marcar();this.k=1;this.media.currentTime=this.ini;
+    this.dj.deckAcabou(this);this.dj.render();
+  }
+  marcar(){if(!this.played&&this.m){this.played=true;Player.markPlayed(this.m)}}
+  /* a cada quadro: fades do trecho marcado e corte exato no ponto final */
+  tick(){
+    if(!this.playing)return;
+    const t=this.t,ini=this.ini,end=this.end;
+    if(this.cut&&t>=end-.012){this.fim();return}
+    if(t-ini>15)this.marcar();
+    let k=1;
+    if(this.fadeIn){const f=(t-ini)/FADE_IN;if(f>=1||f<0)this.fadeIn=false;else k*=Math.max(0,f)}
+    if(this.cut&&this.m.fadeOut!==false){const fo=Math.min(FADE_OUT,(end-ini)/3);if(t>end-fo)k*=Math.max(0,(end-t)/fo)}
+    this.k=k;
+  }
+}
+const DJ={
+  ctx:null,master:null,an:null,decks:[],xf:0,vol:1,mixLen:8,auto:false,mixing:null,raf:null,iv:null,aberto:false,lastId:null,
+  init(){if(this.decks.length)return;this.decks=[new Deck('A',this),new Deck('B',this)]},
+  ensureCtx(){
+    if(this.ctx)return this.ctx;
+    try{
+      const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+      this.ctx=new C();this.master=this.ctx.createGain();this.an=this.ctx.createAnalyser();this.an.fftSize=1024;this.abuf=new Float32Array(1024);
+      this.master.connect(this.an);this.an.connect(this.ctx.destination);this.master.gain.value=this.vol;
+    }catch{this.ctx=null}
+    return this.ctx;
+  },
+  get A(){return this.decks[0]},get B(){return this.decks[1]},
+  outro(d){return d===this.A?this.B:this.A},
+  tocando(){return this.decks.some(d=>d.playing)},
+  pauseAll(){this.decks.forEach(d=>d.pause())},
+  /* crossfader com curva de potência constante (o volume não “afunda” no meio) */
+  xfGain(d){const x=this.xf;return d===this.A?Math.cos(x*Math.PI/2):Math.sin(x*Math.PI/2)},
+  aplicarGanhos(){
+    for(const d of this.decks){const v=d.fader*this.xfGain(d)*d.k*(d.ext?this.vol:1);d.setGain(v)}
+    if(this.master)this.master.gain.setTargetAtTime(this.vol,this.ctx.currentTime,.02);
+  },
+  lista(){return sorted().filter(m=>hasAudio(m)||(m.link&&linkTocavel(m.link)))},
+  /* próxima do cronograma depois de “apos”; no automático só as que ainda não tocaram */
+  proxima(apos,soNovas=false){
+    const L=this.lista(),usadas=new Set(this.decks.map(d=>d.m?.id).filter(Boolean));
+    const i=apos?L.findIndex(x=>x.id===apos):-1;
+    const novas=L.slice(i+1).find(x=>!usadas.has(x.id)&&x.status!=='tocada');
+    if(novas||soNovas)return novas||null;
+    return L.slice(i+1).find(x=>!usadas.has(x.id))||null;
+  },
+  jaTocou(d){return!!d.m&&(d.played||d.m.status==='tocada')},
+  /* passagem suave para o outro deck */
+  async mix(origem){
+    if(this.mixing)return;
+    const de=origem||(this.A.playing&&!this.B.playing?this.A:this.B.playing&&!this.A.playing?this.B:(this.xf<.5?this.A:this.B));
+    const para=this.outro(de);
+    if(!para.m){const n=this.proxima(de.m?.id);if(!n)return toast('Não há próxima música para mixar.','warn');if(!(await para.load(n)))return}
+    if(!para.playing){para.media.currentTime=para.ini;await para.play()}
+    const x0=this.xf,x1=para===this.B?1:0,t0=performance.now(),L=this.mixLen*1000;
+    this.mixing={de,para};this.render();
+    await new Promise(r=>{const step=()=>{const p=Math.min(1,(performance.now()-t0)/L);this.xf=x0+(x1-x0)*(p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2);this.aplicarGanhos();this.syncXf();if(p<1&&this.mixing)requestAnimationFrame(step);else r()};step()});
+    if(!this.mixing){this.render();return}
+    this.mixing=null;
+    if(de.playing){de.marcar();de.pause();de.media.currentTime=de.ini}
+    if(this.auto){const n=this.proxima(para.m?.id,true);if(n)await de.load(n);else{de.unload();toast('Fim do cronograma: esta é a última música.','info',5000)}}
+    this.render();
+  },
+  deckAcabou(d){
+    if(this.mixing?.de===d)return;
+    const o=this.outro(d);
+    if(this.auto&&o.m&&!o.playing&&!this.jaTocou(o)){this.mix(d);return}
+    if(this.auto&&(!o.m||this.jaTocou(o))&&!o.playing){const n=this.proxima(d.m?.id,true);if(n)o.load(n).then(ok=>ok&&o.play())}
+  },
+  loop(){
+    clearInterval(this.iv);
+    this.iv=setInterval(()=>{
+      for(const d of this.decks)d.tick();
+      /* mixagem automática: começa a passagem antes do fim da música */
+      if(this.auto&&!this.mixing){
+        const p=this.decks.find(d=>d.playing&&this.xfGain(d)>.5);
+        if(p){
+          const o=this.outro(p);
+          /* prepara o outro deck com a próxima música ainda não tocada */
+          if(!o.playing&&!o.loading&&(!o.m||this.jaTocou(o))){const n=this.proxima(p.m?.id,true);if(n&&n.id!==o.m?.id)o.load(n)}
+          else if(p.rem<=this.mixLen+.15&&p.rem>.2&&o.m&&!o.playing&&!o.loading)this.mix(p);
+        }
+      }
+      this.aplicarGanhos();
+      if(!this.tocando()&&!this.mixing){clearInterval(this.iv);this.iv=null;this.render()}
+    },30);
+    if(!this.raf){const draw=()=>{this.desenhar();this.raf=(this.aberto||this.tocando())?requestAnimationFrame(draw):null};this.raf=requestAnimationFrame(draw)}
+    this.render();
+  },
+  /* ---------- interface ---------- */
+  abrir(){
+    this.init();
+    if(!state.evento)return toast('Selecione um evento primeiro.','warn');
+    if(Player.playing){Player.pauseAll();toast('O player principal foi pausado para usar os decks.','info',3500)}
+    const el=$('#dj');el.hidden=false;this.aberto=true;document.body.classList.add('dj-on');
+    if(!this.A.m&&!this.B.m){const L=this.lista();const n1=L.find(m=>m.status!=='tocada')||L[0];if(n1){this.A.load(n1).then(()=>{const n2=this.proxima(n1.id);if(n2)this.B.load(n2)})}}
+    this.montar();this.render();this.loop();
+  },
+  fechar(){
+    $('#dj').hidden=true;this.aberto=false;document.body.classList.remove('dj-on');
+    if(this.tocando())toast('Os decks continuam tocando. Toque em <b>DJ ao vivo</b> para voltar.','info',5000);
+    renderDjPill();
+  },
+  montar(){
+    const el=$('#dj');if(el.dataset.ok)return;el.dataset.ok='1';
+    const deckHTML=id=>`<section class="deck deck-${id}" data-deck="${id}">
+      <div class="dk-top"><span class="dk-id">${id}</span><div class="dk-tt"><strong data-f="tt">Vazio</strong><small data-f="st">Carregue uma música da lista</small></div><div class="dk-rem"><b data-f="rem">-0:00</b><small data-f="el">0:00 / 0:00</small></div></div>
+      <div class="dk-wave"><canvas></canvas><div class="dk-load" data-f="ld" hidden>Carregando…</div></div>
+      <div class="dk-mid">
+        <div class="dk-eq">${[['hi','AGUDOS'],['mid','MÉDIOS'],['lo','GRAVES']].map(([k,l])=>`<label class="knob" title="Duplo clique: corta/volta esta faixa"><input type="range" min="-24" max="6" step="1" value="0" data-eq="${k}" class="eq-r"><span>${l}</span></label>`).join('')}</div>
+        <div class="dk-pitch"><span>PITCH</span><input type="range" min="-8" max="8" step="0.1" value="0" data-pitch class="pitch-r" title="Duplo clique: volta a 0%"><b data-f="pt">0.0%</b></div>
+        <div class="dk-fader"><div class="vu"><i data-f="vu"></i></div><input type="range" min="0" max="1" step="0.01" value="1" data-fader class="fader-r" orient="vertical" aria-label="Volume do deck ${id}"></div>
+      </div>
+      <div class="dk-btns">
+        <button class="dkb cue" data-act="cue" title="Volta ao ponto inicial marcado">CUE</button>
+        <button class="dkb play" data-act="play" title="Tocar / pausar (${id==='A'?'1':'2'})">${icon('play')}</button>
+        <button class="dkb" data-act="stop" title="Parar e descarregar">${icon('stop')}</button>
+        <button class="dkb" data-act="next" title="Carregar a próxima música do cronograma">${icon('next')}</button>
+      </div>
+    </section>`;
+    el.innerHTML=`<div class="dj-head">
+        <div class="dj-tl"><span class="dj-badge">DJ</span><div><strong>${esc(state.evento?.nome||'')}</strong><small>Dois decks · passagem contínua</small></div></div>
+        <div class="row" style="gap:8px;flex-wrap:nowrap"><button class="btn sm" id="djTv" title="Abrir o telão">${icon('tv')}<span class="hide-sm">Telão</span></button><button class="btn sm" id="djClose">${icon('down')}<span class="hide-sm">Minimizar</span></button></div>
+      </div>
+      <div class="dj-body">
+        <div class="dj-decks">
+          ${deckHTML('A')}
+          <section class="dj-mixer">
+            <div class="mx-vol"><span>MASTER</span><div class="vu big"><i id="djVu"></i></div><input type="range" min="0" max="1" step="0.01" value="${this.vol}" id="djVol" class="fader-r" orient="vertical" aria-label="Volume master"></div>
+            <div class="mx-mix">
+              <button class="mix-btn" id="djMix" title="Passagem suave para o outro deck (M)">MIX</button>
+              <div class="seg mx-len" id="djLen">${[4,8,12,16].map(n=>`<button data-len="${n}" class="${n===this.mixLen?'on':''}">${n}s</button>`).join('')}</div>
+              <button class="auto-btn" id="djAuto" title="Mixa sozinho no fim de cada música e carrega a próxima do cronograma">${icon('auto')}AUTO MIX</button>
+            </div>
+          </section>
+          ${deckHTML('B')}
+        </div>
+        <div class="dj-xf"><span>A</span><input type="range" min="0" max="1" step="0.001" value="${this.xf}" id="djXf" aria-label="Crossfader"><span>B</span><button class="btn sm ghost" id="djXfC" title="Centralizar">${icon('refresh')}</button></div>
+        <section class="dj-list"><div class="dj-lh"><strong>Cronograma</strong><small>Carregue no deck A ou B</small></div><ol id="djList"></ol></section>
+      </div>`;
+    el.addEventListener('click',e=>{
+      const b=e.target.closest('[data-act]');
+      if(b){const d=this.decks.find(x=>x.id===b.closest('[data-deck]').dataset.deck);const a=b.dataset.act;
+        if(a==='play')d.toggle();else if(a==='cue')d.cue();else if(a==='stop'){d.unload();this.render()}else if(a==='next'){const n=this.proxima(this.outro(d).m?.id||d.m?.id);if(n)d.load(n);else toast('Não há próxima música.','warn')}
+        return}
+      const ld=e.target.closest('[data-load]');if(ld){const m=state.musicas.find(x=>x.id===ld.dataset.id);const d=this.decks.find(x=>x.id===ld.dataset.load);if(m&&d)d.load(m);return}
+      const ln=e.target.closest('[data-len]');if(ln){this.mixLen=+ln.dataset.len;$$('#djLen button').forEach(x=>x.classList.toggle('on',x===ln));try{localStorage.setItem('palco_mixlen',this.mixLen)}catch{}return}
+    });
+    el.addEventListener('input',e=>{
+      const t=e.target,dk=t.closest('[data-deck]'),d=dk&&this.decks.find(x=>x.id===dk.dataset.deck);
+      if(t.dataset.eq&&d){d.eq[t.dataset.eq]=+t.value;d.applyEq()}
+      else if(t.hasAttribute('data-pitch')&&d){d.pitch=+t.value/100;d.el.playbackRate=1+d.pitch;$('[data-f=pt]',dk).textContent=(t.value>0?'+':'')+(+t.value).toFixed(1)+'%'}
+      else if(t.hasAttribute('data-fader')&&d){d.fader=+t.value}
+      else if(t.id==='djXf'){this.mixing=null;this.xf=+t.value}
+      else if(t.id==='djVol'){this.vol=+t.value}
+      this.aplicarGanhos();
+    });
+    el.addEventListener('dblclick',e=>{
+      const t=e.target,dk=t.closest('[data-deck]'),d=dk&&this.decks.find(x=>x.id===dk.dataset.deck);if(!d)return;
+      if(t.dataset.eq){t.value=+t.value<=-24?0:-24;d.eq[t.dataset.eq]=+t.value;d.applyEq()}
+      if(t.hasAttribute('data-pitch')){t.value=0;d.pitch=0;d.el.playbackRate=1;$('[data-f=pt]',dk).textContent='0.0%'}
+    });
+    for(const d of this.decks){
+      const cv=$(`[data-deck=${d.id}] canvas`,el);
+      cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();d.seekFrac((e.clientX-r.left)/r.width);this.drawWave(d,true)});
+    }
+    $('#djMix').onclick=()=>this.mix();
+    $('#djAuto').onclick=()=>{this.auto=!this.auto;this.render();toast(this.auto?'<b>AUTO MIX ligado:</b> no fim de cada música o sistema faz a passagem e carrega a próxima do cronograma.':'AUTO MIX desligado.','info',4500);if(this.auto)this.loop()};
+    $('#djXfC').onclick=()=>{this.mixing=null;this.xf=.5;this.syncXf();this.aplicarGanhos()};
+    $('#djClose').onclick=()=>this.fechar();
+    $('#djTv').onclick=()=>Telao.toggle();
+    window.addEventListener('resize',()=>{if(this.aberto)this.decks.forEach(d=>this.drawWave(d,true))});
+    try{const ml=+localStorage.getItem('palco_mixlen');if(ml)this.mixLen=ml;$$('#djLen button').forEach(x=>x.classList.toggle('on',+x.dataset.len===this.mixLen))}catch{}
+  },
+  syncXf(){const x=$('#djXf');if(x&&document.activeElement!==x)x.value=this.xf},
+  render(){
+    renderDjPill();
+    if(!this.aberto||!$('#dj').dataset.ok)return;
+    for(const d of this.decks){
+      const s=$(`[data-deck=${d.id}]`),m=d.m;
+      s.classList.toggle('on',d.playing);s.classList.toggle('vazio',!m);
+      $('[data-f=tt]',s).textContent=m?(m.titulo+(m.artista?' — '+m.artista:'')):'Vazio';
+      $('[data-f=st]',s).textContent=m?[isCer()?cueOf(m):[m.turma,m.professora].filter(Boolean).join(' · '),trechoTxt(m)?'✂ '+trechoTxt(m):'',m.link?'🔗 '+m.link.nome+' (sem EQ)':''].filter(Boolean).join(' · '):'Carregue uma música da lista';
+      $('[data-f=ld]',s).hidden=!d.loading;
+      $('[data-act=play]',s).innerHTML=icon(d.playing?'pause':'play');
+      $$('[data-eq]',s).forEach(r=>r.disabled=!!d.ext);
+      this.drawWave(d,true);
+    }
+    $('#djAuto').classList.toggle('on',this.auto);
+    $('#djMix').classList.toggle('on',!!this.mixing);
+    this.syncXf();
+    const L=this.lista(),ids={A:this.A.m?.id,B:this.B.m?.id};
+    $('#djList').innerHTML=L.length?L.map((m,i)=>`<li class="${m.status==='tocada'?'tocada':''} ${ids.A===m.id?'in-a':''} ${ids.B===m.id?'in-b':''}">
+      <span class="n">${String(i+1).padStart(2,'0')}</span>
+      <div class="i"><b>${esc(isCer()?cueOf(m):m.titulo)}</b><small>${esc(isCer()?[m.titulo,m.artista].filter(Boolean).join(' — '):descOf(m))}${m.status==='tocada'?' · tocada':''}</small></div>
+      <div class="b"><button data-load="A" data-id="${m.id}" class="${ids.A===m.id?'on':''}" title="Carregar no deck A">A</button><button data-load="B" data-id="${m.id}" class="${ids.B===m.id?'on':''}" title="Carregar no deck B">B</button></div></li>`).join('')
+      :'<li class="vazio">Nenhuma música pronta neste evento.</li>';
+  },
+  desenhar(){
+    if(this.aberto){
+      for(const d of this.decks){
+        const s=$(`[data-deck=${d.id}]`);if(!s)continue;
+        $('[data-f=rem]',s).textContent=d.m?'-'+fmt(d.rem):'-0:00';
+        $('[data-f=el]',s).textContent=d.m?`${fmt(Math.max(0,d.t-d.ini))} / ${fmt(Math.max(0,d.end-d.ini))}`:'0:00 / 0:00';
+        s.classList.toggle('alerta',d.playing&&d.rem<15&&d.rem>0);
+        $('[data-f=vu]',s).style.height=Math.round(d.level()*100)+'%';
+        if(d.playing||d.m)this.drawWave(d);
+      }
+      let lv=0;if(this.an&&this.tocando()){this.an.getFloatTimeDomainData(this.abuf);let q=0;for(const v of this.abuf)q+=v*v;lv=Math.min(1,Math.sqrt(q/this.abuf.length)*3.2)}
+      const vu=$('#djVu');if(vu)vu.style.height=Math.round(lv*100)+'%';
+      this.syncXf();
+    }
+    renderDjPill(true);
+  },
+  drawWave(d,force){
+    const cv=$(`#dj [data-deck=${d.id}] canvas`);if(!cv)return;
+    const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1,W=Math.max(10,Math.round(r.width*dpr)),H=Math.max(10,Math.round(r.height*dpr));
+    if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
+    const x=cv.getContext('2d');x.clearRect(0,0,W,H);
+    const cs=getComputedStyle(document.documentElement),col=d.id==='A'?'#8b6cff':(cs.getPropertyValue('--accent').trim()||'#ffb627');
+    const dur=d.dur;
+    x.fillStyle=cs.getPropertyValue('--track2').trim()||'#252a50';x.fillRect(0,0,W,H);
+    if(!d.m)return;
+    const ini=dur?d.ini/dur:0,end=dur?d.end/dur:1,pos=dur?Math.min(1,d.t/dur):0;
+    x.fillStyle='rgba(0,0,0,.28)';x.fillRect(0,0,ini*W,H);x.fillRect(end*W,0,W-end*W,H);
+    const pk=d.wave?.peaks;
+    if(pk){const n=pk.length,bw=W/n;for(let i=0;i<n;i++){const f=i/n,h=Math.max(1,pk[i]*H*.9);x.fillStyle=f<pos?col:(f<ini||f>end?'rgba(150,150,170,.35)':'rgba(170,175,200,.75)');x.fillRect(i*bw,(H-h)/2,Math.max(1,bw-.4),h)}}
+    else{x.fillStyle='rgba(170,175,200,.35)';x.fillRect(0,H/2-2,W,4);x.fillStyle=col;x.fillRect(0,H/2-2,pos*W,4)}
+    x.fillStyle='#fff';x.fillRect(Math.round(pos*W)-1,0,2*dpr,H);
+    x.fillStyle=col;x.fillRect(Math.round(ini*W),0,2*dpr,H);x.fillRect(Math.round(end*W)-2,0,2*dpr,H);
+  }
+};
+function renderDjPill(soTempo){
+  const p=$('#djPill');if(!p)return;
+  const on=DJ.tocando?.()&&!DJ.aberto;p.hidden=!on;if(!on)return;
+  const d=DJ.decks.find(x=>x.playing&&DJ.xfGain(x)>=.5)||DJ.decks.find(x=>x.playing);
+  if(!soTempo||!p.dataset.id||p.dataset.id!==d?.m?.id){p.dataset.id=d?.m?.id||'';$('b',p).textContent=d?.m?.titulo||'Decks'}
+  $('small',p).textContent=d?'-'+fmt(d.rem):'';
+}
 
 /* ---------- Modo palco ---------- */
 const Stage={
@@ -3466,6 +3917,7 @@ function openSongForm(m=null,momentoId=null){
    AÇÕES: EVENTOS
    ========================================================= */
 async function selectEvent(id){
+  if(DJ.decks.length&&state.evento?.id!==id){DJ.mixing=null;DJ.decks.forEach(d=>d.unload());if(DJ.aberto)DJ.fechar();const el=$('#dj');el.dataset.ok='';el.innerHTML='';renderDjPill()}
   $('#admin').classList.toggle('sem-evento',!state.eventos.some(e=>e.id===id));
   Player.a.pause();Player.cur=null;
   state.evento=state.eventos.find(e=>e.id===id)||null;
@@ -4278,7 +4730,7 @@ function openSettings(){
       </div>
       <hr class="sep" style="margin:6px 0">
       <div><strong style="display:block;margin-bottom:8px">Atalhos de teclado</strong>
-        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span><kbd>V</kbd><span>Vídeo em tela cheia</span><kbd>E</kbd><span>Abrir a lista de eventos</span></div>
+        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span><kbd>V</kbd><span>Vídeo em tela cheia</span><kbd>E</kbd><span>Abrir a lista de eventos</span><kbd>D</kbd><span>Modo DJ (dois decks)</span><kbd>1 / 2</kbd><span>Decks: tocar/pausar A / B</span><kbd>Q / W</kbd><span>Decks: CUE do A / B</span><kbd>M</kbd><span>Decks: MIX (passagem)</span><kbd>A</kbd><span>Decks: liga/desliga AUTO MIX</span><kbd>← →</kbd><span>Decks: mover o crossfader</span></div>
       </div>
     </div>`,
   {onMount:(md,close)=>{
@@ -4361,6 +4813,7 @@ function openMais(){
       ${ev?`<button data-m="links"><span class="mi">${icon('wa')}</span><span>${isCer(ev)?'Link para '+tipoDe(ev).quem:'Links para professoras'}<small>Enviar pelo WhatsApp</small></span></button>
       <button data-m="ficha"><span class="mi">${icon('print')}</span><span>Ficha do evento (PDF)<small>Para imprimir e acompanhar</small></span></button>`:''}
       <div class="mais-sep"></div>
+      ${ev?`<button data-m="dj"><span class="mi">${icon('decks')}</span><span>Modo DJ (2 decks)<small>Mixagem contínua entre as músicas</small></span></button>`:''}
       <button data-m="auto"><span class="mi">${icon('auto')}</span><span>Tocar a próxima automaticamente<small>Ao terminar uma música</small></span><i class="sw ${state.auto?'on':''}"></i></button>
       <div class="mais-sep"></div>
       <div style="padding:8px 12px 10px"><div class="hint" style="margin-bottom:8px;font-weight:600;color:var(--muted)">Aparência</div>${Tema.segHTML()}</div>
@@ -4372,7 +4825,7 @@ function openMais(){
     const b=e.target.closest('[data-m]');if(!b)return;const k=b.dataset.m;
     if(k==='auto'){$('#plAuto').click();$('.sw',b).classList.toggle('on',state.auto);return}
     if(k==='instalar'){close();return instalarApp()}
-    close();setTimeout(()=>({novo:()=>openEventForm(),cad:openCadastroLink,links:openLinks,ficha:()=>fichaDoEvento(),marca:openBrand,cfg:openSettings})[k]?.(),220);
+    close();setTimeout(()=>({dj:()=>DJ.abrir(),novo:()=>openEventForm(),cad:openCadastroLink,links:openLinks,ficha:()=>fichaDoEvento(),marca:openBrand,cfg:openSettings})[k]?.(),220);
   }}});
 }
 async function instalarApp(){
@@ -4428,9 +4881,21 @@ async function _updateAppIdentity(){
 function bindKeys(){
   document.addEventListener('keydown',e=>{
     const mods=$$('.modal-back');
-    if(e.key==='Escape'){if(mods.length)mods[mods.length-1]._close();else if(Stage.on)Stage.close();return}
-    if($('#admin').hidden||mods.length||e.target.closest('input,textarea,select,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey)return;
+    if(e.key==='Escape'){if(mods.length)mods[mods.length-1]._close();else if(DJ.aberto)DJ.fechar();else if(Stage.on)Stage.close();return}
+    if($('#admin').hidden||mods.length||e.target.closest('input:not([type=range]),textarea,select,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey)return;
     const k=e.key.toLowerCase();
+    if(DJ.aberto){
+      if(k==='1')DJ.A.toggle();else if(k==='2')DJ.B.toggle();
+      else if(k==='q')DJ.A.cue();else if(k==='w')DJ.B.cue();
+      else if(k==='m')DJ.mix();
+      else if(k==='a'){$('#djAuto').click()}
+      else if(e.key==='ArrowLeft'){e.preventDefault();DJ.mixing=null;DJ.xf=Math.max(0,DJ.xf-.05);DJ.aplicarGanhos()}
+      else if(e.key==='ArrowRight'){e.preventDefault();DJ.mixing=null;DJ.xf=Math.min(1,DJ.xf+.05);DJ.aplicarGanhos()}
+      else if(k==='d')DJ.fechar();
+      if(k===' ')e.preventDefault();
+      return;
+    }
+    if(k==='d'){DJ.abrir();return}
     if(k===' '){e.preventDefault();Player.toggle()}
     else if(k==='n')Player.next();
     else if(k==='p')Player.prev();
@@ -4457,6 +4922,7 @@ async function initAdmin(){
   $('#btnTema').onclick=()=>Tema.proximo();
   $('#evSel').onchange=e=>selectEvent(e.target.value);
   $('#evBtn').onclick=openEventos;
+  $('#plDj').onclick=()=>DJ.abrir();$('#djPill').onclick=()=>DJ.abrir();
   initAppShell();
   $('#btnNovoEv').onclick=()=>openEventForm();
   $('#btnConfig').onclick=openSettings;
@@ -4468,7 +4934,7 @@ async function initAdmin(){
   window.addEventListener('online',()=>Sync.tick(true));
   window.addEventListener('offline',()=>setSync('off'));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(state.token)pullWorkspace().catch(()=>{});state.badge=0;document.title=marca.nome||'Palco Musical';Sync.tick();requestWake()}});
-  window.addEventListener('beforeunload',e=>{if(Player.playing){e.preventDefault();e.returnValue=''}});
+  window.addEventListener('beforeunload',e=>{if(Player.playing||DJ.tocando?.()){e.preventDefault();e.returnValue=''}});
   if(navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
   Inbox.start();
   const last=await DB.cfg('ultimoEvento');
