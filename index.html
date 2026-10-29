@@ -371,12 +371,27 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 /* ---------- Brand ---------- */
 .logo.img{background:transparent!important;box-shadow:none!important;width:auto;min-width:40px;padding:0;overflow:hidden}
 .logo.img img{height:100%;width:auto;max-width:150px;object-fit:contain;display:block}
-.logo.xl.img img{max-width:240px}
-.logo.img.white{background:#fff!important;padding:4px 6px}
+/* logo grande nas páginas públicas: tamanho natural, sem cortar */
+.logo.xl.img{height:auto;width:fit-content;max-width:min(320px,84vw);border-radius:20px;margin:0 auto 14px;overflow:visible}
+.logo.xl.img img{height:auto;width:auto;max-height:var(--logo-h,104px);max-width:100%;border-radius:inherit}
+/* modos de exibição */
+.logo.img.lm-moldura{overflow:hidden!important;border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 0 5px rgba(var(--accent-rgb),.10)!important}
+.logo.img.lm-moldura img{border-radius:0}
+.logo.xl.img.lm-moldura{border-radius:22px}
+.logo.img.lm-branco,.logo.img.white{background:#fff!important;padding:4px 8px;box-shadow:0 10px 28px rgba(0,0,0,.35)!important}
+.logo.xl.img.lm-branco{padding:14px 22px;border-radius:22px}
+.logo.img.lm-escuro{background:#0b0d18!important;border:1px solid var(--line);padding:4px 8px}
+.logo.xl.img.lm-escuro{padding:14px 22px;border-radius:22px}
+.logo.img.lm-livre img{filter:drop-shadow(0 6px 18px rgba(0,0,0,.45))}
+.brand-cap{font-size:.82rem;color:var(--muted);letter-spacing:.04em;margin:-4px 0 10px;font-weight:500}
+.brand-cap:empty{display:none}
+.lm-pick{display:flex;flex-wrap:wrap;gap:6px}
+.lm-pick button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 12px;font-size:.84rem;cursor:pointer;color:var(--muted)}
+.lm-pick button.on{border-color:var(--accent);color:var(--text);background:rgba(var(--accent-rgb),.12)}
 .brand-top{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-.logo-prev{width:150px;height:110px;border-radius:14px;display:grid;place-items:center;border:1px dashed var(--line);background:repeating-conic-gradient(#20244a 0 25%,#181b36 0 50%) 0 0/18px 18px;flex:none;overflow:hidden;color:var(--faint);font-size:.8rem;text-align:center;padding:8px}
-.logo-prev.white{background:#fff}
-.logo-prev img{max-width:100%;max-height:100%;object-fit:contain}
+.logo-prev{width:220px;min-height:150px;border-radius:16px;display:grid;place-items:center;border:1px solid var(--line);background:radial-gradient(400px 200px at 50% -20%,rgba(139,108,255,.25),transparent 70%),#0c0e1a;flex:none;color:var(--faint);font-size:.8rem;text-align:center;padding:16px}
+.logo-prev .logo.xl.img{margin:0;max-width:180px;--logo-h:90px}
+.logo-prev small{display:block;margin-top:8px;color:var(--faint);font-size:.72rem}
 .swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .swatches button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer}
 .swatches button.on{border-color:#fff}
@@ -400,7 +415,9 @@ fieldset.box legend{padding:0 6px;color:var(--muted);font-size:.85rem}
 .vw-brand{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5em;text-align:center;padding:6%;background:radial-gradient(circle at 50% 35%,rgba(var(--accent-rgb),.16),transparent 65%),#05060c;opacity:0;pointer-events:none;transition:opacity .5s}
 .vidwrap.brand .vw-brand{opacity:1}
 .vw-logo{max-width:42%;max-height:34%;object-fit:contain}
-.vw-logo.white{background:#fff;padding:.6em 1em;border-radius:.6em}
+.vw-logo.white,.vw-logo.lm-branco{background:#fff;padding:.6em 1em;border-radius:.6em}
+.vw-logo.lm-moldura{border-radius:.8em;box-shadow:0 1em 3em rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.14)}
+.vw-logo.lm-escuro{background:#0b0d18;padding:.6em 1em;border-radius:.6em}
 .vw-title{font-size:2.3em;font-weight:800;line-height:1.1;color:#fff}
 .vw-sub{font-size:1.25em;color:#b9bedf}
 .vw-cue{font-size:1.7em;color:var(--accent2);font-weight:700;margin-top:.3em}
@@ -678,6 +695,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   <div class="prof-wrap">
     <div class="prof-hero">
       <span class="logo xl" data-brand-logo="music"><svg class="ic"><use href="#i-music"/></svg></span>
+      <div class="brand-cap" data-brand-name></div>
       <span class="eyebrow">Envio de música ou vídeo</span>
       <h1 id="pEvento">Evento</h1>
       <p class="muted" id="pData"></p>
@@ -719,6 +737,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   <div class="prof-wrap">
     <div class="prof-hero">
       <span class="logo xl rose" id="cIcon" data-brand-logo="heart"><svg class="ic"><use href="#i-heart"/></svg></span>
+      <div class="brand-cap" data-brand-name></div>
       <span class="eyebrow">Músicas do cerimonial</span>
       <h1 id="cEvento">Evento</h1>
       <p class="muted" id="cData"></p>
@@ -828,13 +847,41 @@ const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
 /* =========================================================
    IDENTIDADE VISUAL (marca)
    ========================================================= */
-const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false};
+const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,logoModo:'auto',logoAuto:'',logoTam:'m',cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false};
 let marca={...BRAND_DEF};
 const CORES=['#ffb627','#ff7a59','#ff5c8a','#e8b4c8','#c9a227','#b88a4a','#8b6cff','#4f8cff','#2fbfa0','#ffffff'];
 const hexRgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255]};
 const mixHex=(h,t,k)=>{const a=hexRgb(h),b=hexRgb(t);return'#'+a.map((v,i)=>Math.round(v+(b[i]-v)*k).toString(16).padStart(2,'0')).join('')};
 const lumHex=h=>{const[r,g,b]=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*r+.7152*g+.0722*b};
-const publicBrand=()=>{const{nome,slogan,logo,logoBranco,cor,whatsapp,instagram,site,email,cidade}=marca;return{nome,slogan,logo,logoBranco,cor,whatsapp,instagram,site,email,cidade}};
+const publicBrand=()=>{const{nome,slogan,logo,logoBranco,logoModo,logoAuto,logoTam,cor,whatsapp,instagram,site,email,cidade}=marca;return{nome,slogan,logo,logoBranco,logoModo,logoAuto,logoTam,cor,whatsapp,instagram,site,email,cidade}};
+const LOGO_MODOS=[['auto','Automático'],['moldura','Moldura arredondada'],['livre','Sem moldura'],['branco','Fundo branco'],['escuro','Fundo escuro']];
+const LOGO_TAM={p:76,m:104,g:140};
+/* modo efetivo de exibição do logo */
+function logoModo(b=marca){
+  if(b.logoModo&&b.logoModo!=='auto')return b.logoModo;
+  if(b.logoBranco)return'branco';
+  return b.logoAuto||'moldura';
+}
+/* analisa o logo: tem transparência? é escuro? → decide a melhor exibição automática */
+const _logoCache=new Map();
+function analisarLogo(url){
+  if(!url)return Promise.resolve('');
+  if(_logoCache.has(url))return Promise.resolve(_logoCache.get(url));
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const n=64,c=document.createElement('canvas');c.width=n;c.height=n;const x=c.getContext('2d');x.drawImage(img,0,0,n,n);
+        const d=x.getImageData(0,0,n,n).data;let tr=0,lum=0,op=0;
+        for(let i=0;i<d.length;i+=4){if(d[i+3]<200)tr++;else{op++;lum+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255}}
+        const transp=tr/(n*n)>.04,avg=op?lum/op:1;
+        const modo=transp?(avg<.32?'branco':'livre'):'moldura';
+        _logoCache.set(url,modo);res(modo);
+      }catch{res('moldura')}
+    };
+    img.onerror=()=>res('moldura');img.src=url;
+  });
+}
 function applyBrand(b,{keep=false}={}){
   marca={...BRAND_DEF,...(keep?marca:{}),...(b||{})};
   const r=document.documentElement.style,c=/^#[0-9a-f]{6}$/i.test(marca.cor)?marca.cor:BRAND_DEF.cor;
@@ -852,10 +899,25 @@ function applyBrand(b,{keep=false}={}){
   if(typeof Player!=='undefined'&&!$('#admin').hidden)paintVidBrand($('#vidWrap'),vidLabels());
 }
 function refreshLogos(){
+  const modo=logoModo();
+  document.documentElement.style.setProperty('--logo-h',(LOGO_TAM[marca.logoTam]||LOGO_TAM.m)+'px');
   $$('[data-brand-logo]').forEach(el=>{
-    if(marca.logo){el.classList.add('img');el.classList.toggle('white',!!marca.logoBranco);el.innerHTML=`<img src="${marca.logo}" alt="${esc(marca.nome||'Logo')}">`}
-    else{el.classList.remove('img','white');el.innerHTML=icon(el.dataset.brandLogo||'music')}
+    el.classList.remove('white','lm-moldura','lm-livre','lm-branco','lm-escuro');
+    if(marca.logo){
+      el.classList.add('img','lm-'+modo);
+      const im=$('img',el);
+      if(!im||im.getAttribute('src')!==marca.logo)el.innerHTML=`<img src="${marca.logo}" alt="${esc(marca.nome||'Logo')}" decoding="async">`;
+    }else{el.classList.remove('img');el.innerHTML=icon(el.dataset.brandLogo||'music')}
   });
+  $$('[data-brand-name]').forEach(el=>el.textContent=marca.logo&&marca.nome?marca.nome:'');
+  /* ícone da aba do navegador */
+  let fav=document.querySelector('link[rel=icon]');
+  if(marca.logo){if(!fav){fav=document.createElement('link');fav.rel='icon';document.head.appendChild(fav)}fav.href=marca.logo}
+  else if(fav)fav.remove();
+  /* logos antigos sem análise: descobre o melhor modo e redesenha */
+  if(marca.logo&&!marca.logoAuto&&(!marca.logoModo||marca.logoModo==='auto')&&!marca.logoBranco){
+    const u=marca.logo;analisarLogo(u).then(m=>{if(marca.logo===u&&!marca.logoAuto){marca.logoAuto=m;refreshLogos()}});
+  }
 }
 const waLink=n=>{let d=String(n||'').replace(/\D/g,'');if(!d)return'';if(d.length<=11)d='55'+d;return'https://wa.me/'+d};
 const igLink=h=>{h=String(h||'').trim().replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'');return h?'https://instagram.com/'+h:''};
@@ -877,8 +939,21 @@ function resizeLogo(file){
   return new Promise((res,rej)=>{
     const u=URL.createObjectURL(file),img=new Image();
     img.onload=()=>{
-      let w=img.naturalWidth||480,h=img.naturalHeight||480;const k=Math.min(1,480/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
-      const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      let w=img.naturalWidth||600,h=img.naturalHeight||600;const k=Math.min(1,600/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+      let c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      /* corta bordas vazias (transparentes ou da mesma cor do canto) */
+      try{
+        const d=x.getImageData(0,0,w,h).data,at=(i,j)=>(j*w+i)*4;
+        const c0=[d[0],d[1],d[2],d[3]];
+        const vazio=(i,j)=>{const p=at(i,j);if(d[p+3]<12)return true;if(c0[3]<12)return false;return Math.abs(d[p]-c0[0])+Math.abs(d[p+1]-c0[1])+Math.abs(d[p+2]-c0[2])<36&&Math.abs(d[p+3]-c0[3])<20};
+        let x0=w,y0=h,x1=-1,y1=-1;
+        for(let j=0;j<h;j+=1)for(let i=0;i<w;i+=1)if(!vazio(i,j)){if(i<x0)x0=i;if(i>x1)x1=i;if(j<y0)y0=j;if(j>y1)y1=j}
+        if(x1>x0&&y1>y0&&((x1-x0+1)*(y1-y0+1))<w*h*.92){
+          const pad=Math.round(Math.max(x1-x0,y1-y0)*.04);
+          x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
+          const cw=x1-x0+1,ch=y1-y0+1,c2=document.createElement('canvas');c2.width=cw;c2.height=ch;c2.getContext('2d').drawImage(c,x0,y0,cw,ch,0,0,cw,ch);c=c2;
+        }
+      }catch{}
       let d=c.toDataURL('image/webp',.9);if(!d.startsWith('data:image/webp'))d=c.toDataURL('image/png');
       res(d);
     };
@@ -897,7 +972,8 @@ function openBrand(){
             <label class="btn sm primary">${icon('upload')}Enviar logo<input type="file" accept="image/*" id="bfLogo" hidden></label>
             <button type="button" class="btn sm ghost danger" id="bfLogoRm">Remover</button>
           </div>
-          <label class="chk"><input type="checkbox" name="logoBranco" ${marca.logoBranco?'checked':''}> Mostrar o logo sobre fundo branco</label>
+          <div class="field"><span>Exibição do logo nas páginas e no telão</span><div class="lm-pick" id="bfModo">${LOGO_MODOS.map(([k,l])=>`<button type="button" data-lm="${k}">${l}</button>`).join('')}</div></div>
+          <div class="field"><span>Tamanho do logo nas páginas dos clientes</span><div class="lm-pick" id="bfTam">${[['p','Pequeno'],['m','Médio'],['g','Grande']].map(([k,l])=>`<button type="button" data-lt="${k}">${l}</button>`).join('')}</div></div>
           <div class="field"><span>Cor principal</span>
             <div class="swatches"><input type="color" name="cor" value="${esc(marca.cor||BRAND_DEF.cor)}" aria-label="Cor principal">${CORES.map(c=>`<button type="button" data-cor="${c}" style="background:${c}" aria-label="Cor ${c}"></button>`).join('')}</div></div>
         </div>
@@ -919,25 +995,33 @@ function openBrand(){
         <label class="chk"><input type="checkbox" name="telaoMomento" ${marca.telaoMomento?'checked':''}> Mostrar o nome do momento entre os vídeos (ex.: “Entrada da noiva”)</label>
         <label class="chk"><input type="checkbox" name="logoNoVideo" ${marca.logoNoVideo?'checked':''}> Mostrar meu logo no canto dos vídeos</label>
       </fieldset>
-      <p class="hint">O logo é reduzido automaticamente. Use PNG com fundo transparente para o melhor resultado.</p>
+      <p class="hint">O logo é reduzido e tem as bordas vazias cortadas automaticamente. No modo automático, logos com fundo próprio ganham moldura; logos transparentes aparecem livres (ou sobre placa clara, se forem escuros).</p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}Salvar marca</button></div>
     </form>`,
   {wide:true,onClose:()=>{if(!fechouSalvando)applyBrand(salvo)},onMount:(md,close)=>{
     const f=$('#bf',md);
-    const val=()=>({nome:f.elements.nome.value.trim(),slogan:f.elements.slogan.value.trim(),logo,logoBranco:f.elements.logoBranco.checked,cor:f.elements.cor.value,
+    let modo=marca.logoBranco&&(!marca.logoModo||marca.logoModo==='auto')?'branco':(marca.logoModo||'auto'),tam=marca.logoTam||'m',auto=marca.logoAuto||'';
+    if(logo&&!auto)analisarLogo(logo).then(m=>{auto=m;prev()});
+    const val=()=>({nome:f.elements.nome.value.trim(),slogan:f.elements.slogan.value.trim(),logo,logoBranco:false,logoModo:modo,logoAuto:auto,logoTam:tam,cor:f.elements.cor.value,
       whatsapp:f.elements.whatsapp.value.trim(),instagram:f.elements.instagram.value.trim(),site:f.elements.site.value.trim(),email:f.elements.email.value.trim(),cidade:f.elements.cidade.value.trim(),
       telaoMomento:f.elements.telaoMomento.checked,logoNoVideo:f.elements.logoNoVideo.checked});
     const prev=()=>{
-      const p=$('#bfPrev',md);p.classList.toggle('white',f.elements.logoBranco.checked&&!!logo);
-      p.innerHTML=logo?`<img src="${logo}" alt="Logo">`:'Sem logo<br>(use o botão ao lado)';
+      const p=$('#bfPrev',md),b=val();
+      p.innerHTML=logo?`<div><span class="logo xl img lm-${logoModo(b)}" style="--logo-h:${Math.round((LOGO_TAM[tam]||104)*.75)}px"><img src="${logo}" alt="Logo"></span><small>Prévia como o cliente vê${modo==='auto'?' · automático: '+(LOGO_MODOS.find(x=>x[0]===logoModo(b))||['',''])[1].toLowerCase():''}</small></div>`:'Sem logo<br>(use o botão ao lado)';
+      $$('[data-lm]',md).forEach(x=>x.classList.toggle('on',x.dataset.lm===modo));
+      $$('[data-lt]',md).forEach(x=>x.classList.toggle('on',x.dataset.lt===tam));
       $$('[data-cor]',md).forEach(b=>b.classList.toggle('on',b.dataset.cor.toLowerCase()===f.elements.cor.value.toLowerCase()));
       applyBrand(val());
     };
     prev();
     f.addEventListener('input',prev);f.addEventListener('change',prev);
-    md.addEventListener('click',e=>{const b=e.target.closest('[data-cor]');if(b){f.elements.cor.value=b.dataset.cor;prev()}});
-    $('#bfLogo',md).onchange=async e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;try{logo=await resizeLogo(fl);prev()}catch(x){toast(esc(x.message),'err')}};
-    $('#bfLogoRm',md).onclick=()=>{logo='';prev()};
+    md.addEventListener('click',e=>{
+      const b=e.target.closest('[data-cor]');if(b){f.elements.cor.value=b.dataset.cor;prev();return}
+      const lm=e.target.closest('[data-lm]');if(lm){modo=lm.dataset.lm;prev();return}
+      const lt=e.target.closest('[data-lt]');if(lt){tam=lt.dataset.lt;prev()}
+    });
+    $('#bfLogo',md).onchange=async e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;try{logo=await resizeLogo(fl);auto=await analisarLogo(logo);prev()}catch(x){toast(esc(x.message),'err')}};
+    $('#bfLogoRm',md).onclick=()=>{logo='';auto='';prev()};
     f.onsubmit=async e=>{
       e.preventDefault();const b=val();
       await DB.setCfg('marca',b);fechouSalvando=true;applyBrand(b);close();
@@ -1938,7 +2022,7 @@ function vidLabels(){
 function paintVidBrand(wrap,{title,sub,cue}){
   if(!wrap)return;
   const lg=$('.vw-logo',wrap),wm=$('.vw-wm',wrap);
-  if(marca.logo){lg.src=marca.logo;lg.hidden=false;lg.classList.toggle('white',!!marca.logoBranco)}else lg.hidden=true;
+  if(marca.logo){lg.src=marca.logo;lg.hidden=false;lg.className='vw-logo lm-'+logoModo()}else lg.hidden=true;
   if(marca.logo&&marca.logoNoVideo){wm.src=marca.logo;wm.hidden=false}else wm.hidden=true;
   $('.vw-title',wrap).textContent=title||'';
   $('.vw-sub',wrap).textContent=sub||'';
@@ -3030,7 +3114,7 @@ async function initReg(P){
   applyBrand(null);
   let saved=[];try{saved=JSON.parse(localStorage.getItem('palco_meus_'+P.i)||'[]')}catch{}
   root.innerHTML=`<div class="prof-wrap">
-    <div class="prof-hero"><span class="logo xl rose" data-brand-logo="sparkle">${icon('sparkle')}</span><span class="eyebrow">Cadastro de evento</span><h1>Cadastre o seu evento</h1><p class="muted">Depois do cadastro você envia a música (ou vídeo) de cada momento e marca exatamente onde ela começa e termina.</p></div>
+    <div class="prof-hero"><span class="logo xl rose" data-brand-logo="sparkle">${icon('sparkle')}</span><div class="brand-cap" data-brand-name></div><span class="eyebrow">Cadastro de evento</span><h1>Cadastre o seu evento</h1><p class="muted">Depois do cadastro você envia a música (ou vídeo) de cada momento e marca exatamente onde ela começa e termina.</p></div>
     ${saved.length?`<div class="meus"><p class="muted" style="font-size:.88rem">Eventos que você já cadastrou neste aparelho:</p>${saved.map(x=>`<a href="${esc(x.link)}">${icon('heart')}<span><b>${esc(x.nome)}</b><small>${x.data?esc(x.data.split('-').reverse().join('/')):''} · continuar enviando músicas</small></span>${icon('next')}</a>`).join('')}</div>`:''}
     <form id="rgF" class="card prof-card stack" novalidate>
       <div class="field"><span>Tipo de evento *</span><div class="tipos" style="grid-template-columns:repeat(3,1fr)">${['quinze','casamento','cerimonial'].map(k=>{const t=TIPOS[k];return`<label class="tipo"><input type="radio" name="tipo" value="${k}" ${k==='quinze'?'checked':''}><span>${icon(t.icon)}<b>${t.nome}</b><small>${t.desc}</small></span></label>`}).join('')}</div></div>
