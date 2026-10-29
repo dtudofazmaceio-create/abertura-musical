@@ -556,6 +556,22 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 .chip.c-uso .ic{width:13px;height:13px;stroke-width:3}
 @media (max-width:720px){.evc{padding:10px 12px;gap:10px}.evc-ic{width:38px;height:38px}.evc-r .chip{display:none}.evc-list{max-height:none}}
 
+/* ---------- Plano de fundo ---------- */
+#bgLayer{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#bgLayer .bg-img{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:filter .2s}
+#bgLayer .bg-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,9,18,.55),rgba(8,9,18,.85)),#0c0e1a;opacity:0;transition:opacity .2s}
+html.has-bg body{background:#0c0e1a}
+html.has-bg .card,html.has-bg .moment,html.has-bg .stat,html.has-bg .toolbar .seg,html.has-bg .song:not(.moment .song),html.has-bg .empty,html.has-bg .ci,html.has-bg .sent li{background-color:rgba(20,23,44,.78);backdrop-filter:blur(12px) saturate(1.1);-webkit-backdrop-filter:blur(12px) saturate(1.1)}
+html.has-bg .moment .song{background-color:rgba(30,34,64,.72)}
+html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rgba(12,14,30,.78)}
+.bgset{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.bg-prev{width:190px;aspect-ratio:16/10;border-radius:12px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--faint);font-size:.8rem;background:#0c0e1a center/cover no-repeat;position:relative;overflow:hidden;flex:none}
+.bg-prev.on{border-style:solid}
+.bg-prev.on span{display:none}
+.bg-prev.on::after{content:"";position:absolute;inset:0;background:rgba(8,9,18,var(--esc,.6));backdrop-filter:blur(var(--blur,0));-webkit-backdrop-filter:blur(var(--blur,0))}
+.bg-prev.on::before{content:"Aa";position:absolute;z-index:1;left:12px;bottom:10px;font-weight:800;font-size:1.3rem;color:#fff}
+@media (max-width:720px){.bg-prev{width:100%}}
+
 /* ---------- Responsive ---------- */
 @media (max-width:1440px){
   .brand-txt small{font-size:.76rem}
@@ -787,6 +803,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
+<div id="bgLayer" aria-hidden="true"><div class="bg-img"></div><div class="bg-shade"></div></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
@@ -1124,13 +1141,41 @@ const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
 /* =========================================================
    IDENTIDADE VISUAL (marca)
    ========================================================= */
-const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,logoModo:'auto',logoAuto:'',logoTam:'m',cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false};
+const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,logoModo:'auto',logoAuto:'',logoTam:'m',cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false,fundo:'',fundoEsc:.6,fundoBlur:0,fundoCli:true};
 let marca={...BRAND_DEF};
 const CORES=['#ffb627','#ff7a59','#ff5c8a','#e8b4c8','#c9a227','#b88a4a','#8b6cff','#4f8cff','#2fbfa0','#ffffff'];
 const hexRgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255]};
 const mixHex=(h,t,k)=>{const a=hexRgb(h),b=hexRgb(t);return'#'+a.map((v,i)=>Math.round(v+(b[i]-v)*k).toString(16).padStart(2,'0')).join('')};
 const lumHex=h=>{const[r,g,b]=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*r+.7152*g+.0722*b};
-const publicBrand=()=>{const{nome,slogan,logo,logoBranco,logoModo,logoAuto,logoTam,cor,whatsapp,instagram,site,email,cidade}=marca;return{nome,slogan,logo,logoBranco,logoModo,logoAuto,logoTam,cor,whatsapp,instagram,site,email,cidade}};
+const publicBrand=()=>{const{nome,slogan,logo,logoBranco,logoModo,logoAuto,logoTam,cor,whatsapp,instagram,site,email,cidade,fundo,fundoEsc,fundoBlur,fundoCli}=marca;
+  const b={nome,slogan,logo,logoBranco,logoModo,logoAuto,logoTam,cor,whatsapp,instagram,site,email,cidade};
+  if(fundo&&fundoCli!==false)Object.assign(b,{fundo,fundoEsc,fundoBlur,fundoCli:true}); /* o fundo só vai para os links se você permitir */
+  return b};
+/* plano de fundo: imagem + escurecimento + desfoque, numa camada fixa atrás de tudo */
+function applyBg(b=marca){
+  const L=$('#bgLayer');if(!L)return;
+  const on=!!b.fundo;
+  document.documentElement.classList.toggle('has-bg',on);
+  $('.bg-img',L).style.backgroundImage=on?`url("${b.fundo}")`:'none';
+  const blur=Math.max(0,Math.min(24,+b.fundoBlur||0));
+  $('.bg-img',L).style.filter=blur?`blur(${blur}px)`:'none';
+  $('.bg-img',L).style.inset=blur?`-${blur*2}px`:'0';
+  $('.bg-shade',L).style.opacity=on?Math.max(0,Math.min(.95,b.fundoEsc??.6)):0;
+}
+/* reduz a imagem de fundo (máx. 1920px, JPEG) para ficar leve e sincronizar rápido */
+function resizeFundo(file){
+  return new Promise((res,rej)=>{
+    if(!/^image\//.test(file.type))return rej(new Error('Escolha uma imagem (JPG, PNG ou WEBP).'));
+    const u=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{
+      const k=Math.min(1,1920/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.round(img.naturalWidth*k),h=Math.round(img.naturalHeight*k);
+      const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#0c0e1a';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      let q=.78,d=c.toDataURL('image/jpeg',q);while(d.length>420000&&q>.4){q-=.08;d=c.toDataURL('image/jpeg',q)}
+      res(d);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Não foi possível ler esta imagem.'))};img.src=u;
+  });
+}
 const LOGO_MODOS=[['auto','Automático'],['moldura','Moldura arredondada'],['livre','Sem moldura'],['branco','Fundo branco'],['escuro','Fundo escuro']];
 const LOGO_TAM={p:76,m:104,g:140};
 /* modo efetivo de exibição do logo */
@@ -1174,6 +1219,7 @@ function applyBrand(b,{keep=false}={}){
   if(!$('#admin').hidden&&!state.badge)document.title=marca.nome||'Palco Musical';
   $$('[data-brand-foot]').forEach(el=>el.innerHTML=brandFootHTML(el.dataset.brandFoot));
   if(typeof Player!=='undefined'&&!$('#admin').hidden)paintVidBrand($('#vidWrap'),vidLabels());
+  applyBg(marca);
   updateAppIdentity();
 }
 function refreshLogos(){
@@ -1269,6 +1315,18 @@ function openBrand(){
         <label class="field"><span>E-mail</span><input name="email" value="${esc(marca.email)}" placeholder="contato@…" inputmode="email"></label>
       </div>
       <label class="field"><span>Cidade / região</span><input name="cidade" value="${esc(marca.cidade)}" placeholder="Ex.: Maceió - AL"></label>
+      <fieldset class="box"><legend>Plano de fundo do sistema</legend>
+        <div class="bgset">
+          <div class="bg-prev" id="bfBgPrev"><span>Sem imagem</span></div>
+          <div class="stack" style="flex:1;min-width:220px;gap:10px">
+            <div class="row"><label class="btn sm primary">${icon('upload')}Importar imagem<input type="file" accept="image/*" id="bfBg" hidden></label><button type="button" class="btn sm ghost danger" id="bfBgRm">Remover</button></div>
+            <div class="rng"><span style="min-width:74px">Escurecer</span><input type="range" min="0" max="90" step="5" name="fundoEsc" value="${Math.round((marca.fundoEsc??.6)*100)}" aria-label="Escurecer o fundo"><output>${Math.round((marca.fundoEsc??.6)*100)}%</output></div>
+            <div class="rng"><span style="min-width:74px">Desfocar</span><input type="range" min="0" max="20" step="1" name="fundoBlur" value="${+marca.fundoBlur||0}" aria-label="Desfocar o fundo"><output>${+marca.fundoBlur||0}px</output></div>
+            <label class="chk"><input type="checkbox" name="fundoCli" ${marca.fundoCli!==false?'checked':''}> Usar também nas páginas dos clientes e professoras</label>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:8px">A imagem é reduzida automaticamente. Escureça um pouco para os textos continuarem fáceis de ler.</p>
+      </fieldset>
       <fieldset class="box"><legend>Telão e tela cheia</legend>
         <label class="chk"><input type="checkbox" name="telaoMomento" ${marca.telaoMomento?'checked':''}> Mostrar o nome do momento entre os vídeos (ex.: “Entrada da noiva”)</label>
         <label class="chk"><input type="checkbox" name="logoNoVideo" ${marca.logoNoVideo?'checked':''}> Mostrar meu logo no canto dos vídeos</label>
@@ -1278,17 +1336,21 @@ function openBrand(){
     </form>`,
   {wide:true,onClose:()=>{if(!fechouSalvando)applyBrand(salvo)},onMount:(md,close)=>{
     const f=$('#bf',md);
-    let modo=marca.logoBranco&&(!marca.logoModo||marca.logoModo==='auto')?'branco':(marca.logoModo||'auto'),tam=marca.logoTam||'m',auto=marca.logoAuto||'';
+    let modo=marca.logoBranco&&(!marca.logoModo||marca.logoModo==='auto')?'branco':(marca.logoModo||'auto'),tam=marca.logoTam||'m',auto=marca.logoAuto||'',fundo=marca.fundo||'';
     if(logo&&!auto)analisarLogo(logo).then(m=>{auto=m;prev()});
     const val=()=>({nome:f.elements.nome.value.trim(),slogan:f.elements.slogan.value.trim(),logo,logoBranco:false,logoModo:modo,logoAuto:auto,logoTam:tam,cor:f.elements.cor.value,
       whatsapp:f.elements.whatsapp.value.trim(),instagram:f.elements.instagram.value.trim(),site:f.elements.site.value.trim(),email:f.elements.email.value.trim(),cidade:f.elements.cidade.value.trim(),
-      telaoMomento:f.elements.telaoMomento.checked,logoNoVideo:f.elements.logoNoVideo.checked});
+      telaoMomento:f.elements.telaoMomento.checked,logoNoVideo:f.elements.logoNoVideo.checked,
+      fundo,fundoEsc:+f.elements.fundoEsc.value/100,fundoBlur:+f.elements.fundoBlur.value,fundoCli:f.elements.fundoCli.checked});
     const prev=()=>{
       const p=$('#bfPrev',md),b=val();
       p.innerHTML=logo?`<div><span class="logo xl img lm-${logoModo(b)}" style="--logo-h:${Math.round((LOGO_TAM[tam]||104)*.75)}px"><img src="${logo}" alt="Logo"></span><small>Prévia como o cliente vê${modo==='auto'?' · automático: '+(LOGO_MODOS.find(x=>x[0]===logoModo(b))||['',''])[1].toLowerCase():''}</small></div>`:'Sem logo<br>(use o botão ao lado)';
       $$('[data-lm]',md).forEach(x=>x.classList.toggle('on',x.dataset.lm===modo));
       $$('[data-lt]',md).forEach(x=>x.classList.toggle('on',x.dataset.lt===tam));
       $$('[data-cor]',md).forEach(b=>b.classList.toggle('on',b.dataset.cor.toLowerCase()===f.elements.cor.value.toLowerCase()));
+      const bp=$('#bfBgPrev',md);bp.style.backgroundImage=fundo?`url("${fundo}")`:'none';bp.classList.toggle('on',!!fundo);
+      bp.style.setProperty('--esc',f.elements.fundoEsc.value/100);bp.style.setProperty('--blur',(+f.elements.fundoBlur.value/3)+'px');
+      f.elements.fundoEsc.nextElementSibling.textContent=f.elements.fundoEsc.value+'%';f.elements.fundoBlur.nextElementSibling.textContent=f.elements.fundoBlur.value+'px';
       applyBrand(val());
     };
     prev();
@@ -1300,6 +1362,8 @@ function openBrand(){
     });
     $('#bfLogo',md).onchange=async e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;try{logo=await resizeLogo(fl);auto=await analisarLogo(logo);prev()}catch(x){toast(esc(x.message),'err')}};
     $('#bfLogoRm',md).onclick=()=>{logo='';auto='';prev()};
+    $('#bfBg',md).onchange=async e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;try{fundo=await resizeFundo(fl);prev();toast('Plano de fundo aplicado. Ajuste o escurecimento e salve.','ok')}catch(x){toast(esc(x.message),'err')}};
+    $('#bfBgRm',md).onclick=()=>{fundo='';prev()};
     f.onsubmit=async e=>{
       e.preventDefault();const b=val();
       await DB.setCfg('marca',b);await DB.setCfg('marcaAt',agoraISO());fechouSalvando=true;applyBrand(b);close();
