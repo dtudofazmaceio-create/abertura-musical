@@ -13,8 +13,8 @@
   --bg:#0c0e1a;--surface:#161930;--surface2:#1e2240;--surface3:#272c52;--line:#2b3058;
   --text:#eef0ff;--muted:#9ba1c9;--faint:#6d739c;
   --accent:#ffb627;--accent2:#ffd36b;--accent-ink:#1d1400;
-  --violet:#8b6cff;--ok:#2fd18b;--warn:#ff9f43;--danger:#ff5470;
-  --r:16px;--r-sm:11px;--shadow:0 18px 40px rgba(0,0,0,.4);
+  --violet:#8b6cff;--ok:#2fd18b;--warn:#ff9f43;--danger:#ff5470;--rose:#ff7eb6;
+  --r:16px;--shadow:0 18px 40px rgba(0,0,0,.4);
   --player-h:104px;--safe-b:env(safe-area-inset-bottom,0px);
   color-scheme:dark;
 }
@@ -32,11 +32,13 @@ body{
 [hidden]{display:none!important}
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--accent2)}
+code{background:var(--surface3);padding:1px 6px;border-radius:6px;font-size:.88em}
 h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.01em}
 p{margin:0}
 .muted{color:var(--muted)}
 .ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .eyebrow{font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent2);font-weight:600;display:flex;align-items:center;gap:8px}
+.eyebrow .ic{width:15px;height:15px}
 
 /* ---------- Buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);cursor:pointer;font-weight:600;font-size:.95rem;transition:background .15s,border-color .15s,transform .1s,opacity .15s;white-space:nowrap;text-decoration:none;color:var(--text)}
@@ -50,6 +52,7 @@ p{margin:0}
 .btn.danger{color:var(--danger)}
 .btn.danger-fill{background:var(--danger);border-color:transparent;color:#fff}
 .btn.sm{min-height:36px;padding:0 12px;font-size:.88rem;border-radius:10px}
+.btn.sm .ic{width:17px;height:17px}
 .btn.icon{width:44px;padding:0}
 .btn.icon.sm{width:36px}
 .btn.block{width:100%}
@@ -67,6 +70,9 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .stack{display:flex;flex-direction:column;gap:14px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chk{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.92rem;padding:6px 0}
+.chk input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.hint{font-size:.82rem;color:var(--faint)}
 
 .card{background:linear-gradient(180deg,rgba(255,255,255,.025),transparent),var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
 .note{border-radius:12px;padding:12px 14px;font-size:.9rem;background:rgba(139,108,255,.12);border:1px solid rgba(139,108,255,.3);display:flex;gap:10px;align-items:flex-start}
@@ -81,12 +87,13 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),#ff7a1a);color:var(--accent-ink);flex:none;box-shadow:0 8px 20px rgba(255,150,30,.25)}
 .logo.xl{width:64px;height:64px;border-radius:18px}
 .logo.xl .ic{width:32px;height:32px}
+.logo.rose{background:linear-gradient(135deg,#ff9ac8,#c86bff);color:#2a0620}
 .top-actions{display:flex;align-items:center;gap:8px;min-width:0}
 .ev-switch{display:flex;gap:8px;min-width:0}
-.ev-switch select{min-width:180px;max-width:320px;min-height:44px}
+.ev-switch select{min-width:200px;max-width:340px;min-height:44px}
 .sync{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted);white-space:nowrap}
 .sync .dot{width:9px;height:9px;border-radius:50%;background:var(--faint)}
-.sync.live .dot{background:var(--ok);box-shadow:0 0 0 0 rgba(47,209,139,.7);animation:pulse 2s infinite}
+.sync.live .dot{background:var(--ok);animation:pulse 2s infinite}
 .sync.live{color:var(--ok)}
 .sync.busy .dot{background:var(--accent)}
 .sync.err .dot{background:var(--danger)}
@@ -101,10 +108,12 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .ev-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
 .ev-actions .row .btn{flex:1}
 .live{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;animation:pulse 2s infinite}
+.tipo-tag{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface3);color:var(--muted);margin-top:10px}
+.tipo-tag .ic{width:14px;height:14px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 10px;text-align:center}
-.stat b{display:block;font-size:1.5rem;line-height:1.1}
-.stat span{font-size:.74rem;color:var(--muted)}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-size:1.45rem;line-height:1.1}
+.stat span{font-size:.72rem;color:var(--muted)}
 .stat.s-ok b{color:var(--ok)}.stat.s-ac b{color:var(--accent)}.stat.s-vi b{color:var(--violet)}
 .next-card .eyebrow{margin-bottom:6px}
 .next-card .nx{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-top:1px dashed var(--line)}
@@ -116,7 +125,7 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .search{flex:1;min-width:220px;position:relative}
 .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint)}
 .search input{padding-left:44px}
-.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px;overflow-x:auto;scrollbar-width:none}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px;overflow-x:auto;scrollbar-width:none;max-width:100%}
 .seg::-webkit-scrollbar{display:none}
 .seg button{border:0;background:transparent;padding:8px 13px;border-radius:9px;cursor:pointer;color:var(--muted);font-weight:600;font-size:.88rem;white-space:nowrap}
 .seg button.on{background:var(--surface3);color:var(--text)}
@@ -124,9 +133,10 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 
 /* ---------- Songs ---------- */
 .songs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;user-select:none;-webkit-user-select:none}
-.song{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:12px 12px 12px 8px;border-radius:14px;background:var(--surface);border:1px solid var(--line);transition:border-color .2s,background .2s,transform .15s}
+.song{display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:12px 12px 12px 8px;border-radius:14px;background:var(--surface);border:1px solid var(--line);transition:border-color .2s,background .2s}
+.song.compact{grid-template-columns:auto minmax(0,1fr) auto auto;padding-left:12px}
 .song:hover{border-color:#3a4075}
-.song .grip{color:var(--faint);cursor:grab;display:grid;place-items:center;width:22px}
+.song .grip,.moment .grip{color:var(--faint);cursor:grab;display:grid;place-items:center;width:22px}
 .song .ord{font-variant-numeric:tabular-nums;font-weight:700;color:var(--faint);font-size:.95rem;width:26px;text-align:center}
 .pbtn{width:46px;height:46px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:var(--surface3);color:var(--text);transition:background .15s,transform .1s}
 .pbtn:hover{background:var(--violet)}
@@ -137,6 +147,7 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .song .t .ar{font-weight:500;color:var(--muted)}
 .song .sub{color:var(--muted);font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .song .sub b{color:var(--text);font-weight:600}
+.song .cut{color:var(--accent2);font-weight:600}
 .song .obs{margin-top:4px;font-size:.82rem;color:var(--accent2);display:flex;gap:6px;align-items:flex-start}
 .song .obs .ic{width:15px;height:15px;margin-top:2px}
 .song .meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
@@ -154,20 +165,37 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .song.st-tocada:hover{opacity:1}
 .song.is-current{border-color:var(--accent);background:linear-gradient(90deg,rgba(255,182,39,.12),transparent 70%),var(--surface);opacity:1}
 .song.is-current .pbtn{background:var(--accent);color:var(--accent-ink)}
-.song.is-new{animation:newIn 1.4s ease}
+.is-new{animation:newIn 1.4s ease}
 @keyframes newIn{0%{transform:translateY(-6px);box-shadow:0 0 0 3px var(--ok)}60%{box-shadow:0 0 0 3px var(--ok)}100%{box-shadow:0 0 0 0 transparent}}
-.song.dragging{opacity:.4}
-.song.drop-before{box-shadow:0 -3px 0 0 var(--accent)}
-.song.drop-after{box-shadow:0 3px 0 0 var(--accent)}
+.dragging{opacity:.4}
+.drop-before{box-shadow:0 -3px 0 0 var(--accent)!important}
+.drop-after{box-shadow:0 3px 0 0 var(--accent)!important}
 .empty{text-align:center;padding:44px 20px;border:1.5px dashed var(--line);border-radius:var(--r);color:var(--muted)}
 .empty .ic{width:40px;height:40px;color:var(--faint);margin-bottom:10px}
 .empty h3{color:var(--text);margin-bottom:6px}
 
+/* ---------- Moments (cerimonial) ---------- */
+.moment{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;transition:border-color .2s}
+.moment.has-cur{border-color:rgba(255,182,39,.6)}
+.mo-h{display:flex;align-items:center;gap:10px}
+.mo-n{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.05rem;color:var(--accent);min-width:28px;text-align:center}
+.moment.is-empty .mo-n{color:var(--faint)}
+.mo-t{flex:1;min-width:0}
+.mo-t strong{display:block;font-size:1.06rem;word-break:break-word}
+.mo-t small{color:var(--muted);font-size:.8rem}
+.mo-h .acts{display:flex;gap:2px}
+.mo-songs{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.moment .song{background:var(--surface2);border-color:transparent}
+.moment .song.is-current{border-color:var(--accent)}
+.slot-empty{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px dashed var(--line);color:var(--muted);font-size:.9rem}
+.slot-empty span{flex:1}
+.moment.orphan{border-style:dashed}
+
 /* ---------- Welcome ---------- */
-.welcome{max-width:760px;margin:10px auto}
+.welcome{max-width:780px;margin:10px auto}
 .welcome .hero{padding:32px;text-align:center}
 .welcome h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:18px 0 10px}
-.welcome .hero>p{color:var(--muted);max-width:540px;margin:0 auto}
+.welcome .hero>p{color:var(--muted);max-width:560px;margin:0 auto}
 .steps{display:flex;flex-direction:column;gap:10px;margin-top:26px;text-align:left}
 .step{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
 .step>b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface3);flex:none}
@@ -175,13 +203,34 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .step div{flex:1;min-width:0}
 .step strong{display:block}
 .step span{font-size:.86rem;color:var(--muted)}
+.types-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px}
+
+/* ---------- Event type picker ---------- */
+.tipos{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tipo{position:relative;cursor:pointer}
+.tipo input{position:absolute;opacity:0;pointer-events:none}
+.tipo>span{display:flex;flex-direction:column;gap:4px;height:100%;padding:14px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);transition:border-color .15s,background .15s}
+.tipo>span .ic{width:24px;height:24px;color:var(--accent2)}
+.tipo b{font-size:.95rem}
+.tipo small{font-size:.76rem;color:var(--muted);line-height:1.3}
+.tipo input:checked+span{border-color:var(--accent);background:rgba(255,182,39,.08)}
+.tipo input:focus-visible+span{box-shadow:0 0 0 3px rgba(139,108,255,.35)}
+.tpl{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto;padding:6px 10px;border-radius:12px;background:#0f1226;border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:.84rem}
+.chips button:hover{border-color:var(--accent);color:var(--text)}
+.cron{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.cron li{display:flex;align-items:center;gap:6px}
+.cron li .mo-n{min-width:26px}
+.cron li input{flex:1;min-width:0}
 
 /* ---------- Player ---------- */
 .player{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(18,21,42,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:0 max(16px,env(safe-area-inset-left)) calc(10px + var(--safe-b));padding-right:max(16px,env(safe-area-inset-right))}
 .pl-seek{display:block;width:100%;margin:0;height:18px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;transform:translateY(-9px)}
-.pl-seek::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:linear-gradient(90deg,var(--accent) var(--p,0%),var(--surface3) var(--p,0%))}
-.pl-seek::-moz-range-track{height:5px;border-radius:5px;background:linear-gradient(90deg,var(--accent) var(--p,0%),var(--surface3) var(--p,0%))}
-.pl-seek::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;margin-top:-5px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.pl-seek{--tr:linear-gradient(90deg,var(--surface2) 0 var(--a,0%),var(--accent) var(--a,0%) var(--p,0%),#4b5196 var(--p,0%) var(--b,100%),var(--surface2) var(--b,100%))}
+.pl-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:var(--tr)}
+.pl-seek::-moz-range-track{height:6px;border-radius:6px;background:var(--tr)}
+.pl-seek::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;margin-top:-4.5px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 .pl-seek::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;background:#fff}
 .pl-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;margin-top:-6px}
 .pl-info{display:flex;align-items:center;gap:12px;min-width:0}
@@ -196,19 +245,31 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .pl-ctrls .main:active{transform:scale(.94)}
 .pl-ctrls .main .ic{width:26px;height:26px}
 .pl-extra{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
-.pl-time{font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--muted);white-space:nowrap;margin-right:6px}
+.pl-time{font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--muted);white-space:nowrap;margin-right:6px;text-align:right}
+.pl-time small{display:block;font-size:.72rem;color:var(--accent2)}
 .vol{display:flex;align-items:center;gap:6px;color:var(--muted)}
 .vol input{width:90px;accent-color:var(--accent)}
 .tgl.on{background:rgba(255,182,39,.16);color:var(--accent);border-color:rgba(255,182,39,.35)}
+
+/* ---------- Trim editor ---------- */
+.trim{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
+.trim audio{width:100%;height:42px}
+.trim-bar{position:relative;height:40px;border-radius:10px;background:repeating-linear-gradient(90deg,#2d3260 0 2px,#252a50 2px 6px);cursor:pointer;overflow:hidden;touch-action:none}
+.trim-sel{position:absolute;top:0;bottom:0;left:0;width:100%;background:rgba(255,182,39,.25);border-left:3px solid var(--accent);border-right:3px solid var(--accent)}
+.trim-head{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0;box-shadow:0 0 6px rgba(255,255,255,.6)}
+.trim-scale{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:-6px}
+.trim-scale b{color:var(--accent2);font-weight:600}
+.trim .copyrow input{font-variant-numeric:tabular-nums}
+.trim-load{font-size:.88rem;color:var(--accent2)}
 
 /* ---------- Modal ---------- */
 .modal-back{position:fixed;inset:0;z-index:100;background:rgba(5,6,14,.66);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .2s}
 .modal-back.show{opacity:1}
 .modal{width:100%;max-width:540px;max-height:calc(100dvh - 40px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px;transform:translateY(12px) scale(.98);transition:transform .2s}
-.modal.wide{max-width:680px}
+.modal.wide{max-width:700px}
 .modal-back.show .modal{transform:none}
 .modal-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.modal-h h2{font-size:1.35rem}
+.modal-h h2{font-size:1.35rem;word-break:break-word}
 .modal-h p{color:var(--muted);font-size:.92rem;margin-top:4px}
 .modal-f{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
 .sheet-list{display:flex;flex-direction:column;gap:4px}
@@ -216,7 +277,8 @@ main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40p
 .sheet-list button:hover{background:var(--surface2)}
 .sheet-list button.danger{color:var(--danger)}
 .copyrow{display:flex;gap:8px}
-.copyrow input{flex:1;min-width:0;font-size:.85rem;color:var(--muted)}
+.copyrow input{flex:1;min-width:0}
+.copyrow input[readonly]{font-size:.85rem;color:var(--muted)}
 .linklist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .linklist li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
 .linklist li div{flex:1;min-width:0}
@@ -234,21 +296,19 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .drop:hover,.drop.over{border-color:var(--accent);background:rgba(255,182,39,.07)}
 .drop .ic{width:34px;height:34px;color:var(--accent)}
 .drop span{font-size:.85rem;color:var(--muted)}
-.filebox{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
-.filebox .fh{display:flex;align-items:center;gap:10px}
-.filebox .fh div{flex:1;min-width:0}
-.filebox .fh strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.filebox .fh small{color:var(--muted)}
-.filebox audio{width:100%;height:40px}
+.filebox{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);margin-bottom:10px}
+.filebox div{flex:1;min-width:0}
+.filebox strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filebox small{color:var(--muted)}
 .progress{position:relative;height:44px;border-radius:12px;background:var(--surface2);overflow:hidden;border:1px solid var(--line)}
 .progress .bar{position:absolute;inset:0;width:0;background:linear-gradient(90deg,var(--violet),var(--accent));transition:width .2s}
 .progress span{position:relative;display:grid;place-items:center;height:100%;font-weight:600;font-size:.92rem}
 .err{color:var(--danger);font-size:.92rem;display:flex;gap:8px;align-items:flex-start}
 
-/* ---------- Teacher page ---------- */
-.prof-wrap{max-width:640px;margin:0 auto;padding:28px 16px calc(40px + var(--safe-b))}
+/* ---------- Teacher / client pages ---------- */
+.prof-wrap{max-width:680px;margin:0 auto;padding:28px 16px calc(40px + var(--safe-b))}
 .prof-hero{text-align:center;margin-bottom:22px}
-.prof-hero h1{font-size:clamp(1.5rem,5vw,2.1rem);margin:12px 0 6px;word-break:break-word}
+.prof-hero h1{font-size:clamp(1.5rem,5vw,2.2rem);margin:12px 0 6px;word-break:break-word}
 .prof-hero .logo{margin:0 auto 14px}
 .prof-hero .eyebrow{justify-content:center}
 .prof-card{padding:24px}
@@ -262,13 +322,27 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .sent li{padding:10px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:.9rem}
 .sent li small{color:var(--muted);display:block}
 .foot{text-align:center;color:var(--faint);font-size:.8rem;margin-top:26px}
+.cprog-t{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:600}
+.cprog-bar{height:8px;border-radius:8px;background:var(--surface3);overflow:hidden;margin-top:8px}
+.cprog-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--accent));transition:width .4s}
+.cli-list{list-style:none;margin:18px 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ci{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.ci.ok{border-color:rgba(47,209,139,.45)}
+.ci-n{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--surface3);flex:none}
+.ci.ok .ci-n{background:var(--ok);color:#04210f}
+.ci-b{flex:1;min-width:0}
+.ci-b strong{display:block;font-size:1.05rem;word-break:break-word}
+.ci-b small{display:block;color:var(--muted);font-size:.86rem;word-break:break-word}
+.ci-b small.ok{color:var(--ok)}
+.skel{padding:30px;text-align:center;color:var(--muted)}
 
 /* ---------- Stage mode ---------- */
-#stage{position:fixed;inset:0;z-index:90;background:radial-gradient(900px 500px at 50% 0%,rgba(139,108,255,.28),transparent 70%),#07080f;display:flex;flex-direction:column;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,var(--safe-b)) max(20px,env(safe-area-inset-left))}
+#stage{position:fixed;inset:0;z-index:90;background:radial-gradient(900px 500px at 50% 0%,rgba(139,108,255,.28),transparent 70%),#07080f;display:flex;flex-direction:column;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,var(--safe-b)) max(20px,env(safe-area-inset-left));overflow:auto}
 .st-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .st-now{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;padding:20px 0}
 .st-now h2{font-size:clamp(2rem,7vw,5rem);font-weight:800;max-width:1100px;word-break:break-word}
 .st-now p{font-size:clamp(1.05rem,2.6vw,1.8rem);color:var(--muted)}
+.st-cut{color:var(--accent2);font-size:clamp(.95rem,2vw,1.2rem);font-variant-numeric:tabular-nums}
 .st-obs{color:var(--accent2);font-size:clamp(.95rem,2vw,1.2rem);max-width:800px}
 .st-prog{max-width:1000px;width:100%;margin:0 auto}
 .st-bar{height:10px;border-radius:10px;background:var(--surface3);overflow:hidden;cursor:pointer}
@@ -303,13 +377,14 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   .side{position:static;display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .side .ev-card{grid-row:span 2}
   .stats{grid-template-columns:repeat(2,1fr)}
+  .tipos{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:720px){
-  :root{--player-h:150px}
+  :root{--player-h:140px}
   .brand small{display:none}
   .topbar{gap:10px;padding-top:10px;padding-bottom:10px}
   .top-actions{width:100%}
-  .ev-switch{flex:1}
+  .ev-switch{flex:1;min-width:0}
   .ev-switch select{min-width:0;max-width:none;flex:1}
   .sync span:last-child{display:none}
   .sync{padding:0 15px}
@@ -317,35 +392,48 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   .side{grid-template-columns:1fr}
   .side .ev-card{grid-row:auto}
   .stats{grid-template-columns:repeat(4,1fr);gap:8px}
-  .stat{padding:10px 4px}.stat b{font-size:1.25rem}.stat span{font-size:.68rem}
+  .stat{padding:10px 4px}.stat b{font-size:1.2rem}.stat span{font-size:.66rem}
   .grid2{grid-template-columns:1fr}
-  .song{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"play info acts" "play meta acts";gap:4px 12px;padding:12px}
+  .song,.song.compact{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"play info acts" "play meta acts";gap:4px 12px;padding:12px}
   .song .grip,.song .ord{display:none}
   .song .pbtn{grid-area:play}
   .song .info{grid-area:info}
   .song .meta{grid-area:meta;flex-direction:row;align-items:center;flex-wrap:wrap;justify-content:flex-start}
   .song .acts{grid-area:acts;flex-direction:column}
-  .song .acts [data-act=up],.song .acts [data-act=down]{display:none}
+  .song .acts [data-s=up],.song .acts [data-s=down]{display:none}
   .song .t,.song .sub{white-space:normal}
-  .pl-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"info time" "ctrls ctrls";gap:10px 12px}
+  .moment{padding:10px}
+  .moment .grip{display:none}
+  .moment .song{padding:10px}
+  .pl-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"info info time" "auto ctrls stage";gap:10px 6px}
   .pl-info{grid-area:info}
   .pl-time{grid-area:time;margin:0}
-  .pl-ctrls{grid-area:ctrls;justify-content:space-between;width:100%}
+  .pl-ctrls{grid-area:ctrls;justify-content:space-evenly;width:100%;gap:2px}
+  #plAuto{grid-area:auto}
+  #plStageBtn{grid-area:stage}
   .pl-extra{display:contents}
   .pl-cover{width:44px;height:44px}
   .modal-back{align-items:flex-end;padding:0}
-  .modal{max-width:none!important;border-radius:22px 22px 0 0;max-height:92dvh;padding:22px 18px calc(22px + var(--safe-b));transform:translateY(40px)}
+  .modal{max-width:none!important;border-radius:22px 22px 0 0;max-height:94dvh;padding:22px 16px calc(22px + var(--safe-b));transform:translateY(40px)}
   .modal-f .btn{flex:1}
   #toasts{left:14px;right:14px;max-width:none}
   .welcome .hero{padding:24px 18px}
   .step{flex-wrap:wrap}
   .step .btn{width:100%}
+  .ci{flex-wrap:wrap}
+  .ci .btn{width:100%}
+  .slot-empty{flex-wrap:wrap}
+  .slot-empty .btn{width:100%}
+  .trim{padding:12px}
 }
-@media (max-width:380px){
+@media (max-width:420px){
   .stats{grid-template-columns:repeat(2,1fr)}
   .pl-ctrls .btn.icon{width:40px}
+  .tipos{grid-template-columns:1fr 1fr;gap:8px}
+  .tipo>span{padding:12px 10px}
   .copyrow{flex-wrap:wrap}
   .copyrow input{flex-basis:100%}
+  .trim .copyrow .btn{flex:1}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -386,6 +474,13 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H8a6 6 0 1 1 5.7-7.9A4.5 4.5 0 1 1 17.5 19z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M2.5 8l4 9.5h11l4-9.5-6 4-3.5-7-3.5 7z"/><path d="M6 21h12"/></symbol>
+  <symbol id="i-school" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/><path d="M19 17v4M17 19h4"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/></symbol>
+  <symbol id="i-cut" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></symbol>
 </svg>
 
 <!-- =================== ORGANIZADOR =================== -->
@@ -393,7 +488,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   <header class="topbar">
     <div class="brand">
       <span class="logo"><svg class="ic"><use href="#i-music"/></svg></span>
-      <div><strong>Palco Musical</strong><small>Músicas dos eventos, na ordem certa</small></div>
+      <div><strong>Palco Musical</strong><small>Eventos escolares, 15 anos e casamentos</small></div>
     </div>
     <div class="top-actions">
       <div class="ev-switch">
@@ -415,11 +510,11 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
         <div class="pl-txt"><strong id="plTitle">Nenhuma música carregada</strong><span id="plSub">Toque em ▶ em uma música da lista</span></div>
       </div>
       <div class="pl-ctrls">
-        <button class="btn icon ghost" id="plStop" title="Parar (S)" aria-label="Parar"><svg class="ic"><use href="#i-stop"/></svg></button>
+        <button class="btn icon ghost" id="plStop" title="Parar e voltar ao início do trecho (S)" aria-label="Parar"><svg class="ic"><use href="#i-stop"/></svg></button>
         <button class="btn icon ghost" id="plPrev" title="Anterior (P)" aria-label="Anterior"><svg class="ic"><use href="#i-prev"/></svg></button>
         <button class="main" id="plPlay" title="Tocar / pausar (Espaço)" aria-label="Tocar ou pausar"><svg class="ic"><use href="#i-play"/></svg></button>
         <button class="btn icon ghost" id="plNext" title="Próxima (N)" aria-label="Próxima"><svg class="ic"><use href="#i-next"/></svg></button>
-        <button class="btn icon ghost" id="plFade" title="Fade out e encerrar (F)" aria-label="Fade out"><svg class="ic"><use href="#i-fade"/></svg></button>
+        <button class="btn icon ghost" id="plFade" title="Fade out e encerrar agora (F)" aria-label="Fade out"><svg class="ic"><use href="#i-fade"/></svg></button>
       </div>
       <div class="pl-extra">
         <span class="pl-time" id="plTime">0:00 / 0:00</span>
@@ -439,6 +534,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
       <span class="eyebrow">Agora</span>
       <h2 id="stTitle">—</h2>
       <p id="stSub"></p>
+      <div class="st-cut" id="stCut"></div>
       <div class="st-obs" id="stObs"></div>
     </div>
     <div class="st-prog">
@@ -456,7 +552,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   </div>
 </div>
 
-<!-- =================== PROFESSORA =================== -->
+<!-- =================== PROFESSORA (evento escolar) =================== -->
 <div id="prof" hidden>
   <div class="prof-wrap">
     <div class="prof-hero">
@@ -475,21 +571,9 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
         <label class="field"><span>Nome da música *</span><input name="titulo" required></label>
         <label class="field"><span>Artista / intérprete</span><input name="artista"></label>
       </div>
-      <div class="grid2">
-        <label class="field"><span>Começar a música em</span><input name="inicio" placeholder="Ex.: 0:35 (opcional)" inputmode="numeric"></label>
-        <label class="field"><span>Terminar a música em</span><input name="fim" placeholder="Ex.: 2:10 (opcional)" inputmode="numeric"></label>
-      </div>
       <label class="field"><span>Posição da turma no cronograma</span><input name="ordem" type="number" min="1" inputmode="numeric" placeholder="Ex.: 4 (opcional)"></label>
+      <div class="field"><span>Arquivo da música * <small class="muted">— depois de escolher, você pode marcar onde começa e termina</small></span><div id="pAudio"></div></div>
       <label class="field"><span>Observações para quem vai tocar</span><textarea name="obs" rows="2" placeholder="Ex.: entrar com a música quando a turma chegar ao centro da quadra"></textarea></label>
-
-      <label class="drop" id="pDrop">
-        <input type="file" id="pFileIn" accept="audio/*,video/mp4,.mp3,.m4a,.aac,.wav,.ogg,.opus,.oga,.flac,.mp4,.webm" hidden>
-        <svg class="ic"><use href="#i-upload"/></svg>
-        <strong>Toque para escolher a música</strong>
-        <span>ou arraste o arquivo aqui · MP3, M4A, WAV, OGG/OPUS (áudio do WhatsApp)</span>
-      </label>
-      <div class="filebox" id="pFileBox" hidden></div>
-
       <div class="progress" id="pProg" hidden><div class="bar"></div><span>0%</span></div>
       <p class="err" id="pErr" hidden></p>
       <button class="btn primary block lg" id="pSend" type="submit"><svg class="ic"><use href="#i-upload"/></svg>Enviar música</button>
@@ -509,6 +593,29 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
   </div>
 </div>
 
+<!-- =================== CLIENTE (15 anos / casamento / cerimonial) =================== -->
+<div id="cli" hidden>
+  <div class="prof-wrap">
+    <div class="prof-hero">
+      <span class="logo xl rose" id="cIcon"><svg class="ic"><use href="#i-heart"/></svg></span>
+      <span class="eyebrow">Músicas do cerimonial</span>
+      <h1 id="cEvento">Evento</h1>
+      <p class="muted" id="cData"></p>
+    </div>
+    <div class="card prof-card stack">
+      <p>Escolha a música de cada momento, na ordem do cerimonial. Em cada música você pode marcar <b>exatamente onde ela começa e onde termina</b> — é assim que ela vai tocar no dia.</p>
+      <label class="field"><span>Seu nome</span><input id="cNome" placeholder="Quem está enviando" autocomplete="name"></label>
+      <div>
+        <div class="cprog-t"><span id="cProgTxt">Carregando…</span><button class="btn ghost sm" id="cReload" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Atualizar</button></div>
+        <div class="cprog-bar"><i id="cProgBar"></i></div>
+      </div>
+    </div>
+    <ol class="cli-list" id="cList"><li class="skel">Carregando o cronograma…</li></ol>
+    <button class="btn block" id="cAdd" type="button"><svg class="ic"><use href="#i-plus"/></svg>Adicionar outro momento</button>
+    <p class="foot">Palco Musical · as músicas vão direto para a equipe de som do evento</p>
+  </div>
+</div>
+
 <div id="modalRoot"></div>
 <div id="toasts" aria-live="polite"></div>
 
@@ -524,7 +631,10 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon=(n,c='')=>`<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const fmt=s=>{if(!isFinite(s)||s<0)s=0;s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
-const parseTime=v=>{v=String(v||'').trim().replace(',','.');if(!v)return 0;if(/^\d+(\.\d+)?$/.test(v))return+v;const p=v.split(/[:.h]/).map(Number);if(p.some(isNaN))return 0;return p.reduce((a,b)=>a*60+b,0)};
+/* tempo com décimos: 1:23.5 */
+const fmtP=s=>{if(!isFinite(s)||s<0)s=0;s=Math.round(s*10)/10;const m=Math.floor(s/60);let x=Math.round((s-m*60)*10)/10;const xs=(x<10?'0':'')+(Number.isInteger(x)?x:x.toFixed(1));return m+':'+xs};
+const TIME_RE=/^\d+(:\d{1,2}){0,2}([.,]\d+)?$/;
+const parseTime=v=>{v=String(v||'').trim().replace(',','.');if(!v||!TIME_RE.test(v))return 0;let t=0;for(const p of v.split(':'))t=t*60+parseFloat(p);return Math.max(0,t)};
 const fmtDate=d=>{if(!d)return'';const[y,m,dd]=d.split('-');const s=new Date(+y,m-1,+dd).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});return s.charAt(0).toUpperCase()+s.slice(1)};
 const fmtSize=b=>b>=1048576?(b/1048576).toFixed(1).replace('.',',')+' MB':Math.max(1,Math.round(b/1024))+' KB';
 const fmtHora=iso=>{try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return''}};
@@ -532,11 +642,28 @@ const b64urlEnc=str=>{const by=new TextEncoder().encode(str);let bin='';by.forEa
 const b64urlDec=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const bin=atob(s);return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))};
 const MIMES={mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',wav:'audio/wav',ogg:'audio/ogg',opus:'audio/ogg',oga:'audio/ogg',webm:'audio/webm',flac:'audio/flac',mp4:'video/mp4',amr:'audio/amr'};
 const mimeOf=f=>f.type||MIMES[(f.name.split('.').pop()||'').toLowerCase()]||'audio/mpeg';
+const ACCEPT='audio/*,video/mp4,.mp3,.m4a,.aac,.wav,.ogg,.opus,.oga,.flac,.mp4,.webm';
 const MAX_MB=25;
+const FADE_IN=1.5,FADE_OUT=2.5;
 
 const fileToB64=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=()=>rej(new Error('Não foi possível ler o arquivo.'));r.readAsDataURL(file)});
 function b64ToBlob(b64,mime){const bin=atob(b64.replace(/\s/g,''));const n=bin.length;const by=new Uint8Array(n);for(let i=0;i<n;i++)by[i]=bin.charCodeAt(i);return new Blob([by],{type:mime||'audio/mpeg'})}
 const getDuration=blob=>new Promise(res=>{const a=document.createElement('audio');const u=URL.createObjectURL(blob);let ok=false;const done=v=>{if(ok)return;ok=true;URL.revokeObjectURL(u);res(isFinite(v)?v:0)};a.preload='metadata';a.onloadedmetadata=()=>{if(a.duration===Infinity){a.currentTime=1e7;a.ontimeupdate=()=>done(a.duration)}else done(a.duration)};a.onerror=()=>done(0);setTimeout(()=>done(0),8000);a.src=u});
+function checkFile(fl){
+  if(!fl)return'Escolha um arquivo.';
+  if(fl.size===0)return'O arquivo está vazio.';
+  if(fl.size>MAX_MB*1048576)return`O arquivo tem ${fmtSize(fl.size)}. O limite é ${MAX_MB} MB — envie em MP3 para ficar menor.`;
+  const ext=(fl.name.split('.').pop()||'').toLowerCase();
+  if(!/^(audio|video)\//.test(fl.type)&&!MIMES[ext])return'Escolha um arquivo de áudio (MP3, M4A, WAV, OGG…).';
+  return'';
+}
+const trechoTxt=m=>{
+  const parts=[];
+  if(m.inicio||m.fim)parts.push(`${fmtP(m.inicio||0)} → ${m.fim?fmtP(m.fim):'fim'}`);
+  if(m.fadeIn)parts.push('fade in');
+  if(m.fim&&m.fadeOut!==false)parts.push('fade out');
+  return parts.join(' · ');
+};
 
 async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();return ok}}
 
@@ -546,37 +673,175 @@ function toast(msg,type='info',ms=3800){
   $('#toasts').appendChild(el);el.onclick=()=>el.remove();
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),260)},ms);
 }
+function setProg(el,p,txt){el.hidden=false;$('.bar',el).style.width=Math.round(p*100)+'%';$('span',el).textContent=txt||Math.round(p*100)+'%'}
+
+/* =========================================================
+   TIPOS DE EVENTO
+   ========================================================= */
+const TIPOS={
+  escolar:{nome:'Evento escolar',desc:'Jogos internos, festas e apresentações por turma',icon:'school',cer:false},
+  quinze:{nome:'15 anos',desc:'Entrada, homenagens, valsas…',icon:'crown',cer:true,quem:'a debutante',hom:'Nome da debutante',ph:'Ex.: Maria Clara',auto:h=>`15 anos de ${h}`,
+    tpl:['Entrada da debutante','Homenagem aos pais','Homenagem aos avós','Homenagem aos padrinhos','Troca do sapato','Valsa com o pai','Valsa com o padrinho','Valsa com os príncipes','Parabéns e corte do bolo','Abertura da pista']},
+  casamento:{nome:'Casamento',desc:'Cerimônia e recepção',icon:'heart',cer:true,quem:'os noivos',hom:'Nome dos noivos',ph:'Ex.: Ana & Pedro',auto:h=>`Casamento de ${h}`,
+    tpl:['Entrada dos padrinhos','Entrada do noivo','Entrada das daminhas e pajens','Entrada da noiva','Entrada das alianças','Assinaturas','Saída dos noivos','Entrada na recepção','Primeira dança']},
+  cerimonial:{nome:'Outro cerimonial',desc:'Formatura, bodas, aniversários…',icon:'sparkle',cer:true,quem:'o cliente',hom:'Homenageado(s)',ph:'Ex.: Formandos 2026',auto:h=>h,
+    tpl:['Abertura','Entrada dos homenageados','Homenagem','Momento especial','Encerramento']}
+};
+const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
 
 /* =========================================================
    MODAIS
    ========================================================= */
-function openModal(html,{wide=false,onMount}={}){
+function openModal(html,{wide=false,onMount,onClose}={}){
   const back=document.createElement('div');back.className='modal-back';
   back.innerHTML=`<div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true">${html}</div>`;
   $('#modalRoot').appendChild(back);
-  const close=()=>{back.classList.remove('show');setTimeout(()=>back.remove(),200)};
+  let closed=false;
+  const close=()=>{if(closed)return;closed=true;try{onClose&&onClose()}catch{}back.classList.remove('show');setTimeout(()=>back.remove(),200)};
   back._close=close;
   back.addEventListener('mousedown',e=>{back._down=e.target===back});
   back.addEventListener('click',e=>{if((e.target===back&&back._down)||e.target.closest('[data-close]'))close()});
   requestAnimationFrame(()=>back.classList.add('show'));
   onMount&&onMount($('.modal',back),close);
-  const f=$('input:not([type=hidden]):not([readonly]),select,textarea',back);
+  const f=$('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([readonly]),textarea',back);
   if(f&&window.matchMedia('(min-width:721px)').matches)setTimeout(()=>f.focus(),60);
   return close;
 }
-const modalHead=(t,sub='')=>`<div class="modal-h"><div><h2>${t}</h2>${sub?`<p>${sub}</p>`:''}</div><button class="btn icon ghost sm" data-close aria-label="Fechar">${icon('x')}</button></div>`;
+const modalHead=(t,sub='')=>`<div class="modal-h"><div><h2>${t}</h2>${sub?`<p>${sub}</p>`:''}</div><button type="button" class="btn icon ghost sm" data-close aria-label="Fechar">${icon('x')}</button></div>`;
 function confirmDialog(msg,{title='Confirmar',ok='Confirmar',danger=false,check=null}={}){
   return new Promise(res=>{
-    let done=false;
+    let val=check?{ok:false}:false;
     openModal(`${modalHead(title)}<p class="muted">${msg}</p>
-      ${check?`<label class="row" style="margin-top:16px;cursor:pointer"><input type="checkbox" id="cfChk" ${check.checked?'checked':''} style="width:20px;height:20px;accent-color:var(--accent)"> <span>${check.label}</span></label>`:''}
+      ${check?`<label class="chk" style="margin-top:14px"><input type="checkbox" id="cfChk" ${check.checked?'checked':''}><span>${check.label}</span></label>`:''}
       <div class="modal-f"><button class="btn" data-close>Cancelar</button><button class="btn ${danger?'danger-fill':'primary'}" id="cfOk">${ok}</button></div>`,
-      {onMount:(m,close)=>{
-        $('#cfOk',m).onclick=()=>{done=true;const c=$('#cfChk',m);close();res(check?{ok:true,checked:c.checked}:true)};
-        const obs=new MutationObserver(()=>{if(!m.isConnected){obs.disconnect();if(!done)res(check?{ok:false}:false)}});
-        obs.observe($('#modalRoot'),{childList:true});
+      {onClose:()=>res(val),onMount:(m,close)=>{
+        $('#cfOk',m).onclick=()=>{val=check?{ok:true,checked:$('#cfChk',m).checked}:true;close()};
       }});
   });
+}
+function promptDialog(title,label,value=''){
+  return new Promise(res=>{
+    let val=null;
+    openModal(`${modalHead(title)}<form id="pdF" class="stack"><label class="field"><span>${label}</span><input name="v" value="${esc(value)}"></label>
+      <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">Salvar</button></div></form>`,
+      {onClose:()=>res(val),onMount:(m,close)=>{$('#pdF',m).onsubmit=e=>{e.preventDefault();const v=e.target.elements.v.value.trim();if(!v)return;val=v;close()}}});
+  });
+}
+
+/* =========================================================
+   COMPONENTES: escolha de arquivo + editor de início/fim
+   ========================================================= */
+function filePicker(host,onFile,label='Toque para escolher a música'){
+  host.innerHTML=`<label class="drop"><input type="file" accept="${ACCEPT}" hidden>${icon('upload')}<strong>${label}</strong><span>ou arraste o arquivo aqui · MP3, M4A, WAV, OGG/OPUS (áudio do WhatsApp)</span></label>`;
+  const drop=$('.drop',host),inp=$('input',host);
+  inp.onchange=()=>{const f=inp.files[0];inp.value='';if(f)onFile(f)};
+  ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+  ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
+  drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)onFile(f)});
+}
+
+/* Editor visual do trecho: ouvir, marcar início/fim no ponto exato e testar */
+function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
+  host.innerHTML=`<div class="trim">
+    <div class="trim-load" hidden></div>
+    <audio controls preload="metadata"></audio>
+    <div class="trim-bar" title="Toque para ir até este ponto"><div class="trim-sel"></div><div class="trim-head"></div></div>
+    <div class="trim-scale"><span>0:00</span><b class="tr-len">Música inteira</b><span class="tr-dur">—</span></div>
+    <div class="grid2">
+      <div class="field"><span>Começa em</span><div class="copyrow"><input name="inicio" value="${inicio?fmtP(inicio):''}" placeholder="0:00 (do começo)" inputmode="decimal" autocomplete="off"><button type="button" class="btn sm" data-t="in" title="Usar o ponto atual da música">${icon('flag')}Marcar</button></div></div>
+      <div class="field"><span>Termina em</span><div class="copyrow"><input name="fim" value="${fim?fmtP(fim):''}" placeholder="até o final" inputmode="decimal" autocomplete="off"><button type="button" class="btn sm" data-t="out" title="Usar o ponto atual da música">${icon('flag')}Marcar</button></div></div>
+    </div>
+    <div class="row">
+      <button type="button" class="btn sm" data-t="test">${icon('play')}Ouvir o trecho</button>
+      <button type="button" class="btn sm ghost" data-t="tail">Ouvir o final</button>
+      <button type="button" class="btn sm ghost" data-t="clear">Usar música inteira</button>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" name="fadeIn" ${fadeIn?'checked':''}> Começar suave (fade in)</label>
+      <label class="chk"><input type="checkbox" name="fadeOut" ${fadeOut?'checked':''}> Terminar suave (fade out)</label>
+    </div>
+    <p class="hint">Como marcar: dê play, pause no ponto exato e toque em “Marcar”. Pode digitar também (ex.: 1:23.5). “Terminar suave” faz o volume baixar e chegar a zero exatamente no ponto final.</p>
+  </div>`;
+  const a=$('audio',host),iIn=$('[name=inicio]',host),iOut=$('[name=fim]',host),bar=$('.trim-bar',host),sel=$('.trim-sel',host),head=$('.trim-head',host),load=$('.trim-load',host);
+  let stopAt=null,raf=null,ownSeek=false;
+  const vals=()=>({inicio:parseTime(iIn.value),fim:parseTime(iOut.value)});
+  const endOf=()=>{const d=a.duration||0,{inicio,fim}=vals();return fim&&fim>inicio&&(!d||fim<=d)?fim:d};
+  const draw=()=>{
+    const d=isFinite(a.duration)?a.duration:0,{inicio,fim}=vals(),e=endOf();
+    if(d){sel.style.left=Math.min(100,inicio/d*100)+'%';sel.style.width=Math.max(0,(e-inicio)/d*100)+'%';head.style.left=Math.min(100,a.currentTime/d*100)+'%'}
+    $('.tr-dur',host).textContent=d?fmtP(d):'—';
+    $('.tr-len',host).textContent=(inicio||fim)?`Trecho: ${fmtP(inicio)} → ${fmtP(e)} (${fmt(Math.max(0,e-inicio))})`:'Música inteira';
+  };
+  const loop=()=>{draw();if(stopAt!==null&&a.currentTime>=stopAt-0.02){a.pause();stopAt=null}if(!a.paused)raf=requestAnimationFrame(loop)};
+  a.addEventListener('play',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)});
+  ['pause','loadedmetadata','seeked','durationchange'].forEach(ev=>a.addEventListener(ev,draw));
+  a.addEventListener('seeking',()=>{if(!ownSeek)stopAt=null;ownSeek=false});
+  iIn.addEventListener('input',draw);iOut.addEventListener('input',draw);
+  const go=t=>{ownSeek=true;a.currentTime=Math.max(0,t)};
+  host.addEventListener('click',e=>{
+    const b=e.target.closest('[data-t]');if(!b)return;
+    const k=b.dataset.t,{inicio}=vals(),end=endOf();
+    if(k==='in'){iIn.value=fmtP(a.currentTime);draw()}
+    else if(k==='out'){iOut.value=fmtP(a.currentTime);draw()}
+    else if(k==='clear'){iIn.value='';iOut.value='';draw()}
+    else if(k==='test'){go(inicio);stopAt=parseTime(iOut.value)?end:null;a.play().catch(()=>{})}
+    else if(k==='tail'){go(Math.max(inicio,end-6));stopAt=parseTime(iOut.value)?end:null;a.play().catch(()=>{})}
+  });
+  const seekBar=e=>{const r=bar.getBoundingClientRect();const d=a.duration||0;if(!d)return;go(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*d);draw()};
+  bar.addEventListener('pointerdown',seekBar);
+  return{
+    audio:a,
+    setSrc(url){load.hidden=true;a.src=url},
+    setLoading(on,msg='Carregando a música…'){load.hidden=!on&&!msg;load.textContent=on?msg:(msg||'');if(!on&&!msg)load.hidden=true},
+    values(){const v=vals();return{...v,fadeIn:$('[name=fadeIn]',host).checked,fadeOut:$('[name=fadeOut]',host).checked}},
+    validate(){
+      const si=iIn.value.trim(),so=iOut.value.trim();
+      if(si&&!TIME_RE.test(si.replace(',','.')))return'O tempo de início está em formato inválido. Use, por exemplo, 0:35 ou 1:23.5.';
+      if(so&&!TIME_RE.test(so.replace(',','.')))return'O tempo de fim está em formato inválido. Use, por exemplo, 2:10 ou 3:05.5.';
+      const{inicio,fim}=vals(),d=a.duration||0;
+      if(fim&&fim<=inicio)return'O ponto final precisa ser depois do ponto inicial.';
+      if(d&&inicio>=d)return`O início (${fmtP(inicio)}) passa da duração da música (${fmtP(d)}).`;
+      if(d&&fim>d+0.5)return`O fim (${fmtP(fim)}) passa da duração da música (${fmtP(d)}).`;
+      return'';
+    },
+    stop(){a.pause();cancelAnimationFrame(raf)}
+  };
+}
+
+/* Campo de áudio completo: escolher arquivo, ver arquivo atual e editar o trecho */
+function audioField(host,{atual=null,loadAtual=null,valores={}}={}){
+  const st={file:null,url:null,trim:null,usandoAtual:false};
+  const free=()=>{st.trim?.stop();if(st.url){URL.revokeObjectURL(st.url);st.url=null}};
+  const boxHTML=(name,size,extra)=>`<div class="filebox">${icon('music')}<div><strong>${esc(name)}</strong><small>${size?fmtSize(size):''}${extra||''}</small></div><button type="button" class="btn sm" data-fb="rm">${icon('refresh')}Trocar arquivo</button></div><div class="af-trim"></div>`;
+  function showPicker(){
+    free();st.file=null;st.usandoAtual=false;st.trim=null;
+    host.innerHTML='<div class="af-pick"></div>';
+    filePicker($('.af-pick',host),f=>{const e=checkFile(f);if(e){toast(esc(e),'err',6000);return}useFile(f)});
+  }
+  function useFile(f){
+    free();st.file=f;st.usandoAtual=false;st.url=URL.createObjectURL(f);
+    host.innerHTML=boxHTML(f.name,f.size,f.size>15*1048576?' · arquivo grande, o envio pode demorar':'');
+    $('[data-fb=rm]',host).onclick=showPicker;
+    st.trim=trimEditor($('.af-trim',host),{fadeOut:true});st.trim.setSrc(st.url);
+  }
+  function useAtual(){
+    free();st.usandoAtual=true;
+    host.innerHTML=boxHTML(atual.nome||'Música enviada',atual.tamanho,' · arquivo atual');
+    $('[data-fb=rm]',host).onclick=showPicker;
+    st.trim=trimEditor($('.af-trim',host),valores);
+    if(loadAtual){
+      st.trim.setLoading(true,'Carregando a música enviada para você ajustar…');
+      Promise.resolve(loadAtual()).then(b=>{if(!b)throw 0;if(!st.usandoAtual)return;st.url=URL.createObjectURL(b);st.trim.setSrc(st.url)})
+        .catch(()=>st.trim&&st.trim.setLoading(false,'Não foi possível carregar a prévia, mas você pode digitar os tempos.'));
+    }
+  }
+  atual?useAtual():showPicker();
+  return{
+    get file(){return st.file},get kept(){return st.usandoAtual},get has(){return!!st.file||st.usandoAtual},
+    values(){return st.trim?st.trim.values():null},
+    validate(){return st.trim?st.trim.validate():''},
+    destroy:free
+  };
 }
 
 /* =========================================================
@@ -665,19 +930,79 @@ async function readGistFile(f){
   if(!r.ok)throw new Error('Não foi possível baixar o arquivo do Gist ('+r.status+').');
   return r.text();
 }
+async function fetchAudioBlob(audioGistId,audioArquivo,mime,token){
+  const r=await ghRetry(`/gists/${audioGistId}`,{token});
+  const files=r.data.files||{};
+  const b64=await readGistFile(files[audioArquivo]||Object.values(files)[0]);
+  return b64ToBlob(b64.trim(),mime);
+}
+/* Envio usado pela professora e pelos clientes (noivos/debutante) */
+async function enviarSub({P,file,keep,meta,substitui,onProg}){
+  const id=uid();let au;
+  if(file){
+    onProg(.02,'Preparando arquivo…');
+    const b64=await fileToB64(file);
+    const audioArquivo=`audio_${id}.b64`;
+    const g=await ghUpload('/gists','POST',P.t,{description:`[Palco Musical] Áudio: ${meta.titulo} (${P.e})`,public:false,files:{[audioArquivo]:{content:b64}}},p=>onProg(.05+p*.85,`Enviando… ${Math.round(p*100)}%`));
+    au={audioGistId:g.id,audioArquivo,mime:mimeOf(file),nomeArquivo:file.name,tamanho:file.size};
+  }else{
+    au={audioGistId:keep.audioGistId,audioArquivo:keep.audioArquivo,mime:keep.mime,nomeArquivo:keep.nomeArquivo,tamanho:keep.tamanho};
+  }
+  onProg(.93,'Registrando no cronograma…');
+  const full={...meta,...au,id,enviadoEm:new Date().toISOString()};
+  if(substitui)full.substitui=substitui.id;
+  const files={[`sub_${id}.json`]:{content:JSON.stringify(full,null,1)}};
+  if(substitui)files[`sub_${substitui.id}.json`]=null;
+  try{await ghRetry(`/gists/${P.g}`,{method:'PATCH',token:P.t,body:{files}})}
+  catch(e){
+    if(substitui&&e.status===422){delete files[`sub_${substitui.id}.json`];await ghRetry(`/gists/${P.g}`,{method:'PATCH',token:P.t,body:{files}})}
+    else throw e;
+  }
+  if(file&&substitui?.audioGistId&&substitui.audioGistId!==au.audioGistId)gh(`/gists/${substitui.audioGistId}`,{method:'DELETE',token:P.t}).catch(()=>{});
+  onProg(1,'Concluído!');
+  return full;
+}
 
 /* =========================================================
    ESTADO (organizador)
    ========================================================= */
 const state={token:'',login:'',eventos:[],evento:null,musicas:[],filtro:'todas',busca:'',volume:1,auto:false,novos:new Set(),badge:0};
 const STATUS={baixando:'Baixando…',pronta:'Pronta',tocada:'Tocada',erro:'Erro no download'};
-const sorted=()=>[...state.musicas].sort((a,b)=>(a.ordem-b.ordem)||String(a.recebidoEm).localeCompare(String(b.recebidoEm)));
+const isCer=(ev=state.evento)=>!!tipoDe(ev).cer;
 const hasAudio=m=>m.status==='pronta'||m.status==='tocada';
+const momentoDe=m=>(state.evento?.momentos||[]).find(x=>x.id===m.momentoId);
+function sorted(){
+  const ev=state.evento;
+  if(isCer(ev)){
+    const idx=new Map((ev.momentos||[]).map((m,i)=>[m.id,i]));
+    return[...state.musicas].sort((a,b)=>((idx.has(a.momentoId)?idx.get(a.momentoId):9999)-(idx.has(b.momentoId)?idx.get(b.momentoId):9999))||(a.ordem-b.ordem)||String(a.recebidoEm).localeCompare(String(b.recebidoEm)));
+  }
+  return[...state.musicas].sort((a,b)=>(a.ordem-b.ordem)||String(a.recebidoEm).localeCompare(String(b.recebidoEm)));
+}
+/* Rótulos: no cerimonial o destaque é o momento; no escolar é a música */
+const cueOf=m=>isCer()?(momentoDe(m)?.nome||m.momentoNome||'Sem momento'):m.titulo+(m.artista?' — '+m.artista:'');
+const descOf=m=>isCer()?[m.titulo,m.artista].filter(Boolean).join(' — '):`${m.turma} · ${m.professora}`;
 
 async function loadMusicas(){state.musicas=state.evento?await DB.byIndex('musicas','eventoId',state.evento.id):[]}
 async function saveEvento(ev){await DB.put('eventos',ev);const i=state.eventos.findIndex(e=>e.id===ev.id);if(i>=0)state.eventos[i]=ev;else state.eventos.push(ev)}
 async function saveMusica(m){await DB.put('musicas',m);const i=state.musicas.findIndex(x=>x.id===m.id);if(i>=0)state.musicas[i]=m;else state.musicas.push(m)}
 async function renumber(list=sorted()){list.forEach((m,i)=>m.ordem=i+1);await DB.putMany('musicas',list)}
+async function removeLocal(m){
+  await DB.del('musicas',m.id);await DB.del('audios',m.id);
+  state.musicas=state.musicas.filter(x=>x.id!==m.id);
+  const ev=state.evento;if(ev){ev.removidos=[...new Set([...(ev.removidos||[]),m.id])];await saveEvento(ev)}
+}
+
+/* Metadados do evento publicados no Gist (cronograma lido pelo link do cliente) */
+const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',local:ev.local||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome}))},null,1);
+let pushT=null;
+function pushMeta(ev=state.evento,now=false){
+  if(!ev?.gistId||!state.token)return Promise.resolve();
+  clearTimeout(pushT);
+  const run=()=>gh(`/gists/${ev.gistId}`,{method:'PATCH',body:{description:`[Palco Musical] Evento: ${ev.nome}`,files:{'evento.json':{content:metaJSON(ev)}}}}).catch(e=>toast('Não foi possível atualizar o cronograma no GitHub: '+esc(e.message),'warn',6000));
+  if(now)return run();
+  return new Promise(r=>{pushT=setTimeout(()=>run().then(r),1200)});
+}
 
 /* =========================================================
    SINCRONIZAÇÃO EM TEMPO REAL (polling com ETag)
@@ -713,31 +1038,57 @@ function setSync(k,msg=''){
 async function processGist(ev,gist){
   const known=new Set(state.musicas.map(m=>m.id));
   const removed=new Set(ev.removidos||[]);
-  const novos=[];
+  const subs=[];
   for(const[name,f]of Object.entries(gist.files||{})){
     if(!name.startsWith('sub_'))continue;
-    let meta;try{meta=JSON.parse(await readGistFile(f))}catch{continue}
-    if(!meta||!meta.id||known.has(meta.id)||removed.has(meta.id))continue;
+    try{const s=JSON.parse(await readGistFile(f));if(s&&s.id)subs.push(s)}catch{}
+  }
+  subs.sort((a,b)=>String(a.enviadoEm).localeCompare(String(b.enviadoEm)));
+  const novos=[],trocas=[];let evChanged=false;
+  for(const meta of subs){
+    if(known.has(meta.id)||removed.has(meta.id))continue;
+    let reuse=null,ordem=null;
+    if(meta.substitui){
+      const old=state.musicas.find(x=>x.id===meta.substitui);
+      if(old){
+        if(old.audioGistId&&old.audioGistId===meta.audioGistId&&hasAudio(old))reuse=await DB.get('audios',old.id);
+        ordem=old.ordem;
+        if(Player.cur?.id===old.id&&Player.a.paused){Player.cur=null}
+        if(Player.cur?.id!==old.id)await removeLocal(old);
+        trocas.push(meta);
+      }else{ev.removidos=[...new Set([...(ev.removidos||[]),meta.substitui])];evChanged=true}
+    }
+    if(isCer(ev)&&meta.momentoId&&!(ev.momentos||[]).some(x=>x.id===meta.momentoId)){
+      ev.momentos=ev.momentos||[];
+      const i=ev.momentos.findIndex(x=>x.id===meta.momentoApos);
+      ev.momentos.splice(i>=0?i+1:ev.momentos.length,0,{id:meta.momentoId,nome:meta.momentoNome||'Novo momento'});
+      evChanged=true;
+    }
     const sug=parseInt(meta.ordem)||0;
     const max=state.musicas.reduce((a,m)=>Math.max(a,m.ordem||0),0);
     const m={
       id:meta.id,eventoId:ev.id,origem:'link',
-      professora:meta.professora||'',turma:meta.turma||'',titulo:meta.titulo||'Sem título',artista:meta.artista||'',
-      inicio:+meta.inicio||0,fim:+meta.fim||0,obs:meta.obs||'',posicaoSugerida:sug||0,
-      ordem:sug?sug-0.5:max+1,
+      professora:meta.professora||meta.enviadoPor||'',turma:meta.turma||'',enviadoPor:meta.enviadoPor||meta.professora||'',
+      titulo:meta.titulo||'Sem título',artista:meta.artista||'',
+      momentoId:meta.momentoId||'',momentoNome:meta.momentoNome||'',
+      inicio:+meta.inicio||0,fim:+meta.fim||0,fadeIn:!!meta.fadeIn,fadeOut:meta.fadeOut!==false,
+      obs:meta.obs||'',posicaoSugerida:sug||0,
+      ordem:ordem!=null?ordem:(sug&&!isCer(ev)?sug-0.5:max+1),
       nomeArquivo:meta.nomeArquivo||'',mime:meta.mime||'audio/mpeg',tamanho:meta.tamanho||0,
       audioGistId:meta.audioGistId,audioArquivo:meta.audioArquivo,
       enviadoEm:meta.enviadoEm||'',recebidoEm:new Date().toISOString(),status:'baixando',duracao:0
     };
+    if(reuse){await DB.put('audios',reuse,m.id);m.status='pronta';m.duracao=await getDuration(reuse)}
     await saveMusica(m);known.add(m.id);novos.push(m);
   }
+  if(evChanged){await saveEvento(ev);pushMeta(ev)}
   if(novos.length){
     await renumber();
     novos.forEach(m=>state.novos.add(m.id));
-    setTimeout(()=>{novos.forEach(m=>state.novos.delete(m.id))},9000);
-    renderList();notifyNew(novos);
-    novos.forEach(m=>baixarAudio(m));
-  }
+    setTimeout(()=>{novos.forEach(m=>state.novos.delete(m.id));},9000);
+    renderList();Player.ui();notifyNew(novos,new Set(trocas.map(t=>t.id)));
+    novos.filter(m=>m.status==='baixando').forEach(m=>baixarAudio(m));
+  }else if(evChanged)renderList();
 }
 
 const baixando=new Set();
@@ -746,11 +1097,7 @@ async function baixarAudio(m){
   baixando.add(m.id);
   try{
     m.status='baixando';await saveMusica(m);renderList();
-    const r=await ghRetry(`/gists/${m.audioGistId}`,{});
-    const files=r.data.files||{};
-    const f=files[m.audioArquivo]||Object.values(files)[0];
-    const b64=await readGistFile(f);
-    const blob=b64ToBlob(b64.trim(),m.mime);
+    const blob=await fetchAudioBlob(m.audioGistId,m.audioArquivo,m.mime,state.token);
     await DB.put('audios',blob,m.id);
     m.duracao=await getDuration(blob);
     m.tamanho=blob.size;m.status='pronta';m.erro='';
@@ -771,13 +1118,16 @@ function chime(){
     [[880,0],[1318.5,.14]].forEach(([f,d])=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(.18,t+d+.02);g.gain.exponentialRampToValueAtTime(.001,t+d+.5);o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+.55)});
   }catch{}
 }
-function notifyNew(list){
-  list.forEach(m=>toast(`<b>Nova música recebida</b><br>${esc(m.titulo)} — ${esc(m.turma)} <span class="muted">(${esc(m.professora)})</span>`,'new',7000));
+function notifyNew(list,trocas=new Set()){
+  list.forEach(m=>{
+    const t=trocas.has(m.id)?'Música atualizada':'Nova música recebida';
+    toast(`<b>${t}</b><br>${isCer()?esc(cueOf(m))+': ':''}${esc(m.titulo)}${isCer()?'':' — '+esc(m.turma)} <span class="muted">(${esc(m.enviadoPor||m.professora)})</span>`,'new',7000);
+  });
   if(Player.a.paused)chime(); // nunca toca o aviso por cima de uma apresentação
   if(document.hidden){
     state.badge+=list.length;document.title=`(${state.badge}) Palco Musical`;
     if('Notification'in window&&Notification.permission==='granted'){
-      try{new Notification(list.length>1?`${list.length} novas músicas`:'Nova música recebida',{body:list.map(m=>`${m.titulo} — ${m.turma}`).join('\n'),tag:'palco'})}catch{}
+      try{new Notification(list.length>1?`${list.length} músicas recebidas`:'Música recebida',{body:list.map(m=>`${cueOf(m)}${isCer()?' — '+m.titulo:''}`).join('\n'),tag:'palco'})}catch{}
     }
   }
 }
@@ -787,28 +1137,31 @@ let wakeLock=null;
 async function requestWake(){try{if('wakeLock'in navigator&&!document.hidden&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}}catch{}}
 
 /* =========================================================
-   PLAYER
+   PLAYER — corte exato de início/fim, fades e controle por frame
    ========================================================= */
 const Player={
-  a:new Audio(),cur:null,url:null,fadeT:null,endFading:false,seeking:false,inicioReal:0,
+  a:new Audio(),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,ctx:null,gain:null,lv:1,
   init(){
     const a=this.a;a.preload='auto';
     a.addEventListener('timeupdate',()=>this.onTime());
-    a.addEventListener('play',()=>this.ui());
-    a.addEventListener('pause',()=>this.ui());
+    a.addEventListener('play',()=>{this.watch();this.ui()});
+    a.addEventListener('pause',()=>{this.unwatch();this.ui()});
     a.addEventListener('ended',()=>this.afterEnd());
-    a.addEventListener('error',()=>{if(this.cur&&a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Tente baixá-lo e converter para MP3.','err',6000)});
+    a.addEventListener('error',()=>{if(this.cur&&a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Baixe-o e converta para MP3.','err',6000)});
     const sk=$('#plSeek');
     sk.addEventListener('input',()=>{this.seeking=true;sk.style.setProperty('--p',sk.value/10+'%')});
-    sk.addEventListener('change',()=>{if(a.duration)a.currentTime=sk.value/1000*a.duration;this.seeking=false});
+    sk.addEventListener('change',()=>{
+      const d=a.duration||0;if(d&&this.cur){const{ini,end}=this.bounds();a.currentTime=Math.max(ini,Math.min(end-0.15,sk.value/1000*d));this.fadeInOn=false}
+      this.seeking=false;
+    });
     const vol=$('#plVol');vol.value=state.volume;
-    vol.addEventListener('input',()=>{state.volume=+vol.value;if(!this.fadeT)a.volume=state.volume;DB.setCfg('volume',state.volume)});
+    vol.addEventListener('input',()=>{state.volume=+vol.value;if(a.paused&&!this.fadeT)this.setVol(state.volume);DB.setCfg('volume',state.volume)});
     $('#plPlay').onclick=()=>this.toggle();
     $('#plNext').onclick=()=>this.next();
     $('#plPrev').onclick=()=>this.prev();
     $('#plStop').onclick=()=>this.stop();
     $('#plFade').onclick=()=>this.fade();
-    $('#plAuto').onclick=()=>{state.auto=!state.auto;DB.setCfg('auto',state.auto);this.ui();toast(state.auto?'Ao terminar, a próxima música toca automaticamente.':'Ao terminar, a próxima música fica preparada (pausada).','info')};
+    $('#plAuto').onclick=()=>{state.auto=!state.auto;DB.setCfg('auto',state.auto);this.ui();toast(state.auto?'Ao terminar, a próxima música toca automaticamente.':'Ao terminar, a próxima música fica preparada (pausada) esperando o seu play.','info')};
     $('#plStageBtn').onclick=()=>Stage.open();
     if('mediaSession'in navigator){
       const ms=navigator.mediaSession;
@@ -816,49 +1169,94 @@ const Player={
     }
     this.ui();
   },
+  /* Ganho via Web Audio (funciona também no iPhone, onde o volume do <audio> é fixo) */
+  ensureGraph(){
+    try{
+      if(!this.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;this.ctx=new C();const src=this.ctx.createMediaElementSource(this.a);this.gain=this.ctx.createGain();src.connect(this.gain).connect(this.ctx.destination);this.a.volume=1}
+      if(this.ctx.state==='suspended')this.ctx.resume();
+    }catch{this.gain=null}
+  },
+  setVol(v){
+    v=Math.max(0,Math.min(1,v));this.lv=v;
+    if(this.gain&&this.ctx){try{this.gain.gain.setTargetAtTime(v,this.ctx.currentTime,0.008);return}catch{}}
+    this.a.volume=v;
+  },
+  bounds(){
+    const m=this.cur,d=isFinite(this.a.duration)?this.a.duration:0;
+    let ini=m?.inicio||0;if(d)ini=Math.min(ini,Math.max(0,d-0.3));
+    let end=d,cut=false;
+    if(m?.fim&&m.fim>ini&&(!d||m.fim<d)){end=m.fim;cut=true}
+    return{ini,end,cut};
+  },
+  seekTo(t){
+    const a=this.a;
+    if(Math.abs(a.currentTime-t)<0.005)return Promise.resolve();
+    return new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;a.removeEventListener('seeked',h);r()};a.addEventListener('seeked',h);a.currentTime=t;setTimeout(h,2500)});
+  },
   async load(m,autoplay=true){
     const blob=await DB.get('audios',m.id);
     if(!blob){toast('O áudio desta música ainda não está disponível.','warn');return}
-    this.clearFade();
+    this.clearFade();this.a.pause();
     if(this.url)URL.revokeObjectURL(this.url);
     this.url=URL.createObjectURL(blob);
-    this.cur=m;this.endFading=false;
+    this.cur=m;this.done=false;this.fadeInOn=false;
     const a=this.a;a.src=this.url;
-    await new Promise(r=>{const h=()=>{a.removeEventListener('loadedmetadata',h);r()};a.addEventListener('loadedmetadata',h);setTimeout(r,4000)});
-    this.inicioReal=m.inicio&&a.duration?Math.min(m.inicio,Math.max(0,a.duration-1)):0;
-    if(this.inicioReal)a.currentTime=this.inicioReal;
-    a.volume=state.volume;
-    if('mediaSession'in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:m.titulo,artist:`${m.turma} · ${m.professora}`,album:state.evento?.nome||'Palco Musical'})}catch{}}
-    if(autoplay){try{await a.play()}catch{toast('Toque no botão ▶ para iniciar a reprodução.','warn')}}
-    this.ui();renderList();
+    await new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;a.removeEventListener('loadedmetadata',h);r()};a.addEventListener('loadedmetadata',h);setTimeout(h,5000)});
+    await this.seekTo(this.bounds().ini);
+    if('mediaSession'in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:isCer()?cueOf(m):m.titulo,artist:descOf(m),album:state.evento?.nome||'Palco Musical'})}catch{}}
+    if(autoplay)await this.play();else{this.setVol(state.volume);this.ui();this.onTime()}
+    renderList();
   },
+  async play(){
+    if(!this.cur)return;
+    const a=this.a;this.ensureGraph();
+    const{ini,end}=this.bounds();
+    if(a.currentTime<ini-0.05||(end&&a.currentTime>=end-0.05))await this.seekTo(ini);
+    this.clearFade();this.done=false;
+    this.fadeInOn=!!this.cur.fadeIn&&a.currentTime-ini<0.25;
+    this.setVol(this.fadeInOn?0:state.volume);
+    try{await a.play()}catch{toast('Toque no botão ▶ para iniciar a reprodução.','warn')}
+  },
+  /* chamado a cada frame: aplica fades e corta exatamente no ponto final */
+  tick(){
+    const a=this.a,m=this.cur;if(!m||a.paused)return;
+    const t=a.currentTime,{ini,end,cut}=this.bounds();
+    if(cut&&t>=end-0.012&&!this.done){this.clearFade();a.pause();this.afterEnd();return}
+    if(this.fadeT)return;
+    let v=state.volume;
+    if(this.fadeInOn){const k=(t-ini)/FADE_IN;if(k>=1||k<0)this.fadeInOn=false;else v*=k}
+    if(cut&&m.fadeOut!==false){const fo=Math.min(FADE_OUT,(end-ini)/3);if(t>end-fo)v*=Math.max(0,(end-t)/fo)}
+    if(Math.abs(v-this.lv)>0.002)this.setVol(v);
+  },
+  watch(){this.unwatch();const loop=()=>{this.tick();this.raf=requestAnimationFrame(loop)};this.raf=requestAnimationFrame(loop);this.iv=setInterval(()=>this.tick(),30)},
+  unwatch(){cancelAnimationFrame(this.raf);clearInterval(this.iv)},
   async toggle(){
     if(!this.cur){const l=sorted();const m=l.find(x=>x.status==='pronta')||l.find(hasAudio);if(m)return this.load(m,true);return toast('Nenhuma música pronta para tocar.','warn')}
-    const a=this.a;
-    if(a.paused){this.clearFade();a.volume=state.volume;try{await a.play()}catch{}}else a.pause();
+    if(this.a.paused)await this.play();else this.a.pause();
   },
-  stop(){
+  async stop(){
     if(!this.cur)return;this.clearFade();
-    const played=this.a.currentTime-this.inicioReal;
-    this.a.pause();this.a.currentTime=this.inicioReal;this.a.volume=state.volume;
+    const{ini}=this.bounds();const played=this.a.currentTime-ini;
+    this.a.pause();await this.seekTo(ini);this.setVol(state.volume);
     if(played>15)this.markPlayed(this.cur);
-    this.ui();
+    this.ui();this.onTime();
   },
   clearFade(){if(this.fadeT){clearInterval(this.fadeT);this.fadeT=null}},
   fade(ms=3000){
     const a=this.a;if(!this.cur||a.paused||this.fadeT)return;
-    const v0=a.volume,t0=performance.now();
+    const v0=this.lv,t0=performance.now();
     this.fadeT=setInterval(()=>{
-      const k=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,v0*(1-k));
-      if(k>=1){this.clearFade();a.pause();a.volume=state.volume;this.afterEnd()}
-    },40);
+      const k=Math.min(1,(performance.now()-t0)/ms);this.setVol(v0*(1-k));
+      if(k>=1){this.clearFade();a.pause();this.afterEnd()}
+    },30);
   },
   async afterEnd(){
-    const cur=this.cur;if(!cur)return;
+    const cur=this.cur;if(!cur||this.done)return;
+    this.done=true;
     await this.markPlayed(cur);
     const n=this.nextOf(cur);
     if(n)await this.load(n,state.auto);
-    else{this.ui();toast('Fim da lista de músicas. 🎉','ok')}
+    else{this.setVol(state.volume);this.ui();toast('Fim do cronograma. 🎉','ok')}
   },
   async markPlayed(m){
     const x=state.musicas.find(y=>y.id===m.id);
@@ -868,55 +1266,58 @@ const Player={
   prevOf(m){const l=sorted();const i=l.findIndex(x=>x.id===m?.id);return l.slice(0,Math.max(0,i)).reverse().find(hasAudio)||null},
   next(){const n=this.cur?this.nextOf(this.cur):sorted().find(hasAudio);if(n)this.load(n,!this.a.paused||!this.cur);else toast('Não há próxima música pronta.','warn')},
   prev(){
-    if(this.cur&&this.a.currentTime-this.inicioReal>5){this.a.currentTime=this.inicioReal;return}
-    const p=this.prevOf(this.cur);if(p)this.load(p,!this.a.paused);else if(this.cur)this.a.currentTime=this.inicioReal;
+    const{ini}=this.bounds();
+    if(this.cur&&this.a.currentTime-ini>3){this.seekTo(ini).then(()=>this.onTime());return}
+    const p=this.prevOf(this.cur);if(p)this.load(p,!this.a.paused);else if(this.cur)this.seekTo(ini);
   },
-  seekBy(s){if(this.cur&&this.a.duration)this.a.currentTime=Math.max(0,Math.min(this.a.duration-.2,this.a.currentTime+s))},
+  seekBy(s){if(!this.cur||!this.a.duration)return;const{ini,end}=this.bounds();this.a.currentTime=Math.max(ini,Math.min(end-0.15,this.a.currentTime+s));this.fadeInOn=false},
   onTime(){
-    const a=this.a,d=a.duration||0,c=a.currentTime||0;
-    if(!this.seeking){const sk=$('#plSeek');const p=d?c/d*1000:0;sk.value=p;sk.style.setProperty('--p',p/10+'%')}
-    $('#plTime').textContent=`${fmt(c)} / ${fmt(d)}`;
-    if(this.cur?.fim&&c>=this.cur.fim&&!this.endFading&&!a.paused){this.endFading=true;this.fade(1800)}
+    const a=this.a,d=isFinite(a.duration)?a.duration:0,c=a.currentTime||0,sk=$('#plSeek');
+    const{ini,end,cut}=this.bounds();
+    sk.style.setProperty('--a',(d&&this.cur?ini/d*100:0)+'%');
+    sk.style.setProperty('--b',(d&&this.cur?end/d*100:100)+'%');
+    if(!this.seeking){const p=d?c/d*1000:0;sk.value=p;sk.style.setProperty('--p',p/10+'%')}
+    const trimmed=this.cur&&(ini>0||cut);
+    $('#plTime').innerHTML=this.cur?`${fmt(Math.max(0,c-ini))} / ${fmt(Math.max(0,end-ini))}${trimmed?`<small>✂ ${fmtP(ini)} → ${fmtP(end)}</small>`:''}`:'0:00 / 0:00';
     Stage.tick();
   },
   ui(){
     const a=this.a,m=this.cur,playing=m&&!a.paused;
     $('#plPlay').innerHTML=icon(playing?'pause':'play');
     $('#plCover').classList.toggle('on',!!playing);
-    $('#plTitle').textContent=m?m.titulo+(m.artista?' — '+m.artista:''):'Nenhuma música carregada';
-    $('#plSub').textContent=m?`${m.turma} · ${m.professora}${!playing&&a.currentTime-this.inicioReal<.5?' · preparada':''}`:'Toque em ▶ em uma música da lista';
+    const{ini}=this.bounds();
+    $('#plTitle').textContent=m?cueOf(m):'Nenhuma música carregada';
+    $('#plSub').textContent=m?`${descOf(m)}${!playing&&Math.abs(a.currentTime-ini)<0.3?' · preparada':''}`:'Toque em ▶ em uma música da lista';
     $('#plAuto').classList.toggle('on',state.auto);
     $$('.song').forEach(li=>{const cur=m&&li.dataset.id===m.id;li.classList.toggle('is-current',!!cur);const b=$('.pbtn',li);if(b)b.innerHTML=icon(cur&&playing?'pause':'play')});
-    if(!m){$('#plTime').textContent='0:00 / 0:00';$('#plSeek').value=0;$('#plSeek').style.setProperty('--p','0%')}
-    renderNextCard();Stage.render();
+    $$('.moment[data-drag]').forEach(li=>li.classList.toggle('has-cur',!!(m&&m.momentoId===li.dataset.drag)));
+    if(!m){$('#plSeek').value=0;['--p','--a'].forEach(v=>$('#plSeek').style.setProperty(v,'0%'));$('#plSeek').style.setProperty('--b','100%')}
+    this.onTime();renderNextCard();Stage.render();
   }
 };
 
 /* ---------- Modo palco ---------- */
 const Stage={
-  open(){
-    $('#stage').hidden=false;this.render();
-    try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch{}
-  },
+  open(){$('#stage').hidden=false;this.render();try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch{}},
   close(){$('#stage').hidden=true;try{if(document.fullscreenElement)document.exitFullscreen()}catch{}},
   get on(){return!$('#stage').hidden},
   render(){
     if(!this.on)return;
     const m=Player.cur,n=m?Player.nextOf(m):sorted().find(x=>x.status==='pronta');
     $('#stEvent').textContent=state.evento?.nome||'';
-    $('#stTitle').textContent=m?m.titulo:'Nenhuma música carregada';
-    $('#stSub').textContent=m?`${m.turma} · Prof. ${m.professora}${m.artista?' · '+m.artista:''}`:'';
+    $('#stTitle').textContent=m?cueOf(m):'Nenhuma música carregada';
+    $('#stSub').textContent=m?(isCer()?descOf(m):`${m.turma} · Prof. ${m.professora}`):'';
+    $('#stCut').textContent=m&&trechoTxt(m)?'✂ '+trechoTxt(m):'';
     $('#stObs').textContent=m?.obs||'';
-    $('#stNext').textContent=n?`${n.titulo} — ${n.turma}`:'—';
+    $('#stNext').textContent=n?`${cueOf(n)}${isCer()?' — '+n.titulo:' · '+n.turma}`:'—';
     $('#stPlayIc').innerHTML=`<use href="#i-${m&&!Player.a.paused?'pause':'play'}"/>`;
     this.tick();
   },
   tick(){
     if(!this.on)return;
-    const a=Player.a,d=a.duration||0,c=a.currentTime||0;
-    $('#stBar i').style.width=(d?c/d*100:0)+'%';
-    $('#stCur').textContent=fmt(c);
-    const end=Player.cur?.fim&&Player.cur.fim<d?Player.cur.fim:d;
+    const a=Player.a,c=a.currentTime||0,{ini,end}=Player.bounds(),len=Math.max(0,end-ini);
+    $('#stBar i').style.width=(Player.cur&&len?Math.min(100,Math.max(0,(c-ini)/len*100)):0)+'%';
+    $('#stCur').textContent=fmt(Math.max(0,c-ini));
     $('#stRem').textContent='-'+fmt(Math.max(0,end-c));
   }
 };
@@ -929,7 +1330,8 @@ function renderEvSel(){
   if(!state.eventos.length){s.innerHTML='<option value="">Nenhum evento criado</option>';s.disabled=true;return}
   s.disabled=false;
   const evs=[...state.eventos].sort((a,b)=>String(b.data||b.criadoEm).localeCompare(String(a.data||a.criadoEm)));
-  s.innerHTML=evs.map(e=>`<option value="${e.id}" ${e.id===state.evento?.id?'selected':''}>${esc(e.nome)}${e.data?' · '+e.data.split('-').reverse().join('/'):''}</option>`).join('');
+  const pre={escolar:'🏫',quinze:'👑',casamento:'💍',cerimonial:'✨'};
+  s.innerHTML=evs.map(e=>`<option value="${e.id}" ${e.id===state.evento?.id?'selected':''}>${pre[e.tipo||'escolar']||''} ${esc(e.nome)}${e.data?' · '+e.data.split('-').reverse().join('/'):''}</option>`).join('');
 }
 
 function renderMain(){
@@ -937,18 +1339,20 @@ function renderMain(){
   if(!ev){
     main.innerHTML=`<section class="welcome"><div class="card hero">
       <span class="logo xl" style="margin:0 auto">${icon('music')}</span>
-      <h1>Organize as músicas do seu evento</h1>
-      <p>Envie um link para cada professora, receba as músicas em tempo real e toque tudo daqui, na ordem do cronograma — sem baixar nada do WhatsApp.</p>
+      <h1>As músicas do seu evento, na ordem certa</h1>
+      <p>Envie um link para professoras, noivos ou debutante. Eles anexam as músicas e marcam onde cada uma começa e termina — você recebe tudo em tempo real e toca daqui, sem baixar nada do WhatsApp.</p>
+      <div class="types-row">${Object.values(TIPOS).map(t=>`<span class="tipo-tag">${icon(t.icon)}${t.nome}</span>`).join('')}</div>
       <div class="steps">
         <div class="step ${state.token?'done':''}"><b>${state.token?icon('check'):'1'}</b><div><strong>Conecte ao GitHub Gist</strong><span>${state.token?'Conectado'+(state.login?' como @'+esc(state.login):''):'É a “caixa de entrada” na nuvem que recebe os envios.'}</span></div><button class="btn ${state.token?'':'primary'} sm" data-w="cfg">${state.token?'Ver':'Configurar'}</button></div>
-        <div class="step"><b>2</b><div><strong>Crie o evento</strong><span>Ex.: Abertura dos Jogos Internos 2026</span></div><button class="btn ${state.token?'primary':''} sm" data-w="ev">Criar evento</button></div>
-        <div class="step"><b>3</b><div><strong>Envie os links</strong><span>Um link geral ou um personalizado para cada professora, direto no WhatsApp.</span></div></div>
-        <div class="step"><b>4</b><div><strong>Toque na hora</strong><span>As músicas chegam sozinhas, já na ordem. Use o modo palco no dia.</span></div></div>
+        <div class="step"><b>2</b><div><strong>Crie o evento</strong><span>Escolar, 15 anos, casamento ou outro cerimonial — com o cronograma de momentos pronto.</span></div><button class="btn ${state.token?'primary':''} sm" data-w="ev">Criar evento</button></div>
+        <div class="step"><b>3</b><div><strong>Envie o link</strong><span>Para cada professora, ou para os noivos / a debutante escolherem a música de cada momento.</span></div></div>
+        <div class="step"><b>4</b><div><strong>Toque na hora</strong><span>Cada música começa e para exatamente onde foi marcado. Use o modo palco no dia.</span></div></div>
       </div></div></section>`;
     $('[data-w=cfg]',main).onclick=openSettings;
     $('[data-w=ev]',main).onclick=()=>openEventForm();
     return;
   }
+  const t=tipoDe(ev),cer=isCer(ev);
   const info=[fmtDate(ev.data),ev.local].filter(Boolean).map(esc).join(' · ')||'Sem data definida';
   main.innerHTML=`<div class="layout">
     <aside class="side">
@@ -956,10 +1360,12 @@ function renderMain(){
         <span class="eyebrow">${ev.gistId?'<span class="live"></span> Recebendo envios por link':'Somente neste aparelho'}</span>
         <h1>${esc(ev.nome)}</h1>
         <p class="muted">${info}</p>
+        <span class="tipo-tag">${icon(t.icon)}${t.nome}${ev.homenageados&&cer?' · '+esc(ev.homenageados):''}</span>
         ${!ev.gistId?`<div class="note warn" style="margin-top:14px">${icon('alert')}<div>Este evento ainda não recebe envios por link. ${state.token?'Ative abaixo.':'Configure o token do GitHub primeiro.'}</div></div>`:''}
         <div class="ev-actions">
-          ${ev.gistId?`<button class="btn primary" data-a="links">${icon('link')}Links para professoras</button>`
+          ${ev.gistId?`<button class="btn primary" data-a="links">${icon('link')}${cer?'Link para '+t.quem:'Links para professoras'}</button>`
             :`<button class="btn primary" data-a="${state.token?'ativar':'cfg'}">${icon('cloud')}${state.token?'Ativar envios por link':'Configurar GitHub'}</button>`}
+          ${cer?`<button class="btn" data-a="cron">${icon('list')}Editar cronograma</button>`:''}
           <button class="btn" data-a="add">${icon('plus')}Adicionar música manualmente</button>
           <div class="row">
             <button class="btn ghost sm" data-a="editEv">${icon('edit')}Editar</button>
@@ -972,7 +1378,7 @@ function renderMain(){
     </aside>
     <section>
       <div class="toolbar">
-        <div class="search">${icon('search')}<input type="search" id="q" placeholder="Buscar música, turma ou professora" value="${esc(state.busca)}" aria-label="Buscar"></div>
+        <div class="search">${icon('search')}<input type="search" id="q" placeholder="${cer?'Buscar momento ou música':'Buscar música, turma ou professora'}" value="${esc(state.busca)}" aria-label="Buscar"></div>
         <div class="seg" id="filters" role="tablist"></div>
       </div>
       <ol class="songs" id="songs"></ol>
@@ -980,7 +1386,7 @@ function renderMain(){
   </div>`;
   main.onclick=e=>{
     const b=e.target.closest('[data-a]');if(!b||!main.contains(b))return;
-    ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent})[b.dataset.a]?.();
+    ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,cron:openCronograma,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent})[b.dataset.a]?.();
   };
   $('#q').oninput=e=>{state.busca=e.target.value;renderList()};
   $('#filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;state.filtro=b.dataset.f;renderList()};
@@ -994,54 +1400,102 @@ function filtered(){
     if(state.filtro==='pendentes'&&m.status==='tocada')return false;
     if(state.filtro==='tocadas'&&m.status!=='tocada')return false;
     if(state.filtro==='problemas'&&m.status!=='erro')return false;
-    if(q&&![m.titulo,m.artista,m.turma,m.professora,m.obs].join(' ').toLowerCase().includes(q))return false;
+    if(q&&![m.titulo,m.artista,m.turma,m.professora,m.obs,m.enviadoPor,momentoDe(m)?.nome].join(' ').toLowerCase().includes(q))return false;
     return true;
   });
 }
 
+function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
+  const cur=Player.cur,playing=cur&&!Player.a.paused,isCur=cur&&cur.id===m.id,cer=isCer();
+  const tr=trechoTxt(m);
+  let l1,l2;
+  if(cer&&inMoment){
+    l1=`${esc(m.titulo)}${m.artista?`<span class="ar"> — ${esc(m.artista)}</span>`:''}`;
+    l2=[m.duracao?fmt(m.duracao):'',tr?`<span class="cut">✂ ${esc(tr)}</span>`:'',m.enviadoPor?'por '+esc(m.enviadoPor):''].filter(Boolean).join(' · ')||'&nbsp;';
+  }else if(cer){
+    l1=esc(cueOf(m));
+    l2=[`<b>${esc(m.titulo)}</b>${m.artista?' — '+esc(m.artista):''}`,m.duracao?fmt(m.duracao):'',tr?`<span class="cut">✂ ${esc(tr)}</span>`:''].filter(Boolean).join(' · ');
+  }else{
+    l1=`${esc(m.titulo)}${m.artista?`<span class="ar"> — ${esc(m.artista)}</span>`:''}`;
+    l2=[`<b>${esc(m.turma)}</b>`,esc(m.professora),m.duracao?fmt(m.duracao):'',tr?`<span class="cut">✂ ${esc(tr)}</span>`:''].filter(Boolean).join(' · ');
+  }
+  const tag=inMoment?'div':'li';
+  return`<${tag} class="song ${compact?'compact':''} st-${m.status} ${isCur?'is-current':''} ${state.novos.has(m.id)?'is-new':''}" data-id="${m.id}" ${drag?`data-drag="${m.id}" draggable="true"`:''}>
+    ${compact?'':`<span class="grip" title="Arraste para reordenar">${icon('grip')}</span><span class="ord">${String(pos).padStart(2,'0')}</span>`}
+    <button class="pbtn" data-s="play" ${hasAudio(m)?'':'disabled'} aria-label="Tocar ${esc(m.titulo)}">${icon(isCur&&playing?'pause':'play')}</button>
+    <div class="info">
+      <div class="t">${l1}</div>
+      <div class="sub">${l2}</div>
+      ${m.obs?`<div class="obs">${icon('note')}<span>${esc(m.obs)}</span></div>`:''}
+    </div>
+    <div class="meta">
+      <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
+      ${m.posicaoSugerida&&!cer?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
+      <span class="via">${m.origem==='link'?'via link · '+fmtHora(m.recebidoEm):'manual'}</span>
+    </div>
+    <div class="acts">
+      ${compact?'':`<button class="btn icon ghost sm" data-s="up" title="Subir" aria-label="Subir">${icon('up')}</button><button class="btn icon ghost sm" data-s="down" title="Descer" aria-label="Descer">${icon('down')}</button>`}
+      <button class="btn icon ghost sm" data-s="more" title="Mais opções" aria-label="Mais opções">${icon('more')}</button>
+    </div>
+  </${tag}>`;
+}
+
+function renderMoments(){
+  const ev=state.evento,t=tipoDe(ev),cur=Player.cur;
+  const byM=new Map(),orf=[];
+  sorted().forEach(m=>{if(m.momentoId&&(ev.momentos||[]).some(x=>x.id===m.momentoId)){if(!byM.has(m.momentoId))byM.set(m.momentoId,[]);byM.get(m.momentoId).push(m)}else orf.push(m)});
+  if(!(ev.momentos||[]).length&&!orf.length)return`<li class="empty">${icon('list')}<h3>Cronograma vazio</h3><p>Monte a sequência de momentos do evento.</p><div class="row" style="justify-content:center;margin-top:16px"><button class="btn primary" data-a="cron">${icon('list')}Montar cronograma</button></div></li>`;
+  let h=(ev.momentos||[]).map((mo,i)=>{
+    const list=byM.get(mo.id)||[];const hasCur=list.some(x=>x.id===cur?.id);
+    return`<li class="moment ${list.length?'':'is-empty'} ${hasCur?'has-cur':''} ${state.novos.has(mo.id)?'is-new':''}" data-drag="${mo.id}" draggable="true">
+      <div class="mo-h">
+        <span class="grip" title="Arraste para reordenar">${icon('grip')}</span>
+        <span class="mo-n">${String(i+1).padStart(2,'0')}</span>
+        <div class="mo-t"><strong>${esc(mo.nome)}</strong><small>${list.length>1?list.length+' músicas':list.length?'':'Aguardando música'}</small></div>
+        <div class="acts">
+          <button class="btn icon ghost sm" data-mo="up" data-mid="${mo.id}" title="Subir" aria-label="Subir momento">${icon('up')}</button>
+          <button class="btn icon ghost sm" data-mo="down" data-mid="${mo.id}" title="Descer" aria-label="Descer momento">${icon('down')}</button>
+          <button class="btn icon ghost sm" data-mo="more" data-mid="${mo.id}" title="Opções do momento" aria-label="Opções do momento">${icon('more')}</button>
+        </div>
+      </div>
+      <div class="mo-songs">${list.length?list.map(m=>songRow(m,{compact:true,inMoment:true})).join('')
+        :`<div class="slot-empty">${icon('music')}<span>${ev.gistId?'Aguardando envio de '+t.quem:'Sem música'}</span><button class="btn sm" data-mo="add" data-mid="${mo.id}">${icon('plus')}Adicionar</button></div>`}</div>
+    </li>`}).join('');
+  if(orf.length)h+=`<li class="moment orphan"><div class="mo-h"><span class="mo-n">—</span><div class="mo-t"><strong>Sem momento definido</strong><small>Edite a música para escolher o momento</small></div></div><div class="mo-songs">${orf.map(m=>songRow(m,{compact:true,inMoment:true})).join('')}</div></li>`;
+  return h;
+}
+
 function renderList(){
   const ul=$('#songs');if(!ul||!state.evento)return;
-  const all=sorted(),pos=new Map(all.map((m,i)=>[m.id,i+1]));
+  const ev=state.evento,cer=isCer(ev),all=sorted(),pos=new Map(all.map((m,i)=>[m.id,i+1]));
   const c={todas:all.length,pendentes:all.filter(m=>m.status!=='tocada').length,tocadas:all.filter(m=>m.status==='tocada').length,problemas:all.filter(m=>m.status==='erro').length};
-  $('#filters').innerHTML=[['todas','Todas'],['pendentes','A tocar'],['tocadas','Tocadas'],['problemas','Com erro']]
-    .filter(([k])=>k!=='problemas'||c.problemas).map(([k,l])=>`<button data-f="${k}" class="${state.filtro===k?'on':''}">${l}<em>${c[k]}</em></button>`).join('');
-  $('#stats').innerHTML=`
-    <div class="stat"><b>${all.length}</b><span>Total</span></div>
-    <div class="stat s-ok"><b>${all.filter(m=>m.status==='pronta').length}</b><span>Prontas</span></div>
-    <div class="stat s-vi"><b>${c.tocadas}</b><span>Tocadas</span></div>
-    <div class="stat s-ac"><b>${all.filter(m=>m.status==='baixando').length}</b><span>Baixando</span></div>`;
+  $('#filters').innerHTML=[['todas',cer?'Cronograma':'Todas'],['pendentes','A tocar'],['tocadas','Tocadas'],['problemas','Com erro']]
+    .filter(([k])=>k!=='problemas'||c.problemas).map(([k,l])=>`<button data-f="${k}" class="${state.filtro===k?'on':''}">${l}<em>${k==='todas'&&cer?(ev.momentos||[]).length:c[k]}</em></button>`).join('');
+  if(cer){
+    const moms=ev.momentos||[];const filled=moms.filter(mo=>all.some(m=>m.momentoId===mo.id)).length;
+    $('#stats').innerHTML=`
+      <div class="stat"><b>${filled}/${moms.length}</b><span>Momentos com música</span></div>
+      <div class="stat s-ok"><b>${all.filter(m=>m.status==='pronta').length}</b><span>Prontas</span></div>
+      <div class="stat s-vi"><b>${c.tocadas}</b><span>Tocadas</span></div>
+      <div class="stat s-ac"><b>${moms.length-filled}</b><span>Sem música</span></div>`;
+  }else{
+    $('#stats').innerHTML=`
+      <div class="stat"><b>${all.length}</b><span>Total</span></div>
+      <div class="stat s-ok"><b>${all.filter(m=>m.status==='pronta').length}</b><span>Prontas</span></div>
+      <div class="stat s-vi"><b>${c.tocadas}</b><span>Tocadas</span></div>
+      <div class="stat s-ac"><b>${all.filter(m=>m.status==='baixando').length}</b><span>Baixando</span></div>`;
+  }
+  const flat=state.filtro!=='todas'||!!state.busca.trim();
+  if(cer&&!flat){ul.innerHTML=renderMoments();renderNextCard();return}
   const list=filtered();
-  const canDrag=state.filtro==='todas'&&!state.busca.trim();
   if(!all.length){
-    ul.innerHTML=`<li class="empty">${icon('music')}<h3>Nenhuma música ainda</h3><p>${state.evento.gistId?'Envie os links para as professoras — as músicas aparecem aqui assim que forem enviadas.':'Adicione músicas manualmente ou ative os envios por link.'}</p>
-      <div class="row" style="justify-content:center;margin-top:16px">${state.evento.gistId?`<button class="btn primary" data-a="links">${icon('link')}Pegar links</button>`:''}<button class="btn" data-a="add">${icon('plus')}Adicionar manualmente</button></div></li>`;
+    ul.innerHTML=`<li class="empty">${icon('music')}<h3>Nenhuma música ainda</h3><p>${ev.gistId?'Envie os links — as músicas aparecem aqui assim que forem enviadas.':'Adicione músicas manualmente ou ative os envios por link.'}</p>
+      <div class="row" style="justify-content:center;margin-top:16px">${ev.gistId?`<button class="btn primary" data-a="links">${icon('link')}Pegar links</button>`:''}<button class="btn" data-a="add">${icon('plus')}Adicionar manualmente</button></div></li>`;
   }else if(!list.length){
     ul.innerHTML=`<li class="empty">${icon('search')}<h3>Nada encontrado</h3><p>Ajuste a busca ou o filtro.</p></li>`;
   }else{
-    const cur=Player.cur,playing=cur&&!Player.a.paused;
-    ul.innerHTML=list.map(m=>{
-      const isCur=cur&&cur.id===m.id;
-      const det=[`<b>${esc(m.turma)}</b>`,esc(m.professora),m.duracao?fmt(m.duracao):'',m.inicio?'início '+fmt(m.inicio):'',m.fim?'fim '+fmt(m.fim):''].filter(Boolean).join(' · ');
-      return`<li class="song st-${m.status} ${isCur?'is-current':''} ${state.novos.has(m.id)?'is-new':''}" data-id="${m.id}" draggable="${canDrag}">
-        <span class="grip" title="${canDrag?'Arraste para reordenar':'Limpe a busca/filtro para reordenar'}">${icon('grip')}</span>
-        <span class="ord">${String(pos.get(m.id)).padStart(2,'0')}</span>
-        <button class="pbtn" data-s="play" ${hasAudio(m)?'':'disabled'} aria-label="Tocar ${esc(m.titulo)}">${icon(isCur&&playing?'pause':'play')}</button>
-        <div class="info">
-          <div class="t">${esc(m.titulo)}${m.artista?`<span class="ar"> — ${esc(m.artista)}</span>`:''}</div>
-          <div class="sub">${det}</div>
-          ${m.obs?`<div class="obs">${icon('note')}<span>${esc(m.obs)}</span></div>`:''}
-        </div>
-        <div class="meta">
-          <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
-          ${m.posicaoSugerida?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
-          <span class="via">${m.origem==='link'?'via link · '+fmtHora(m.recebidoEm):'manual'}</span>
-        </div>
-        <div class="acts">
-          <button class="btn icon ghost sm" data-s="up" title="Subir" aria-label="Subir" ${canDrag?'':'disabled'}>${icon('up')}</button>
-          <button class="btn icon ghost sm" data-s="down" title="Descer" aria-label="Descer" ${canDrag?'':'disabled'}>${icon('down')}</button>
-          <button class="btn icon ghost sm" data-s="more" title="Mais opções" aria-label="Mais opções">${icon('more')}</button>
-        </div>
-      </li>`}).join('');
+    const canDrag=!cer&&!flat;
+    ul.innerHTML=list.map(m=>songRow(m,{pos:pos.get(m.id),compact:!canDrag,drag:canDrag})).join('');
   }
   renderNextCard();
 }
@@ -1051,8 +1505,8 @@ function renderNextCard(){
   const cur=Player.cur;
   const nx=cur?Player.nextOf(cur):sorted().find(m=>m.status==='pronta');
   box.innerHTML=`<span class="eyebrow">${icon('music')} Cronograma</span>
-    <div class="nx"><small>Agora</small><strong>${cur?esc(cur.titulo):'—'}</strong><small>${cur?esc(cur.turma+' · '+cur.professora):'Nenhuma música carregada'}</small></div>
-    <div class="nx"><small>A seguir</small><strong>${nx?esc(nx.titulo):'—'}</strong><small>${nx?esc(nx.turma+' · '+nx.professora):'Nada na fila'}</small></div>
+    <div class="nx"><small>Agora</small><strong>${cur?esc(cueOf(cur)):'—'}</strong><small>${cur?esc(descOf(cur)):'Nenhuma música carregada'}</small></div>
+    <div class="nx"><small>A seguir</small><strong>${nx?esc(cueOf(nx)):'—'}</strong><small>${nx?esc(descOf(nx)):'Nada na fila'}</small></div>
     <button class="btn sm block" style="margin-top:6px" id="ncStage">${icon('stage')}Modo palco</button>`;
   $('#ncStage').onclick=()=>Stage.open();
 }
@@ -1060,7 +1514,15 @@ function renderNextCard(){
 function bindSongs(ul){
   ul.addEventListener('click',async e=>{
     const a=e.target.closest('[data-a]');
-    if(a){({links:openLinks,add:()=>openSongForm()})[a.dataset.a]?.();return}
+    if(a){({links:openLinks,add:()=>openSongForm(),cron:openCronograma})[a.dataset.a]?.();return}
+    const mo=e.target.closest('[data-mo]');
+    if(mo){
+      const id=mo.dataset.mid,k=mo.dataset.mo;
+      if(k==='up'||k==='down')moveMoment(id,k==='up'?-1:1);
+      else if(k==='add')openSongForm(null,id);
+      else if(k==='more')openMomentMenu(id);
+      return;
+    }
     const b=e.target.closest('[data-s]');if(!b)return;
     const li=b.closest('.song');const m=state.musicas.find(x=>x.id===li.dataset.id);if(!m)return;
     const act=b.dataset.s;
@@ -1071,15 +1533,22 @@ function bindSongs(ul){
   ul.addEventListener('dblclick',e=>{const li=e.target.closest('.song');if(!li||e.target.closest('button'))return;const m=state.musicas.find(x=>x.id===li.dataset.id);if(m&&hasAudio(m))Player.load(m,true)});
   let dragId=null;
   const clear=()=>$$('.drop-before,.drop-after',ul).forEach(x=>x.classList.remove('drop-before','drop-after'));
-  ul.addEventListener('dragstart',e=>{const li=e.target.closest('.song');if(!li)return;dragId=li.dataset.id;li.classList.add('dragging');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragId)}catch{}});
-  ul.addEventListener('dragover',e=>{if(!dragId)return;e.preventDefault();const li=e.target.closest('.song');clear();if(!li||li.dataset.id===dragId)return;const r=li.getBoundingClientRect();li.classList.add(e.clientY>r.top+r.height/2?'drop-after':'drop-before')});
+  ul.addEventListener('dragstart',e=>{const it=e.target.closest('[data-drag]');if(!it||it.getAttribute('draggable')!=='true')return;dragId=it.dataset.drag;it.classList.add('dragging');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragId)}catch{}});
+  ul.addEventListener('dragover',e=>{if(!dragId)return;e.preventDefault();const it=e.target.closest('[data-drag]');clear();if(!it||it.dataset.drag===dragId)return;const r=it.getBoundingClientRect();it.classList.add(e.clientY>r.top+r.height/2?'drop-after':'drop-before')});
   ul.addEventListener('drop',async e=>{
-    e.preventDefault();const li=e.target.closest('.song');
-    if(dragId&&li&&li.dataset.id!==dragId){
-      const after=li.classList.contains('drop-after');
-      const l=sorted();const d=l.splice(l.findIndex(x=>x.id===dragId),1)[0];
-      let i=l.findIndex(x=>x.id===li.dataset.id);if(after)i++;l.splice(i,0,d);
-      await renumber(l);renderList();
+    e.preventDefault();const it=e.target.closest('[data-drag]');
+    if(dragId&&it&&it.dataset.drag!==dragId){
+      const after=it.classList.contains('drop-after');
+      if(isCer()){
+        const ev=state.evento,l=[...ev.momentos];const d=l.splice(l.findIndex(x=>x.id===dragId),1)[0];
+        let i=l.findIndex(x=>x.id===it.dataset.drag);if(after)i++;l.splice(i,0,d);
+        ev.momentos=l;await saveEvento(ev);pushMeta(ev);
+      }else{
+        const l=sorted();const d=l.splice(l.findIndex(x=>x.id===dragId),1)[0];
+        let i=l.findIndex(x=>x.id===it.dataset.drag);if(after)i++;l.splice(i,0,d);
+        await renumber(l);
+      }
+      renderList();Player.ui();
     }
     clear();dragId=null;
   });
@@ -1088,17 +1557,92 @@ function bindSongs(ul){
 async function move(id,dir){
   const l=sorted();const i=l.findIndex(x=>x.id===id);const j=i+dir;
   if(j<0||j>=l.length)return;[l[i],l[j]]=[l[j],l[i]];
-  await renumber(l);renderList();
+  await renumber(l);renderList();Player.ui();
+}
+async function moveMoment(id,dir){
+  const ev=state.evento,l=ev.momentos;const i=l.findIndex(x=>x.id===id);const j=i+dir;
+  if(i<0||j<0||j>=l.length)return;[l[i],l[j]]=[l[j],l[i]];
+  await saveEvento(ev);pushMeta(ev);renderList();Player.ui();
+}
+
+/* =========================================================
+   AÇÕES: MOMENTOS E CRONOGRAMA
+   ========================================================= */
+function openMomentMenu(mid){
+  const ev=state.evento,mo=ev.momentos.find(x=>x.id===mid);if(!mo)return;
+  const n=state.musicas.filter(m=>m.momentoId===mid).length;
+  openModal(`${modalHead(esc(mo.nome),n?`${n} música(s) neste momento`:'Ainda sem música')}
+    <div class="sheet-list">
+      <button data-m="add">${icon('plus')}Adicionar música manualmente</button>
+      <button data-m="ren">${icon('edit')}Renomear momento</button>
+      <button data-m="cron">${icon('list')}Editar cronograma completo</button>
+      <button data-m="del" class="danger">${icon('trash')}Excluir momento</button>
+    </div>`,
+  {onMount:(md,close)=>{md.onclick=async e=>{
+    const b=e.target.closest('[data-m]');if(!b)return;close();
+    const k=b.dataset.m;
+    if(k==='add')openSongForm(null,mid);
+    else if(k==='cron')openCronograma();
+    else if(k==='ren'){const v=await promptDialog('Renomear momento','Nome do momento',mo.nome);if(v){mo.nome=v;await saveEvento(ev);pushMeta(ev);renderList();Player.ui()}}
+    else if(k==='del'){
+      const r=await confirmDialog(`O momento <b>${esc(mo.nome)}</b> será removido do cronograma (e do link do cliente).`,{title:'Excluir momento',ok:'Excluir',danger:true,check:n?{label:`Excluir também ${n>1?'as '+n+' músicas':'a música'} deste momento`,checked:false}:null});
+      if(!(n?r.ok:r))return;
+      if(n&&r.checked){for(const m of state.musicas.filter(x=>x.momentoId===mid)){if(Player.cur?.id===m.id){Player.a.pause();Player.cur=null}await removeLocal(m)}}
+      ev.momentos=ev.momentos.filter(x=>x.id!==mid);await saveEvento(ev);pushMeta(ev);renderList();Player.ui();toast('Momento excluído.','ok');
+    }
+  }}});
+}
+
+function openCronograma(){
+  const ev=state.evento,t=tipoDe(ev);
+  let list=(ev.momentos||[]).map(m=>({...m}));
+  openModal(`${modalHead('Cronograma do evento','A ordem aqui é a ordem em que as músicas tocam e a que aparece no link de '+(t.quem||'envio')+'.')}
+    <ol class="cron" id="cron"></ol>
+    <form id="cronAdd" class="copyrow" style="margin-top:12px"><input name="n" placeholder="Novo momento (ex.: Homenagem à madrinha)" aria-label="Novo momento"><button class="btn" type="submit">${icon('plus')}Adicionar</button></form>
+    <div id="cronSug" style="margin-top:14px"></div>
+    <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn primary" id="cronSave">${icon('check')}Salvar cronograma</button></div>`,
+  {wide:true,onMount:(md,close)=>{
+    const sync=()=>$$('#cron input',md).forEach(i=>{list[+i.dataset.i].nome=i.value});
+    const draw=()=>{
+      $('#cron',md).innerHTML=list.length?list.map((m,i)=>`<li><span class="mo-n">${i+1}</span><input value="${esc(m.nome)}" data-i="${i}" aria-label="Momento ${i+1}">
+        <button type="button" class="btn icon ghost sm" data-c="up" data-i="${i}" aria-label="Subir" ${i?'':'disabled'}>${icon('up')}</button>
+        <button type="button" class="btn icon ghost sm" data-c="down" data-i="${i}" aria-label="Descer" ${i<list.length-1?'':'disabled'}>${icon('down')}</button>
+        <button type="button" class="btn icon ghost sm danger" data-c="del" data-i="${i}" aria-label="Remover">${icon('trash')}</button></li>`).join('')
+        :'<li class="muted" style="justify-content:center;padding:14px">Nenhum momento. Adicione abaixo ou use as sugestões.</li>';
+      const names=new Set(list.map(m=>m.nome.trim().toLowerCase()));
+      const sug=(t.tpl||[]).filter(n=>!names.has(n.toLowerCase()));
+      $('#cronSug',md).innerHTML=sug.length?`<p class="muted" style="font-size:.85rem;margin-bottom:8px">Sugestões para ${t.nome.toLowerCase()}:</p><div class="chips">${sug.map(n=>`<button type="button" data-sg="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>`:'';
+    };
+    draw();
+    md.addEventListener('click',e=>{
+      const b=e.target.closest('[data-c]');
+      if(b){sync();const i=+b.dataset.i;
+        if(b.dataset.c==='del')list.splice(i,1);
+        else{const j=i+(b.dataset.c==='up'?-1:1);if(j>=0&&j<list.length)[list[i],list[j]]=[list[j],list[i]]}
+        draw();return}
+      const s=e.target.closest('[data-sg]');
+      if(s){sync();list.push({id:uid(),nome:s.dataset.sg});draw()}
+    });
+    $('#cronAdd',md).onsubmit=e=>{e.preventDefault();sync();const v=e.target.elements.n.value.trim();if(!v)return;list.push({id:uid(),nome:v});e.target.reset();draw()};
+    $('#cronSave',md).onclick=async()=>{
+      sync();list=list.filter(m=>m.nome.trim()).map(m=>({id:m.id,nome:m.nome.trim()}));
+      const ids=new Set(list.map(m=>m.id));
+      const orf=state.musicas.filter(m=>m.momentoId&&!ids.has(m.momentoId)).length;
+      ev.momentos=list;await saveEvento(ev);await pushMeta(ev,true);
+      close();renderList();Player.ui();
+      toast('Cronograma salvo.'+(orf?` ${orf} música(s) ficaram “sem momento” — edite para reposicionar.`:''),orf?'warn':'ok',orf?6000:3800);
+    };
+  }});
 }
 
 /* =========================================================
    AÇÕES: MÚSICAS
    ========================================================= */
 function openSongMenu(m){
-  openModal(`${modalHead(esc(m.titulo),esc(m.turma+' · '+m.professora))}
+  openModal(`${modalHead(esc(isCer()?cueOf(m):m.titulo),esc(descOf(m)))}
     <div class="sheet-list">
       ${hasAudio(m)?`<button data-m="play">${icon('play')}Tocar agora</button><button data-m="prep">${icon('next')}Preparar (carregar sem tocar)</button>`:''}
-      <button data-m="edit">${icon('edit')}Editar informações / trocar arquivo</button>
+      <button data-m="edit">${icon('cut')}Editar / ajustar início e fim / trocar arquivo</button>
       ${m.status==='tocada'?`<button data-m="pend">${icon('refresh')}Marcar como “a tocar”</button>`:m.status==='pronta'?`<button data-m="done">${icon('check')}Marcar como tocada</button>`:''}
       ${m.status==='erro'||(m.status==='baixando'&&!baixando.has(m.id))?`<button data-m="retry">${icon('refresh')}Tentar baixar novamente</button>`:''}
       ${hasAudio(m)?`<button data-m="dl">${icon('download')}Baixar o arquivo</button>`:''}
@@ -1121,76 +1665,79 @@ function openSongMenu(m){
 async function downloadAudio(m){
   const blob=await DB.get('audios',m.id);if(!blob)return toast('Áudio não encontrado.','err');
   const ext=(m.nomeArquivo&&m.nomeArquivo.includes('.'))?m.nomeArquivo.split('.').pop():({'audio/mpeg':'mp3','audio/mp4':'m4a','audio/ogg':'ogg','audio/wav':'wav','video/mp4':'mp4'}[blob.type]||'mp3');
-  const name=`${String(sorted().findIndex(x=>x.id===m.id)+1).padStart(2,'0')} - ${m.turma} - ${m.titulo}`.replace(/[\\/:*?"<>|]/g,'')+'.'+ext;
+  const n=String(sorted().findIndex(x=>x.id===m.id)+1).padStart(2,'0');
+  const name=(isCer()?`${n} - ${cueOf(m)} - ${m.titulo}`:`${n} - ${m.turma} - ${m.titulo}`).replace(/[\\/:*?"<>|]/g,'')+'.'+ext;
   const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);
 }
 
 async function deleteSong(m){
-  const viaLink=m.origem==='link'&&state.evento.gistId&&state.token;
-  const r=await confirmDialog(`A música <b>${esc(m.titulo)}</b> (${esc(m.turma)}) será removida deste evento.`,{title:'Excluir música',ok:'Excluir',danger:true,check:viaLink?{label:'Apagar também o arquivo enviado no GitHub',checked:true}:null});
-  if(!(viaLink?r.ok:r))return;
-  if(Player.cur?.id===m.id){Player.a.pause();Player.a.removeAttribute('src');Player.cur=null;Player.ui()}
   const ev=state.evento;
-  ev.removidos=[...new Set([...(ev.removidos||[]),m.id])];await saveEvento(ev);
-  await DB.del('musicas',m.id);await DB.del('audios',m.id);
-  state.musicas=state.musicas.filter(x=>x.id!==m.id);
-  await renumber();renderList();toast('Música excluída.','ok');
+  const viaLink=m.origem==='link'&&ev.gistId&&state.token;
+  const r=await confirmDialog(`A música <b>${esc(m.titulo)}</b> (${esc(isCer()?cueOf(m):m.turma)}) será removida deste evento.${isCer()?' O momento continua no cronograma.':''}`,{title:'Excluir música',ok:'Excluir',danger:true,check:viaLink?{label:'Apagar também o arquivo enviado no GitHub',checked:true}:null});
+  if(!(viaLink?r.ok:r))return;
+  if(Player.cur?.id===m.id){Player.a.pause();Player.a.removeAttribute('src');Player.cur=null}
+  await removeLocal(m);
+  await renumber();renderList();Player.ui();toast('Música excluída.','ok');
   if(viaLink&&r.checked){
     try{
       await ghRetry(`/gists/${ev.gistId}`,{method:'PATCH',body:{files:{[`sub_${m.id}.json`]:null}}});
-      if(m.audioGistId)await gh(`/gists/${m.audioGistId}`,{method:'DELETE'}).catch(()=>{});
+      if(m.audioGistId&&!state.musicas.some(x=>x.audioGistId===m.audioGistId))await gh(`/gists/${m.audioGistId}`,{method:'DELETE'}).catch(()=>{});
     }catch(e){toast('Removida daqui, mas não foi possível apagar no GitHub: '+esc(e.message),'warn',6000)}
   }
 }
 
-function songFields(m={}){
-  return`<div class="stack">
-    <div class="grid2">
-      <label class="field"><span>Professora *</span><input name="professora" value="${esc(m.professora)}" required></label>
-      <label class="field"><span>Turma *</span><input name="turma" value="${esc(m.turma)}" required></label>
-    </div>
-    <div class="grid2">
-      <label class="field"><span>Música *</span><input name="titulo" value="${esc(m.titulo)}" required></label>
-      <label class="field"><span>Artista</span><input name="artista" value="${esc(m.artista)}"></label>
-    </div>
-    <div class="grid2">
-      <label class="field"><span>Começar em</span><input name="inicio" placeholder="mm:ss" value="${m.inicio?fmt(m.inicio):''}" inputmode="numeric"></label>
-      <label class="field"><span>Terminar em (fade automático)</span><input name="fim" placeholder="mm:ss" value="${m.fim?fmt(m.fim):''}" inputmode="numeric"></label>
-    </div>
-    <label class="field"><span>Observações</span><textarea name="obs" rows="2">${esc(m.obs)}</textarea></label>
-  </div>`;
-}
-
-function openSongForm(m=null){
-  const isNew=!m;
-  openModal(`${modalHead(isNew?'Adicionar música':'Editar música',isNew?'Para músicas que chegaram por outro meio (WhatsApp, pen drive…).':'')}
-    <form id="sf">${songFields(m||{})}
-      <label class="field" style="margin-top:14px"><span>${isNew?'Arquivo de áudio *':'Trocar arquivo (opcional)'}</span>
-        <input type="file" name="arquivo" accept="audio/*,video/mp4,.mp3,.m4a,.aac,.wav,.ogg,.opus,.oga,.flac,.mp4,.webm" style="padding:10px"></label>
+function openSongForm(m=null,momentoId=null){
+  const isNew=!m,cer=isCer(),ev=state.evento;
+  const selMom=(m?.momentoId)||momentoId||'';
+  let af=null;
+  openModal(`${modalHead(isNew?'Adicionar música':'Editar música',isNew?'Para músicas que chegaram por outro meio (WhatsApp, pen drive…).':'Ajuste os dados, o trecho (início/fim) ou troque o arquivo.')}
+    <form id="sf" class="stack">
+      ${cer?`<label class="field"><span>Momento *</span><select name="momento">${(ev.momentos||[]).map(mo=>`<option value="${mo.id}" ${selMom===mo.id?'selected':''}>${esc(mo.nome)}</option>`).join('')}<option value="" ${selMom&&ev.momentos.some(x=>x.id===selMom)?'':'selected'}>— sem momento —</option></select></label>`
+        :`<div class="grid2">
+          <label class="field"><span>Professora *</span><input name="professora" value="${esc(m?.professora)}"></label>
+          <label class="field"><span>Turma *</span><input name="turma" value="${esc(m?.turma)}"></label></div>`}
+      <div class="grid2">
+        <label class="field"><span>Música *</span><input name="titulo" value="${esc(m?.titulo)}"></label>
+        <label class="field"><span>Artista</span><input name="artista" value="${esc(m?.artista)}"></label>
+      </div>
+      <div class="field"><span>Arquivo de áudio${isNew?' *':''} — início, fim e fades</span><div id="sfAudio"></div></div>
+      <label class="field"><span>Observações</span><textarea name="obs" rows="2">${esc(m?.obs)}</textarea></label>
       <p class="err" id="sfErr" hidden></p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}${isNew?'Adicionar':'Salvar'}</button></div>
     </form>`,
-  {onMount:(md,close)=>{
+  {wide:true,onClose:()=>af?.destroy(),onMount:(md,close)=>{
+    af=audioField($('#sfAudio',md),{
+      atual:!isNew&&hasAudio(m)?{nome:m.nomeArquivo||'Arquivo atual',tamanho:m.tamanho}:null,
+      loadAtual:m?()=>DB.get('audios',m.id):null,
+      valores:{inicio:m?.inicio||0,fim:m?.fim||0,fadeIn:!!m?.fadeIn,fadeOut:m?m.fadeOut!==false:true}
+    });
     const f=$('#sf',md);
     f.onsubmit=async e=>{
       e.preventDefault();
       const err=$('#sfErr',md);err.hidden=true;
-      const v=k=>f.elements[k].value.trim();
-      if(!v('professora')||!v('turma')||!v('titulo')){err.innerHTML=icon('alert')+'Preencha professora, turma e música.';err.hidden=false;return}
-      const file=f.elements.arquivo.files[0];
-      if(isNew&&!file){err.innerHTML=icon('alert')+'Escolha o arquivo de áudio.';err.hidden=false;return}
+      const fail=msg=>{err.innerHTML=icon('alert')+esc(msg);err.hidden=false};
+      const v=k=>(f.elements[k]?.value||'').trim();
+      if(!v('titulo'))return fail('Informe o nome da música.');
+      if(!cer&&(!v('professora')||!v('turma')))return fail('Preencha professora e turma.');
+      if(isNew&&!af.file)return fail('Escolha o arquivo de áudio.');
+      const ve=af.validate();if(ve)return fail(ve);
       const btn=$('[type=submit]',f);btn.disabled=true;
-      const x=m||{id:uid(),eventoId:state.evento.id,origem:'manual',recebidoEm:new Date().toISOString(),ordem:state.musicas.reduce((a,y)=>Math.max(a,y.ordem||0),0)+1,status:'pronta',duracao:0};
-      Object.assign(x,{professora:v('professora'),turma:v('turma'),titulo:v('titulo'),artista:v('artista'),inicio:parseTime(v('inicio')),fim:parseTime(v('fim')),obs:v('obs')});
-      if(file){
-        const blob=new Blob([file],{type:mimeOf(file)});
-        await DB.put('audios',blob,x.id);
-        x.mime=blob.type;x.nomeArquivo=file.name;x.tamanho=file.size;x.duracao=await getDuration(blob);
-        if(x.status==='erro'||x.status==='baixando')x.status='pronta';x.erro='';
-      }
-      await saveMusica(x);
-      if(Player.cur?.id===x.id)Player.cur=x;
-      close();renderList();Player.ui();toast(isNew?'Música adicionada.':'Alterações salvas.','ok');
+      try{
+        const x=m||{id:uid(),eventoId:ev.id,origem:'manual',recebidoEm:new Date().toISOString(),ordem:state.musicas.reduce((a,y)=>Math.max(a,y.ordem||0),0)+1,status:'pronta',duracao:0};
+        Object.assign(x,{titulo:v('titulo'),artista:v('artista'),obs:v('obs')});
+        if(cer){x.momentoId=v('momento');x.momentoNome=(ev.momentos||[]).find(mo=>mo.id===x.momentoId)?.nome||'';}
+        else{x.professora=v('professora');x.turma=v('turma')}
+        const tv=af.values();if(tv)Object.assign(x,tv);
+        if(af.file){
+          const blob=new Blob([af.file],{type:mimeOf(af.file)});
+          await DB.put('audios',blob,x.id);
+          x.mime=blob.type;x.nomeArquivo=af.file.name;x.tamanho=af.file.size;x.duracao=await getDuration(blob);
+          if(x.status!=='tocada')x.status='pronta';x.erro='';
+        }
+        await saveMusica(x);
+        if(Player.cur?.id===x.id){Player.cur=x;if(Player.a.paused&&!af.file)await Player.seekTo(Player.bounds().ini);if(af.file)await Player.load(x,false)}
+        close();renderList();Player.ui();toast(isNew?'Música adicionada.':'Alterações salvas.','ok');
+      }catch(x){fail(x.message);btn.disabled=false}
     };
   }});
 }
@@ -1208,51 +1755,72 @@ async function selectEvent(id){
 }
 
 function openEventForm(ev=null){
-  const isNew=!ev;
+  const isNew=!ev,tipo0=ev?.tipo||'escolar';
   openModal(`${modalHead(isNew?'Novo evento':'Editar evento')}
     <form id="ef" class="stack">
-      <label class="field"><span>Nome do evento ${isNew?'':'*'}</span><input name="nome" value="${esc(ev?.nome)}" placeholder="Ex.: Abertura dos Jogos Internos 2026"></label>
+      <div class="field"><span>Tipo de evento</span><div class="tipos">${Object.entries(TIPOS).map(([k,t])=>`<label class="tipo"><input type="radio" name="tipo" value="${k}" ${k===tipo0?'checked':''}><span>${icon(t.icon)}<b>${t.nome}</b><small>${t.desc}</small></span></label>`).join('')}</div></div>
+      <label class="field" id="efHom"><span id="efHomL">Homenageado(s)</span><input name="homenageados" value="${esc(ev?.homenageados)}"></label>
+      <label class="field"><span>Nome do evento</span><input name="nome" value="${esc(ev?.nome)}" placeholder="Ex.: Abertura dos Jogos Internos 2026"></label>
       <div class="grid2">
         <label class="field"><span>Data</span><input type="date" name="data" value="${esc(ev?.data)}"></label>
-        <label class="field"><span>Local</span><input name="local" value="${esc(ev?.local)}" placeholder="Ex.: Quadra principal"></label>
+        <label class="field"><span>Local</span><input name="local" value="${esc(ev?.local)}" placeholder="Ex.: Salão de festas"></label>
       </div>
+      <div class="field" id="efTpl" hidden><span>Momentos do cronograma (pode mudar depois)</span><div class="tpl" id="efTplL"></div></div>
       ${isNew?`<details class="adv"><summary>Abrir um evento já existente em outro aparelho</summary>
         <label class="field" style="margin-top:10px"><span>ID do Gist do evento</span><input name="gist" placeholder="Ex.: 3f9a1c…"></label>
-        <p class="muted" style="font-size:.85rem;margin-top:6px">Use o mesmo token do GitHub. O ID aparece em “Links para professoras” no outro aparelho.</p></details>`:''}
-      ${isNew&&!state.token?`<div class="note warn">${icon('alert')}<div>Sem token do GitHub o evento funciona só neste aparelho (sem links para professoras). Você pode ativar depois.</div></div>`:''}
+        <p class="muted" style="font-size:.85rem;margin-top:6px">Use o mesmo token do GitHub. O ID aparece na janela de links no outro aparelho.</p></details>`:''}
+      ${isNew&&!state.token?`<div class="note warn">${icon('alert')}<div>Sem token do GitHub o evento funciona só neste aparelho (sem links de envio). Você pode ativar depois.</div></div>`:''}
       <p class="err" id="efErr" hidden></p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}${isNew?'Criar evento':'Salvar'}</button></div>
     </form>`,
-  {onMount:(md,close)=>{
+  {wide:true,onMount:(md,close)=>{
     const f=$('#ef',md);
+    const upd=()=>{
+      const t=TIPOS[f.elements.tipo.value];
+      $('#efHom',md).hidden=!t.cer;
+      $('#efHomL',md).textContent=t.hom||'';
+      f.elements.homenageados.placeholder=t.ph||'';
+      f.elements.nome.placeholder=t.cer?(t.auto('…')+' (opcional, preenche sozinho)'):'Ex.: Abertura dos Jogos Internos 2026';
+      const needTpl=t.cer&&(isNew||!(ev.momentos||[]).length);
+      $('#efTpl',md).hidden=!needTpl;
+      if(needTpl)$('#efTplL',md).innerHTML=t.tpl.map((n,i)=>`<label class="chk"><input type="checkbox" value="${esc(n)}" checked> ${esc(n)}</label>`).join('');
+    };
+    f.addEventListener('change',e=>{if(e.target.name==='tipo')upd()});upd();
     f.onsubmit=async e=>{
       e.preventDefault();
       const err=$('#efErr',md);err.hidden=true;
-      const nome=f.elements.nome.value.trim(),data=f.elements.data.value,local=f.elements.local.value.trim();
-      const gistIn=(f.elements.gist?.value||'').trim().split('/').pop();
+      const btn=$('[type=submit]',f);
       const fail=msg=>{err.innerHTML=icon('alert')+esc(msg);err.hidden=false;btn.disabled=false};
-      const btn=$('[type=submit]',f);btn.disabled=true;
+      const tipo=f.elements.tipo.value,t=TIPOS[tipo];
+      const hom=f.elements.homenageados.value.trim();
+      let nome=f.elements.nome.value.trim();
+      const data=f.elements.data.value,local=f.elements.local.value.trim();
+      const gistIn=(f.elements.gist?.value||'').trim().split('/').pop();
+      if(!nome&&t.cer&&hom)nome=t.auto(hom);
+      const tplSel=$('#efTpl',md).hidden?null:$$('#efTplL input:checked',md).map(i=>({id:uid(),nome:i.value}));
+      btn.disabled=true;
       try{
         if(isNew){
-          const novo={id:uid(),nome,data,local,criadoEm:new Date().toISOString(),gistId:'',links:[],removidos:[]};
+          const novo={id:uid(),tipo,homenageados:t.cer?hom:'',nome,data,local,criadoEm:new Date().toISOString(),gistId:'',links:[],removidos:[],momentos:tplSel||[]};
           if(gistIn){
             if(!state.token)return fail('Configure o token do GitHub para abrir um evento existente.');
+            if(state.eventos.some(x=>x.gistId===gistIn))return fail('Este evento já está aberto neste aparelho.');
             const r=await gh(`/gists/${gistIn}`);
             let meta={};try{meta=JSON.parse(await readGistFile(r.data.files['evento.json']))}catch{}
-            if(state.eventos.some(x=>x.gistId===gistIn))return fail('Este evento já está aberto neste aparelho.');
-            Object.assign(novo,{gistId:gistIn,nome:nome||meta.nome||'Evento importado',data:data||meta.data||'',local:local||meta.local||''});
+            Object.assign(novo,{gistId:gistIn,nome:nome||meta.nome||'Evento importado',data:data||meta.data||'',local:local||meta.local||'',tipo:meta.tipo||tipo,homenageados:meta.homenageados||hom,momentos:meta.momentos?.length?meta.momentos:novo.momentos});
           }else{
-            if(!nome)return fail('Informe o nome do evento.');
+            if(!nome)return fail(t.cer?`Informe o ${t.hom.toLowerCase()} ou o nome do evento.`:'Informe o nome do evento.');
             if(state.token)novo.gistId=await criarGistEvento(novo);
           }
           await saveEvento(novo);close();await selectEvent(novo.id);
-          toast(novo.gistId?'Evento criado! Agora envie os links para as professoras.':'Evento criado (somente neste aparelho).','ok');
+          toast(novo.gistId?'Evento criado! Agora envie o link.':'Evento criado (somente neste aparelho).','ok');
           if(novo.gistId&&!gistIn)setTimeout(openLinks,400);
         }else{
           if(!nome)return fail('Informe o nome do evento.');
-          Object.assign(ev,{nome,data,local});await saveEvento(ev);
-          if(ev.gistId&&state.token)gh(`/gists/${ev.gistId}`,{method:'PATCH',body:{description:`[Palco Musical] Evento: ${nome}`,files:{'evento.json':{content:JSON.stringify({app:'palco-musical',v:1,nome,data,local},null,1)}}}}).catch(()=>{});
-          close();renderEvSel();renderMain();toast('Evento atualizado.','ok');
+          Object.assign(ev,{nome,data,local,tipo,homenageados:t.cer?hom:''});
+          if(t.cer&&!(ev.momentos||[]).length&&tplSel)ev.momentos=tplSel;
+          await saveEvento(ev);pushMeta(ev,true);
+          close();renderEvSel();renderMain();Player.ui();toast('Evento atualizado.','ok');
         }
       }catch(x){fail(x.message)}
     };
@@ -1260,7 +1828,7 @@ function openEventForm(ev=null){
 }
 
 async function criarGistEvento(ev){
-  const r=await gh('/gists',{method:'POST',body:{description:`[Palco Musical] Evento: ${ev.nome}`,public:false,files:{'evento.json':{content:JSON.stringify({app:'palco-musical',v:1,nome:ev.nome,data:ev.data,local:ev.local},null,1)}}}});
+  const r=await gh('/gists',{method:'POST',body:{description:`[Palco Musical] Evento: ${ev.nome}`,public:false,files:{'evento.json':{content:metaJSON(ev)}}}});
   return r.data.id;
 }
 async function ativarEnvios(){
@@ -1278,8 +1846,8 @@ async function deleteEvent(){
   await DB.del('eventos',ev.id);state.eventos=state.eventos.filter(e=>e.id!==ev.id);
   if(r.checked){
     try{
-      const g=await gh(`/gists/${ev.gistId}`);
-      for(const[n,f]of Object.entries(g.data.files||{})){if(!n.startsWith('sub_'))continue;try{const meta=JSON.parse(await readGistFile(f));if(meta.audioGistId)await gh(`/gists/${meta.audioGistId}`,{method:'DELETE'}).catch(()=>{})}catch{}}
+      const g=await gh(`/gists/${ev.gistId}`);const seen=new Set();
+      for(const[n,f]of Object.entries(g.data.files||{})){if(!n.startsWith('sub_'))continue;try{const meta=JSON.parse(await readGistFile(f));if(meta.audioGistId&&!seen.has(meta.audioGistId)){seen.add(meta.audioGistId);await gh(`/gists/${meta.audioGistId}`,{method:'DELETE'}).catch(()=>{})}}catch{}}
       await gh(`/gists/${ev.gistId}`,{method:'DELETE'});
     }catch(e){toast('Evento removido daqui, mas houve erro ao limpar o GitHub: '+esc(e.message),'warn',6000)}
   }
@@ -1288,37 +1856,42 @@ async function deleteEvent(){
 }
 
 /* =========================================================
-   LINKS PARA PROFESSORAS
+   LINKS (professoras / noivos / debutante)
    ========================================================= */
 const baseUrl=()=>location.href.split('#')[0];
 function makeLink(ev,prof='',turma=''){
   const p={g:ev.gistId,t:state.token,e:ev.nome,d:ev.data||''};
+  if(isCer(ev)){p.m='c';p.k=ev.tipo}
   if(prof)p.p=prof;if(turma)p.u=turma;
   return baseUrl()+'#enviar='+b64urlEnc(JSON.stringify(p));
 }
 function waMsg(ev,link,prof='',turma=''){
-  return`Olá${prof?', '+prof:''}! 🎵\nPara o evento *${ev.nome}*${ev.data?' ('+ev.data.split('-').reverse().join('/')+')':''}, envie a música da turma${turma?' *'+turma+'*':''} por este link:\n\n${link}\n\nÉ só preencher os dados e anexar o arquivo. Obrigado!`;
+  const dt=ev.data?' ('+ev.data.split('-').reverse().join('/')+')':'';
+  if(isCer(ev))return`Olá${prof?', '+prof:''}! ✨\nAqui está o link para enviar as músicas do cerimonial de *${ev.nome}*${dt}:\n\n${link}\n\nEm cada momento você anexa a música e pode marcar exatamente onde ela começa e termina — é assim que ela vai tocar no dia. 🎶`;
+  return`Olá${prof?', '+prof:''}! 🎵\nPara o evento *${ev.nome}*${dt}, envie a música da turma${turma?' *'+turma+'*':''} por este link:\n\n${link}\n\nÉ só preencher os dados, anexar o arquivo e, se quiser, marcar onde a música começa e termina. Obrigado!`;
 }
-function openLinks(){
+async function openLinks(){
   const ev=state.evento;
   if(!ev.gistId)return ativarEnvios();
   if(!state.token)return openSettings();
+  const cer=isCer(ev),t=tipoDe(ev);
+  if(cer)pushMeta(ev,true);
   const local=location.protocol==='file:';
   const geral=makeLink(ev);
-  const linksHTML=()=>(ev.links||[]).length?(ev.links||[]).map((l,i)=>`<li><div><strong>${esc(l.professora||'Professora')} ${l.turma?'· '+esc(l.turma):''}</strong><small>Criado em ${fmtHora(l.criadoEm)}</small></div>
+  const linksHTML=()=>(ev.links||[]).length?(ev.links||[]).map((l,i)=>`<li><div><strong>${esc(l.professora||(cer?'Cliente':'Professora'))} ${l.turma?'· '+esc(l.turma):''}</strong><small>Criado em ${fmtHora(l.criadoEm)}</small></div>
       <button class="btn icon sm" data-l="copy" data-i="${i}" title="Copiar link" aria-label="Copiar">${icon('copy')}</button>
       <button class="btn icon sm wa" data-l="wa" data-i="${i}" title="Enviar no WhatsApp" aria-label="WhatsApp">${icon('wa')}</button>
       <button class="btn icon ghost sm" data-l="rm" data-i="${i}" title="Remover da lista" aria-label="Remover">${icon('x')}</button></li>`).join(''):'<li style="justify-content:center;color:var(--muted)">Nenhum link personalizado ainda.</li>';
-  openModal(`${modalHead('Links para professoras','Cada professora abre o link, preenche os dados da turma e anexa a música. Você recebe aqui em tempo real.')}
-    ${local?`<div class="note warn" style="margin-bottom:14px">${icon('alert')}<div><b>Atenção:</b> este arquivo está aberto direto do computador (file://). Para os links funcionarem no celular das professoras, publique este HTML na internet (ex.: GitHub Pages ou Netlify) e abra o sistema por lá.</div></div>`:''}
-    <div class="field"><span>Link geral do evento (qualquer professora)</span>
-      <div class="copyrow"><input readonly value="${esc(geral)}" aria-label="Link geral"><button class="btn icon" id="lgCopy" title="Copiar" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="lgWa" title="Enviar no WhatsApp" aria-label="WhatsApp">${icon('wa')}</button></div>
+  openModal(`${modalHead(cer?'Link para '+t.quem:'Links para professoras',cer?`Pelo link, ${t.quem} veem o cronograma, escolhem a música de cada momento e marcam onde ela começa e termina. Você recebe tudo aqui em tempo real.`:'Cada professora abre o link, preenche os dados da turma e anexa a música. Você recebe aqui em tempo real.')}
+    ${local?`<div class="note warn" style="margin-bottom:14px">${icon('alert')}<div><b>Atenção:</b> este arquivo está aberto direto do computador (file://). Para os links funcionarem no celular de quem vai enviar, publique este HTML na internet (ex.: GitHub Pages ou Netlify) e abra o sistema por lá.</div></div>`:''}
+    <div class="field"><span>${cer?'Link do cerimonial':'Link geral do evento (qualquer professora)'}</span>
+      <div class="copyrow"><input readonly value="${esc(geral)}" aria-label="Link"><button class="btn icon" id="lgCopy" title="Copiar" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="lgWa" title="Enviar no WhatsApp" aria-label="WhatsApp">${icon('wa')}</button></div>
     </div>
     <hr class="sep">
     <h3 style="font-size:1.05rem;margin-bottom:4px">Link personalizado</h3>
-    <p class="muted" style="font-size:.9rem;margin-bottom:12px">Já chega com o nome da professora e a turma preenchidos.</p>
+    <p class="muted" style="font-size:.9rem;margin-bottom:12px">${cer?'Já chega com o nome de quem vai enviar (ex.: a noiva, a mãe da debutante, a cerimonialista).':'Já chega com o nome da professora e a turma preenchidos.'}</p>
     <form id="lpF" class="stack">
-      <div class="grid2"><input name="p" placeholder="Nome da professora" aria-label="Nome da professora"><input name="u" placeholder="Turma" aria-label="Turma"></div>
+      <div class="grid2">${cer?`<input name="p" placeholder="Nome de quem vai enviar" aria-label="Nome"><input name="u" placeholder="Observação (opcional)" aria-label="Observação" style="display:none">`:`<input name="p" placeholder="Nome da professora" aria-label="Nome da professora"><input name="u" placeholder="Turma" aria-label="Turma">`}</div>
       <button class="btn primary" type="submit">${icon('link')}Gerar link</button>
     </form>
     <ul class="linklist" id="lpList">${linksHTML()}</ul>
@@ -1334,8 +1907,8 @@ function openLinks(){
     $('#lgWa',md).onclick=()=>wa(waMsg(ev,geral));
     $('#gidCopy',md).onclick=()=>cp(ev.gistId);
     $('#lpF',md).onsubmit=async e=>{
-      e.preventDefault();const f=e.target;const p=f.elements.p.value.trim(),u=f.elements.u.value.trim();
-      if(!p&&!u)return toast('Informe a professora ou a turma.','warn');
+      e.preventDefault();const f=e.target;const p=f.elements.p.value.trim(),u=cer?'':f.elements.u.value.trim();
+      if(!p&&!u)return toast(cer?'Informe o nome.':'Informe a professora ou a turma.','warn');
       ev.links=[{professora:p,turma:u,criadoEm:new Date().toISOString()},...(ev.links||[])];await saveEvento(ev);
       f.reset();$('#lpList',md).innerHTML=linksHTML();
       const ok=await copyText(makeLink(ev,p,u));toast(ok?'Link gerado e copiado!':'Link gerado.','ok');
@@ -1358,7 +1931,7 @@ function openSettings(){
   const notif='Notification'in window;
   openModal(`${modalHead('Configurações','Conexão com o GitHub Gist, notificações e atalhos.')}
     <div class="stack">
-      <div class="note">${icon('info')}<div>O <b>GitHub Gist</b> funciona como uma caixa de entrada na nuvem: a professora envia a música pelo link e este painel baixa automaticamente, salvando no navegador (IndexedDB) para tocar mesmo sem internet.</div></div>
+      <div class="note">${icon('info')}<div>O <b>GitHub Gist</b> funciona como uma caixa de entrada na nuvem: quem recebe o link envia a música e este painel baixa automaticamente, salvando no navegador (IndexedDB) para tocar mesmo sem internet.</div></div>
       <ol style="margin:0;padding-left:20px;color:var(--muted);font-size:.92rem;display:flex;flex-direction:column;gap:4px">
         <li>Entre (ou crie) uma conta no GitHub — de preferência uma conta só para os eventos.</li>
         <li><a href="https://github.com/settings/tokens/new?scopes=gist&description=Palco%20Musical" target="_blank" rel="noopener">Gere um token clássico</a> marcando <b>somente</b> a permissão <code>gist</code>.</li>
@@ -1367,7 +1940,7 @@ function openSettings(){
       <label class="field"><span>Token do GitHub</span>
         <div class="copyrow"><input type="password" id="tk" value="${esc(state.token)}" placeholder="ghp_…" autocomplete="off" spellcheck="false"><button class="btn icon" id="tkEye" type="button" aria-label="Mostrar token">${icon('eye')}</button></div></label>
       <div class="tk-status ${state.login?'ok':''}" id="tkSt">${state.login?'✓ Conectado como @'+esc(state.login):''}</div>
-      <div class="note warn">${icon('alert')}<div>O token vai dentro dos links enviados às professoras, então quem tiver o link consegue enviar arquivos para seus Gists. Use uma conta dedicada, permissão apenas <code>gist</code> e, se quiser, revogue o token após o evento. Se trocar o token, gere os links novamente.</div></div>
+      <div class="note warn">${icon('alert')}<div>O token vai dentro dos links enviados, então quem tiver o link consegue enviar arquivos para seus Gists. Use uma conta dedicada, permissão apenas <code>gist</code> e, se quiser, revogue o token após o evento. Se trocar o token, gere os links novamente.</div></div>
       <div class="row" style="justify-content:flex-end">
         ${state.token?`<button class="btn ghost danger sm" id="tkRm">Remover token</button>`:''}
         <button class="btn primary" id="tkSave">${icon('check')}Salvar e testar</button>
@@ -1379,7 +1952,7 @@ function openSettings(){
       </div>
       <hr class="sep" style="margin:6px 0">
       <div><strong style="display:block;margin-bottom:8px">Atalhos de teclado</strong>
-        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início</span><kbd>F</kbd><span>Fade out e encerrar</span><kbd>S</kbd><span>Parar</span><kbd>← →</kbd><span>Voltar / avançar 5 s</span><kbd>T</kbd><span>Modo palco</span></div>
+        <div class="kbd"><kbd>Espaço</kbd><span>Tocar / pausar (sempre a partir do início marcado)</span><kbd>N</kbd><span>Próxima</span><kbd>P</kbd><span>Anterior / voltar ao início do trecho</span><kbd>F</kbd><span>Fade out e encerrar agora</span><kbd>S</kbd><span>Parar e voltar ao início do trecho</span><kbd>← →</kbd><span>Voltar / avançar 5 s (dentro do trecho)</span><kbd>T</kbd><span>Modo palco</span></div>
       </div>
     </div>`,
   {onMount:(md,close)=>{
@@ -1410,7 +1983,7 @@ function bindKeys(){
   document.addEventListener('keydown',e=>{
     const mods=$$('.modal-back');
     if(e.key==='Escape'){if(mods.length)mods[mods.length-1]._close();else if(Stage.on)Stage.close();return}
-    if(mods.length||e.target.closest('input,textarea,select,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey)return;
+    if($('#admin').hidden||mods.length||e.target.closest('input,textarea,select,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey)return;
     const k=e.key.toLowerCase();
     if(k===' '){e.preventDefault();Player.toggle()}
     else if(k==='n')Player.next();
@@ -1437,8 +2010,7 @@ async function initAdmin(){
   $('#syncBtn').onclick=()=>{if(!state.token)return openSettings();if(state.evento&&!state.evento.gistId)return toast('Este evento não recebe envios por link. Use “Ativar envios por link”.','info');Sync.tick(true)};
   $('#stClose').onclick=()=>Stage.close();
   $('#stage').onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;({play:()=>Player.toggle(),next:()=>Player.next(),prev:()=>Player.prev(),stop:()=>Player.stop(),fade:()=>Player.fade()})[b.dataset.st]()};
-  $('#stBar').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();if(Player.a.duration)Player.a.currentTime=(e.clientX-r.left)/r.width*Player.a.duration};
-  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&Stage.on){/* mantém o modo palco mesmo fora da tela cheia */}});
+  $('#stBar').onclick=e=>{if(!Player.cur||!Player.a.duration)return;const r=e.currentTarget.getBoundingClientRect();const{ini,end}=Player.bounds();Player.a.currentTime=Math.min(end-0.15,ini+(e.clientX-r.left)/r.width*(end-ini));Player.fadeInOn=false};
   window.addEventListener('online',()=>Sync.tick(true));
   window.addEventListener('offline',()=>setSync('off'));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){state.badge=0;document.title='Palco Musical';Sync.tick();requestWake()}});
@@ -1449,75 +2021,49 @@ async function initAdmin(){
 }
 
 /* =========================================================
-   PÁGINA DA PROFESSORA
+   PÁGINA DA PROFESSORA (evento escolar)
    ========================================================= */
 async function initProf(P){
   $('#prof').hidden=false;
   document.title='Enviar música · '+(P.e||'Evento');
   $('#pEvento').textContent=P.e||'Evento';
   $('#pData').textContent=fmtDate(P.d);
-  const f=$('#pForm'),fi=$('#pFileIn'),box=$('#pFileBox'),drop=$('#pDrop'),err=$('#pErr'),prog=$('#pProg'),send=$('#pSend');
+  const f=$('#pForm'),err=$('#pErr'),prog=$('#pProg'),send=$('#pSend');
   let saved={};try{saved=JSON.parse(localStorage.getItem('palco_prof')||'{}')}catch{}
   f.elements.professora.value=P.p||saved.professora||'';
   f.elements.turma.value=P.u||saved.turma||'';
-  let file=null,prevUrl=null;
-
+  let af=audioField($('#pAudio'));
   const showErr=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'center'})};
-  const setFile=fl=>{
-    err.hidden=true;
-    if(!fl)return;
-    if(fl.size===0)return showErr('O arquivo está vazio.');
-    if(fl.size>MAX_MB*1048576)return showErr(`O arquivo tem ${fmtSize(fl.size)}. O limite é ${MAX_MB} MB — envie em MP3 para ficar menor.`);
-    const isMedia=/^(audio|video)\//.test(fl.type)||MIMES[(fl.name.split('.').pop()||'').toLowerCase()];
-    if(!isMedia)return showErr('Escolha um arquivo de áudio (MP3, M4A, WAV, OGG…).');
-    file=fl;if(prevUrl)URL.revokeObjectURL(prevUrl);prevUrl=URL.createObjectURL(fl);
-    if(!f.elements.titulo.value.trim())f.elements.titulo.value=fl.name.replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').trim();
-    box.innerHTML=`<div class="fh">${icon('music')}<div><strong>${esc(fl.name)}</strong><small>${fmtSize(fl.size)}${fl.size>15*1048576?' · arquivo grande, o envio pode demorar':''}</small></div><button type="button" class="btn icon ghost sm" id="pRm" aria-label="Remover arquivo">${icon('x')}</button></div><audio controls preload="metadata" src="${prevUrl}"></audio>`;
-    box.hidden=false;drop.hidden=true;
-    $('#pRm').onclick=()=>{file=null;fi.value='';box.hidden=true;drop.hidden=false};
-  };
-  fi.onchange=()=>setFile(fi.files[0]);
-  ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
-  ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
-  drop.addEventListener('drop',e=>setFile(e.dataTransfer.files[0]));
-
-  const setProg=(p,txt)=>{prog.hidden=false;$('.bar',prog).style.width=Math.round(p*100)+'%';$('span',prog).textContent=txt||Math.round(p*100)+'%'};
 
   f.onsubmit=async e=>{
     e.preventDefault();err.hidden=true;
     const v=k=>f.elements[k].value.trim();
     if(!v('professora')||!v('turma')||!v('titulo'))return showErr('Preencha o nome da professora, a turma e o nome da música.');
-    if(!file)return showErr('Escolha o arquivo da música.');
+    if(!af.file)return showErr('Escolha o arquivo da música.');
+    const ve=af.validate();if(ve)return showErr(esc(ve));
     if(!navigator.onLine)return showErr('Você está sem internet. Conecte-se e tente novamente.');
     try{localStorage.setItem('palco_prof',JSON.stringify({professora:v('professora'),turma:v('turma')}))}catch{}
-    send.disabled=true;$$('input,textarea,button',f).forEach(x=>x.disabled=true);
-    const id=uid();
+    $$('input,textarea,button',f).forEach(x=>x.disabled=true);
     try{
-      setProg(.02,'Preparando arquivo…');
-      const b64=await fileToB64(file);
-      const audioName=`audio_${id}.b64`;
-      const g=await ghUpload('/gists','POST',P.t,{description:`[Palco Musical] Áudio: ${v('titulo')} — ${v('turma')} (${P.e})`,public:false,files:{[audioName]:{content:b64}}},p=>setProg(.05+p*.85,`Enviando… ${Math.round(p*100)}%`));
-      setProg(.93,'Registrando no evento…');
-      const meta={id,professora:v('professora'),turma:v('turma'),titulo:v('titulo'),artista:v('artista'),inicio:parseTime(v('inicio')),fim:parseTime(v('fim')),ordem:parseInt(v('ordem'))||0,obs:v('obs'),nomeArquivo:file.name,mime:mimeOf(file),tamanho:file.size,audioGistId:g.id,audioArquivo:audioName,enviadoEm:new Date().toISOString()};
-      await ghRetry(`/gists/${P.g}`,{method:'PATCH',token:P.t,body:{files:{[`sub_${id}.json`]:{content:JSON.stringify(meta,null,1)}}}});
-      setProg(1,'Concluído!');
-      try{await DB.put('envios',{id,evento:P.e,gistId:P.g,titulo:meta.titulo,turma:meta.turma,enviadoEm:meta.enviadoEm})}catch{}
-      $('#pOkTxt').innerHTML=`<b>${esc(meta.titulo)}</b> da turma <b>${esc(meta.turma)}</b> já está com o organizador de <b>${esc(P.e)}</b>.`;
-      f.hidden=true;$('#pOk').hidden=false;window.scrollTo({top:0,behavior:'smooth'});
+      const tv=af.values()||{};
+      const meta=await enviarSub({P,file:af.file,meta:{professora:v('professora'),enviadoPor:v('professora'),turma:v('turma'),titulo:v('titulo'),artista:v('artista'),ordem:parseInt(v('ordem'))||0,obs:v('obs'),inicio:tv.inicio||0,fim:tv.fim||0,fadeIn:!!tv.fadeIn,fadeOut:tv.fadeOut!==false},onProg:(p,t)=>setProg(prog,p,t)});
+      try{await DB.put('envios',{id:meta.id,evento:P.e,gistId:P.g,titulo:meta.titulo,turma:meta.turma,enviadoEm:meta.enviadoEm})}catch{}
+      $('#pOkTxt').innerHTML=`<b>${esc(meta.titulo)}</b> da turma <b>${esc(meta.turma)}</b> já está com o organizador de <b>${esc(P.e)}</b>.${meta.inicio||meta.fim?`<br>Trecho: ${fmtP(meta.inicio)} → ${meta.fim?fmtP(meta.fim):'fim'}`:''}`;
+      af.destroy();f.hidden=true;$('#pOk').hidden=false;window.scrollTo({top:0,behavior:'smooth'});
       renderSent();
     }catch(x){
       let msg=esc(x.message);
       if(x.status===401||x.status===404)msg+=' Peça um novo link ao organizador do evento.';
       showErr(msg);
     }finally{
-      send.disabled=false;$$('input,textarea,button',f).forEach(x=>x.disabled=false);
+      $$('input,textarea,button',f).forEach(x=>x.disabled=false);
       setTimeout(()=>{prog.hidden=true},800);
     }
   };
   $('#pAgain').onclick=()=>{
     const keep={professora:f.elements.professora.value,turma:f.elements.turma.value};
     f.reset();f.elements.professora.value=keep.professora;f.elements.turma.value=keep.turma;
-    file=null;fi.value='';box.hidden=true;drop.hidden=false;
+    af=audioField($('#pAudio'));
     $('#pOk').hidden=true;f.hidden=false;f.elements.titulo.focus();
   };
   async function renderSent(){
@@ -1528,6 +2074,122 @@ async function initProf(P){
     }catch{}
   }
   renderSent();
+}
+
+/* =========================================================
+   PÁGINA DO CLIENTE (noivos / debutante / cerimonial)
+   ========================================================= */
+async function initCli(P){
+  $('#cli').hidden=false;
+  const C={momentos:[],subs:new Map()};
+  const setHero=(nome,data,tipo)=>{
+    const t=TIPOS[tipo]||TIPOS.cerimonial;
+    document.title='Músicas · '+(nome||'Evento');
+    $('#cEvento').textContent=nome||'Evento';
+    $('#cData').textContent=fmtDate(data);
+    $('#cIcon').innerHTML=icon(t.icon);
+  };
+  setHero(P.e,P.d,P.k);
+  const nomeIn=$('#cNome');
+  let saved='';try{saved=localStorage.getItem('palco_cli_'+P.g)||''}catch{}
+  nomeIn.value=P.p||saved;
+  nomeIn.addEventListener('change',()=>{try{localStorage.setItem('palco_cli_'+P.g,nomeIn.value.trim())}catch{}});
+  $('#cReload').onclick=()=>load();
+  $('#cAdd').onclick=()=>{
+    if(!C.loaded)return;
+    openCliEditor({id:uid(),nome:'',novo:true},null);
+  };
+
+  async function load(){
+    $('#cReload').disabled=true;
+    try{
+      const r=await gh(`/gists/${P.g}`,{token:P.t});
+      const files=r.data.files||{};
+      let meta={};try{meta=JSON.parse(await readGistFile(files['evento.json']))}catch{}
+      setHero(meta.nome||P.e,meta.data||P.d,meta.tipo||P.k);
+      const moms=(meta.momentos||[]).map(m=>({id:m.id,nome:m.nome}));
+      const subs=[];
+      for(const[n,f]of Object.entries(files)){if(!n.startsWith('sub_'))continue;try{subs.push(JSON.parse(await readGistFile(f)))}catch{}}
+      subs.sort((a,b)=>String(a.enviadoEm).localeCompare(String(b.enviadoEm)));
+      C.subs=new Map();
+      for(const s of subs){
+        if(!s.momentoId)continue;
+        if(!moms.some(m=>m.id===s.momentoId)){const i=moms.findIndex(m=>m.id===s.momentoApos);moms.splice(i>=0?i+1:moms.length,0,{id:s.momentoId,nome:s.momentoNome||'Momento'})}
+        C.subs.set(s.momentoId,s);
+      }
+      C.momentos=moms;C.loaded=true;render();
+    }catch(e){
+      let msg=esc(e.message);if(e.status===401||e.status===404)msg+=' Peça um novo link à equipe do evento.';
+      $('#cList').innerHTML=`<li class="ci"><div class="ci-b"><strong>Não foi possível carregar o cronograma</strong><small>${msg}</small></div><button class="btn sm" id="cRetry">${icon('refresh')}Tentar de novo</button></li>`;
+      $('#cRetry').onclick=load;$('#cProgTxt').textContent='—';
+    }finally{$('#cReload').disabled=false}
+  }
+  function render(){
+    const tot=C.momentos.length,done=C.momentos.filter(m=>C.subs.has(m.id)).length;
+    $('#cProgTxt').textContent=tot?`${done} de ${tot} momentos com música`:'Nenhum momento no cronograma ainda';
+    $('#cProgBar').style.width=(tot?done/tot*100:0)+'%';
+    $('#cList').innerHTML=tot?C.momentos.map((mo,i)=>{
+      const s=C.subs.get(mo.id);
+      return`<li class="ci ${s?'ok':''}"><span class="ci-n">${s?icon('check'):i+1}</span>
+        <div class="ci-b"><strong>${esc(mo.nome)}</strong>${s?`<small class="ok">${esc(s.titulo)}${s.artista?' — '+esc(s.artista):''}</small><small>${trechoTxt(s)?'✂ '+esc(trechoTxt(s)):'Música inteira'}${s.enviadoPor?' · por '+esc(s.enviadoPor):''}</small>`:'<small>Ainda sem música</small>'}</div>
+        <button class="btn ${s?'':'primary'} sm" data-ci="${i}">${s?icon('edit')+'Trocar / ajustar':icon('upload')+'Enviar música'}</button></li>`}).join('')
+      :`<li class="ci"><div class="ci-b"><strong>O cronograma ainda está vazio</strong><small>Use “Adicionar outro momento” ou aguarde a equipe do evento montar a sequência.</small></div></li>`;
+  }
+  $('#cList').addEventListener('click',e=>{const b=e.target.closest('[data-ci]');if(!b)return;const mo=C.momentos[+b.dataset.ci];openCliEditor(mo,C.subs.get(mo.id)||null)});
+
+  function openCliEditor(mo,sub){
+    let af=null;
+    const posOpts=`<option value="">No início do cronograma</option>${C.momentos.map((m,i)=>`<option value="${m.id}" ${i===C.momentos.length-1?'selected':''}>Depois de: ${esc(m.nome)}</option>`).join('')}`;
+    openModal(`${modalHead(mo.novo?'Novo momento':esc(mo.nome),sub?'Troque a música ou ajuste exatamente onde ela começa e termina.':'Escolha a música deste momento e, se quiser, marque o trecho que deve tocar.')}
+      <form id="ce" class="stack">
+        ${mo.novo?`<div class="grid2"><label class="field"><span>Nome do momento *</span><input name="momento" placeholder="Ex.: Homenagem à madrinha"></label><label class="field"><span>Posição</span><select name="apos">${posOpts}</select></label></div>`:''}
+        <div class="grid2">
+          <label class="field"><span>Nome da música *</span><input name="titulo" value="${esc(sub?.titulo)}"></label>
+          <label class="field"><span>Artista / intérprete</span><input name="artista" value="${esc(sub?.artista)}"></label>
+        </div>
+        <div class="field"><span>Música — onde começa e onde termina</span><div id="ceAudio"></div></div>
+        <label class="field"><span>Observações para a equipe de som</span><textarea name="obs" rows="2" placeholder="Ex.: soltar a música quando a porta abrir">${esc(sub?.obs)}</textarea></label>
+        <div class="progress" hidden><div class="bar"></div><span></span></div>
+        <p class="err" hidden></p>
+        <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('upload')}${sub?'Salvar alterações':'Enviar música'}</button></div>
+      </form>`,
+    {wide:true,onClose:()=>af?.destroy(),onMount:(md,close)=>{
+      af=audioField($('#ceAudio',md),{
+        atual:sub?{nome:sub.nomeArquivo||'Música enviada',tamanho:sub.tamanho}:null,
+        loadAtual:sub?()=>fetchAudioBlob(sub.audioGistId,sub.audioArquivo,sub.mime,P.t):null,
+        valores:sub?{inicio:+sub.inicio||0,fim:+sub.fim||0,fadeIn:!!sub.fadeIn,fadeOut:sub.fadeOut!==false}:{}
+      });
+      const f=$('#ce',md),err=$('.err',md),prog=$('.progress',md);
+      const fail=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'nearest'})};
+      f.onsubmit=async e=>{
+        e.preventDefault();err.hidden=true;
+        const v=k=>(f.elements[k]?.value||'').trim();
+        const nomeMom=mo.novo?v('momento'):mo.nome;
+        if(mo.novo&&!nomeMom)return fail('Dê um nome ao momento.');
+        if(!v('titulo'))return fail('Informe o nome da música.');
+        if(!af.has)return fail('Escolha o arquivo da música.');
+        const ve=af.validate();if(ve)return fail(esc(ve));
+        if(!navigator.onLine)return fail('Você está sem internet. Conecte-se e tente novamente.');
+        const quem=nomeIn.value.trim();try{localStorage.setItem('palco_cli_'+P.g,quem)}catch{}
+        const tv=af.values()||{};
+        const meta={momentoId:mo.id,momentoNome:nomeMom,titulo:v('titulo'),artista:v('artista'),obs:v('obs'),enviadoPor:quem,professora:quem,turma:'',
+          inicio:tv.inicio||0,fim:tv.fim||0,fadeIn:!!tv.fadeIn,fadeOut:tv.fadeOut!==false};
+        if(mo.novo){meta.momentoNovo=true;meta.momentoApos=v('apos')||''}
+        $$('input,textarea,button,select',f).forEach(x=>x.disabled=true);
+        try{
+          await enviarSub({P,file:af.file,keep:af.kept?sub:null,meta,substitui:sub,onProg:(p,t)=>setProg(prog,p,t)});
+          close();
+          toast(`<b>${esc(nomeMom)}</b>: música ${sub?'atualizada':'enviada'} com sucesso!`,'ok',5000);
+          await load();
+        }catch(x){
+          let msg=esc(x.message);if(x.status===401||x.status===404)msg+=' Peça um novo link à equipe do evento.';
+          fail(msg);$$('input,textarea,button,select',f).forEach(x=>x.disabled=false);prog.hidden=true;
+        }
+      };
+    }});
+  }
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=$$('.modal-back');if(m.length)m[m.length-1]._close()}});
+  await load();
 }
 
 function invalidLink(){
@@ -1545,7 +2207,8 @@ function invalidLink(){
   const h=location.hash;
   if(h.startsWith('#enviar=')){
     let P=null;try{P=JSON.parse(b64urlDec(h.slice(8)))}catch{}
-    if(P&&P.g&&P.t)initProf(P);else invalidLink();
+    if(P&&P.g&&P.t){if(P.m==='c')initCli(P);else initProf(P)}
+    else invalidLink();
   }else{
     initAdmin();
   }
