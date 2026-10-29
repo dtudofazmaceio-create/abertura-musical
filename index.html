@@ -500,7 +500,9 @@ body.dj-on{overflow:hidden}
 .eq-r:disabled{opacity:.35}
 .dk-pitch{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.68rem;letter-spacing:.1em;color:var(--faint);font-weight:700;width:76px}
 .dk-pitch .pitch-r{writing-mode:vertical-lr;direction:rtl;width:26px;height:110px}
-.dk-pitch b{font-size:.8rem;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:0}
+.dk-pitch b{font-size:.8rem;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap}
+.dk-gain small{font-size:.62rem;letter-spacing:0;color:var(--accent-text);font-weight:700;text-align:center;min-height:1em;white-space:nowrap}
+.dk-mid{grid-template-columns:minmax(0,1fr) auto auto auto}
 .dk-fader{display:flex;gap:8px;align-items:stretch}
 .fader-r{writing-mode:vertical-lr;direction:rtl;width:30px;height:130px;accent-color:var(--dk)}
 .vu{width:10px;border-radius:6px;background:var(--track1);position:relative;overflow:hidden;align-self:stretch}
@@ -577,7 +579,7 @@ body.dj-on{overflow:hidden}
 @media (max-width:720px){
   .dj-decks{grid-template-columns:1fr}.dj-mixer{grid-column:auto;grid-row:auto}
   .deck-B{order:3}.dj-mixer{order:2}
-  .dk-mid{grid-template-columns:minmax(0,1fr) auto}.dk-pitch{display:none}
+  .dk-mid{grid-template-columns:minmax(0,1fr) auto auto}.dk-pitch:not(.dk-gain){display:none}.dk-gain .pitch-r{height:100px}
   .fader-r{height:100px}.mx-vol .vu{height:100px}
   .hide-sm{display:none}
   .dj-pill{top:calc(70px + env(safe-area-inset-top))}
@@ -1810,7 +1812,11 @@ class ExtMedia extends EventTarget{
       else this.p.seekTo(t,true);
       setTimeout(()=>{if(this._seeking){this._seeking=false;this._emit('seeked')}},350);
     };
-    this._setVol=v=>{this.p.setVolume(Math.round(v*100));if(!this.mutedInit)this.p.unMute()};
+    this._setVol=v=>{
+      const n=Math.max(0,Math.min(100,Math.round(v*100)));
+      if(n!==this._ytv){this._ytv=n;this.p.setVolume(n)}
+      if(!this.mutedInit&&this.p.isMuted?.())this.p.unMute();
+    };
     this._destroy=()=>this.p.destroy();
   }
   /* ---- Vimeo ---- */
@@ -3007,6 +3013,8 @@ window.addEventListener('message',e=>{
    MODO DJ — dois decks, mixer, crossfader e mixagem automática
    ========================================================= */
 const djDb=v=>Math.pow(10,v/20);
+/* nível de referência: próximo do volume padrão do YouTube (~ -14 LUFS) */
+const NIVEL_ALVO=-16;
 const _peaks=new Map();
 /* forma de onda (picos) calculada a partir do arquivo */
 async function calcPeaks(id,blob,ctx,n=900){
@@ -3019,14 +3027,18 @@ async function calcPeaks(id,blob,ctx,n=900){
     const len=ab.length,step=Math.max(1,Math.floor(len/n)),out=new Float32Array(n);
     for(let i=0;i<n;i++){let mx=0;const s=i*step,e=Math.min(len,s+step);for(let j=s;j<e;j+=8){for(const c of ch){const v=Math.abs(c[j]);if(v>mx)mx=v}}out[i]=mx}
     let top=0;for(const v of out)if(v>top)top=v;if(top>0)for(let i=0;i<n;i++)out[i]/=top;
-    const r={peaks:out,dur:ab.duration};_peaks.set(id,r);return r;
+    /* volume médio (RMS) da música — usado para nivelar com o YouTube */
+    let q=0,c=0;const pas=Math.max(1,Math.floor(len/400000));
+    for(const ch_ of ch)for(let j=0;j<len;j+=pas){const v=ch_[j];q+=v*v;c++}
+    const rmsDb=c?20*Math.log10(Math.sqrt(q/c)||1e-6):null;
+    const r={peaks:out,dur:ab.duration,rmsDb};_peaks.set(id,r);return r;
   }catch{return null}
 }
 class Deck{
   constructor(id,dj){
     this.id=id;this.dj=dj;this.m=null;this.url=null;this.ext=null;this.wave=null;
     this.el=new Audio();this.el.preload='auto';try{this.el.preservesPitch=true;this.el.mozPreservesPitch=true;this.el.webkitPreservesPitch=true}catch{}
-    this.fader=1;this.pitch=0;this.eq={hi:0,mid:0,lo:0};this.k=1;this.loading=false;this.played=false;
+    this.fader=1;this.pitch=0;this.trim=0;this.eq={hi:0,mid:0,lo:0};this.k=1;this.loading=false;this.played=false;
     this.el.addEventListener('ended',()=>this.fim());
     this.el.addEventListener('error',()=>{if(this.m&&this.el.src)toast(`Deck ${id}: não foi possível tocar este arquivo.`,'err',6000)});
   }
@@ -3051,8 +3063,15 @@ class Deck{
     }catch{this.g=null}
   }
   applyEq(){if(!this.g)return;const t=this.dj.ctx.currentTime;this.g.lo.gain.setTargetAtTime(this.eq.lo,t,.02);this.g.mid.gain.setTargetAtTime(this.eq.mid,t,.02);this.g.hi.gain.setTargetAtTime(this.eq.hi,t,.02)}
+  /* ganho total do deck em dB: ajuste manual + nivelamento automático (só arquivos) */
+  autoDb(){
+    if(this.ext||!this.dj.nivelar||this.wave?.rmsDb==null)return 0;
+    return Math.max(-12,Math.min(6,NIVEL_ALVO-this.wave.rmsDb));
+
+  }
+  ganhoDb(){const g=(this.trim||0)+this.autoDb();return this.ext?Math.min(0,g):g}
   setGain(v){
-    v=Math.max(0,Math.min(1.5,v));
+    v=Math.max(0,Math.min(4,v));
     if(this.ext){this.ext.volume=Math.min(1,v);return}
     if(this.g){this.g.gain.gain.setTargetAtTime(v,this.dj.ctx.currentTime,.015);return}
     this.el.volume=Math.min(1,v);
@@ -3070,7 +3089,7 @@ class Deck{
       if(blob){
         this.url=URL.createObjectURL(blob);this.el.src=this.url;
         await new Promise(r=>{const h=()=>{this.el.removeEventListener('loadedmetadata',h);r()};this.el.addEventListener('loadedmetadata',h);setTimeout(r,6000)});
-        const ctx=this.dj.ensureCtx();if(ctx)calcPeaks(m.id,blob,ctx).then(w=>{if(this.m?.id===m.id){this.wave=w;this.dj.drawWave(this,true)}});
+        const ctx=this.dj.ensureCtx();if(ctx)calcPeaks(m.id,blob,ctx).then(w=>{if(this.m?.id===m.id){this.wave=w;this.dj.drawWave(this,true);this.dj.mostrarGanho(this);this.dj.aplicarGanhos()}});
       }else if(m.link&&linkTocavel(m.link)){
         if(!navigator.onLine)throw new Error('Sem internet: esta música é um link.');
         this.ext=new ExtMedia(m.link,{mount:$('#extHold')});
@@ -3122,14 +3141,17 @@ class Deck{
   }
 }
 const DJ={
-  ctx:null,master:null,an:null,decks:[],xf:0,vol:1,mixLen:8,auto:false,mixing:null,raf:null,iv:null,aberto:false,lastId:null,
+  ctx:null,master:null,an:null,decks:[],xf:0,vol:1,mixLen:8,auto:false,nivelar:(()=>{try{return localStorage.getItem('palco_nivelar')!=='0'}catch{return true}})(),mixing:null,raf:null,iv:null,aberto:false,lastId:null,
   init(){if(this.decks.length)return;this.decks=[new Deck('A',this),new Deck('B',this)]},
   ensureCtx(){
     if(this.ctx)return this.ctx;
     try{
       const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
       this.ctx=new C();this.master=this.ctx.createGain();this.an=this.ctx.createAnalyser();this.an.fftSize=1024;this.abuf=new Float32Array(1024);
-      this.master.connect(this.an);this.an.connect(this.ctx.destination);this.master.gain.value=this.vol;
+      /* limitador: permite ganho alto sem distorcer */
+      this.lim=this.ctx.createDynamicsCompressor();
+      try{this.lim.threshold.value=-1.5;this.lim.knee.value=0;this.lim.ratio.value=20;this.lim.attack.value=.003;this.lim.release.value=.25}catch{}
+      this.master.connect(this.lim);this.lim.connect(this.an);this.an.connect(this.ctx.destination);this.master.gain.value=this.vol;
     }catch{this.ctx=null}
     return this.ctx;
   },
@@ -3140,7 +3162,7 @@ const DJ={
   /* crossfader com curva de potência constante (o volume não “afunda” no meio) */
   xfGain(d){const x=this.xf;return d===this.A?Math.cos(x*Math.PI/2):Math.sin(x*Math.PI/2)},
   aplicarGanhos(){
-    for(const d of this.decks){const v=d.fader*this.xfGain(d)*d.k*(d.ext?this.vol:1);d.setGain(v)}
+    for(const d of this.decks){const v=d.fader*this.xfGain(d)*d.k*djDb(d.ganhoDb())*(d.ext?this.vol:1);d.setGain(v)}
     if(this.master)this.master.gain.setTargetAtTime(this.vol,this.ctx.currentTime,.02);
   },
   lista(){return sorted().filter(m=>hasAudio(m)||(m.link&&linkTocavel(m.link)))},
@@ -3217,6 +3239,7 @@ const DJ={
       <div class="dk-wave"><canvas></canvas><div class="dk-load" data-f="ld" hidden>Carregando…</div></div>
       <div class="dk-mid">
         <div class="dk-eq">${[['hi','AGUDOS'],['mid','MÉDIOS'],['lo','GRAVES']].map(([k,l])=>`<label class="knob" title="Duplo clique: corta/volta esta faixa"><input type="range" min="-24" max="6" step="1" value="0" data-eq="${k}" class="eq-r"><span>${l}</span></label>`).join('')}</div>
+        <div class="dk-pitch dk-gain"><span>GANHO</span><input type="range" min="-12" max="12" step="0.5" value="0" data-trim class="pitch-r" title="Ganho do deck em dB. Duplo clique: volta a 0"><b data-f="gn">0 dB</b><small data-f="ga"></small></div>
         <div class="dk-pitch"><span>PITCH</span><input type="range" min="-8" max="8" step="0.1" value="0" data-pitch class="pitch-r" title="Duplo clique: volta a 0%"><b data-f="pt">0.0%</b></div>
         <div class="dk-fader"><div class="vu"><i data-f="vu"></i></div><input type="range" min="0" max="1" step="0.01" value="1" data-fader class="fader-r" orient="vertical" aria-label="Volume do deck ${id}"></div>
       </div>
@@ -3240,6 +3263,7 @@ const DJ={
               <button class="mix-btn" id="djMix" title="Passagem suave para o outro deck (M)">MIX</button>
               <div class="seg mx-len" id="djLen">${[4,8,12,16].map(n=>`<button data-len="${n}" class="${n===this.mixLen?'on':''}">${n}s</button>`).join('')}</div>
               <button class="auto-btn" id="djAuto" title="Mixa sozinho no fim de cada música e carrega a próxima do cronograma">${icon('auto')}AUTO MIX</button>
+              <button class="auto-btn ${this.nivelar?'on':''}" id="djNiv" title="Mede o volume de cada arquivo e deixa todos no mesmo nível do YouTube">${icon('vol')}NIVELAR</button>
             </div>
           </section>
           ${deckHTML('B')}
@@ -3268,6 +3292,7 @@ const DJ={
       if(t.dataset.eq&&d){d.eq[t.dataset.eq]=+t.value;d.applyEq()}
       else if(t.hasAttribute('data-pitch')&&d){d.pitch=+t.value/100;d.el.playbackRate=1+d.pitch;$('[data-f=pt]',dk).textContent=(t.value>0?'+':'')+(+t.value).toFixed(1)+'%'}
       else if(t.hasAttribute('data-fader')&&d){d.fader=+t.value}
+      else if(t.hasAttribute('data-trim')&&d){d.trim=+t.value;this.mostrarGanho(d)}
       else if(t.id==='djXf'){this.mixing=null;this.xf=+t.value}
       else if(t.id==='djVol'){this.vol=+t.value}
       this.aplicarGanhos();
@@ -3276,6 +3301,7 @@ const DJ={
       const t=e.target,dk=t.closest('[data-deck]'),d=dk&&this.decks.find(x=>x.id===dk.dataset.deck);if(!d)return;
       if(t.dataset.eq){t.value=+t.value<=-24?0:-24;d.eq[t.dataset.eq]=+t.value;d.applyEq()}
       if(t.hasAttribute('data-pitch')){t.value=0;d.pitch=0;d.el.playbackRate=1;$('[data-f=pt]',dk).textContent='0.0%'}
+      if(t.hasAttribute('data-trim')){t.value=0;d.trim=0;this.mostrarGanho(d);this.aplicarGanhos()}
     });
     for(const d of this.decks){
       const cv=$(`[data-deck=${d.id}] canvas`,el);
@@ -3289,6 +3315,8 @@ const DJ={
       ['dragleave','drop'].forEach(t=>sec.addEventListener(t,()=>sec.classList.remove('drop')));
       sec.addEventListener('drop',async e=>{const f=[...(e.dataTransfer?.files||[])];if(!f.length)return;e.preventDefault();const add=await Avulsas.addArquivos(f);if(add[0])d.load(add[0])});
     }
+    $('#djNiv').onclick=()=>{this.nivelar=!this.nivelar;try{localStorage.setItem('palco_nivelar',this.nivelar?'1':'0')}catch{}this.render();this.aplicarGanhos();
+      toast(this.nivelar?'<b>Volume nivelado:</b> os arquivos ficam no mesmo nível do YouTube. Suba o volume na caixa/mesa de som.':'Nivelamento desligado: cada arquivo toca no volume original.','info',6000)};
     $('#djMix').onclick=()=>this.mix();
     $('#djAuto').onclick=()=>{this.auto=!this.auto;this.render();toast(this.auto?'<b>AUTO MIX ligado:</b> no fim de cada música o sistema faz a passagem e carrega a próxima do cronograma.':'AUTO MIX desligado.','info',4500);if(this.auto)this.loop()};
     $('#djXfC').onclick=()=>{this.mixing=null;this.xf=.5;this.syncXf();this.aplicarGanhos()};
@@ -3296,6 +3324,13 @@ const DJ={
     $('#djTv').onclick=()=>Telao.toggle();
     window.addEventListener('resize',()=>{if(this.aberto)this.decks.forEach(d=>this.drawWave(d,true))});
     try{const ml=+localStorage.getItem('palco_mixlen');if(ml)this.mixLen=ml;$$('#djLen button').forEach(x=>x.classList.toggle('on',+x.dataset.len===this.mixLen))}catch{}
+  },
+  mostrarGanho(d){
+    const s=$(`#dj [data-deck=${d.id}]`);if(!s)return;
+    const a=d.autoDb(),tot=d.ganhoDb();
+    $('[data-f=gn]',s).textContent=(tot>0?'+':'')+tot.toFixed(1)+' dB';
+    $('[data-f=ga]',s).textContent=d.ext?'YouTube: máx. 0 dB':(a?`auto ${a>0?'+':''}${a.toFixed(1)}`:(this.nivelar&&d.m&&!d.wave?'medindo…':''));
+    const r=$('[data-trim]',s);if(r){r.max=d.ext?0:12;if(d.ext&&+r.value>0){r.value=0;d.trim=0}}
   },
   syncXf(){const x=$('#djXf');if(x&&document.activeElement!==x)x.value=this.xf},
   render(){
@@ -3309,9 +3344,10 @@ const DJ={
       $('[data-f=ld]',s).hidden=!d.loading;
       $('[data-act=play]',s).innerHTML=icon(d.playing?'pause':'play');
       $$('[data-eq]',s).forEach(r=>r.disabled=!!d.ext);
+      this.mostrarGanho(d);
       this.drawWave(d,true);
     }
-    $('#djAuto').classList.toggle('on',this.auto);
+    $('#djAuto').classList.toggle('on',this.auto);$('#djNiv')?.classList.toggle('on',this.nivelar);
     $('#djMix').classList.toggle('on',!!this.mixing);
     this.syncXf();
     const ids={A:this.A.m?.id,B:this.B.m?.id};
