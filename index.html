@@ -419,6 +419,42 @@ fieldset.box legend{padding:0 6px;color:var(--muted);font-size:.85rem}
 #tv.fs .tv-hint{opacity:0;pointer-events:none}
 #tv.show-cursor{cursor:default}
 
+/* ---------- Montagem (introdução / encerramento / música de fundo) ---------- */
+.vw-card{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 40%,rgba(var(--accent-rgb),.32),transparent 70%),#07070d;z-index:1}
+.vw-brand{z-index:2}
+.vw-wm{z-index:3}
+.vw-card .vc-bg{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;filter:blur(26px) brightness(.45)}
+.vw-card .vc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.vw-card .vc-clip{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.vc-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8%;gap:.35em}
+.vw-card.has-media .vc-txt{justify-content:flex-end;padding-bottom:7%;background:linear-gradient(transparent 55%,rgba(0,0,0,.72))}
+.vc-t{font-size:3em;font-weight:800;color:#fff;line-height:1.1;text-shadow:0 2px 24px rgba(0,0,0,.55)}
+.vc-s{font-size:1.5em;color:var(--accent2);text-shadow:0 2px 16px rgba(0,0,0,.6)}
+.vc-t:empty,.vc-s:empty{display:none}
+.vw-card [hidden]{display:none!important}
+details.mont-box{border:1px solid var(--line);border-radius:14px;background:rgba(var(--accent-rgb),.05)}
+details.mont-box>summary{cursor:pointer;padding:12px 14px;font-weight:600;display:flex;align-items:center;gap:8px;list-style:none}
+details.mont-box>summary::-webkit-details-marker{display:none}
+details.mont-box>summary small{font-weight:400;color:var(--muted)}
+details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
+.mont{display:flex;flex-direction:column;gap:12px;padding:12px}
+.mont-sec{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface2)}
+.mont-sec h4{margin:0 0 10px;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.mont-sec h4 .ic{width:17px;height:17px;color:var(--accent2)}
+.mont-sec .seg{display:inline-flex}
+.rng{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--muted)}
+.rng input{flex:1;accent-color:var(--accent)}
+.rng output{min-width:48px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+.pv-wrap .vidwrap{border-radius:12px;font-size:clamp(9px,1.6vw,15px)}
+.reg-moms{display:flex;flex-direction:column;gap:2px;max-height:300px;overflow:auto;padding:6px 10px;border-radius:12px;background:#0f1226;border:1px solid var(--line)}
+.meus{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.meus a{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none}
+.meus a:hover{border-color:var(--accent)}
+.meus a span{flex:1;min-width:0}
+.meus small{display:block;color:var(--muted)}
+.cli-info{margin-top:12px;font-size:.88rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.cli-info a{color:var(--accent2)}
+
 /* ---------- Responsive ---------- */
 @media (max-width:1100px){
   .layout{grid-template-columns:300px minmax(0,1fr)}
@@ -601,7 +637,8 @@ fieldset.box legend{padding:0 6px;color:var(--muted);font-size:.85rem}
     </div>
     <div class="vp-slot" id="vpSlot">
       <div class="vidwrap brand" id="vidWrap">
-        <video id="plVideo" playsinline webkit-playsinline preload="auto"></video>
+        <video id="plVideo" class="vw-main" playsinline webkit-playsinline preload="auto"></video>
+        <div class="vw-card" hidden><img class="vc-bg" alt="" hidden><img class="vc-img" alt="" hidden><video class="vc-clip" playsinline preload="auto" hidden></video><div class="vc-txt"><div class="vc-t"></div><div class="vc-s"></div></div></div>
         <div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div>
         <img class="vw-wm" alt="" hidden>
       </div>
@@ -700,6 +737,9 @@ fieldset.box legend{padding:0 6px;color:var(--muted);font-size:.85rem}
   </div>
 </div>
 
+<!-- =================== CADASTRO DE EVENTO PELO CLIENTE =================== -->
+<div id="reg" hidden></div>
+
 <!-- =================== TELÃO (2ª tela / projetor) =================== -->
 <div id="tv" hidden></div>
 
@@ -776,11 +816,11 @@ function setProg(el,p,txt){el.hidden=false;$('.bar',el).style.width=Math.round(p
    ========================================================= */
 const TIPOS={
   escolar:{nome:'Evento escolar',desc:'Jogos internos, festas e apresentações por turma',icon:'school',cer:false},
-  quinze:{nome:'15 anos',desc:'Entrada, homenagens, valsas…',icon:'crown',cer:true,quem:'a debutante',hom:'Nome da debutante',ph:'Ex.: Maria Clara',auto:h=>`15 anos de ${h}`,
+  quinze:{nome:'15 anos',desc:'Entrada, homenagens, valsas…',icon:'crown',cer:true,quem:'a debutante',de:'da debutante',hom:'Nome da debutante',ph:'Ex.: Maria Clara',auto:h=>`15 anos de ${h}`,
     tpl:['Entrada da debutante','Homenagem aos pais','Homenagem aos avós','Homenagem aos padrinhos','Troca do sapato','Valsa com o pai','Valsa com o padrinho','Valsa com os príncipes','Parabéns e corte do bolo','Abertura da pista']},
-  casamento:{nome:'Casamento',desc:'Cerimônia e recepção',icon:'heart',cer:true,quem:'os noivos',hom:'Nome dos noivos',ph:'Ex.: Ana & Pedro',auto:h=>`Casamento de ${h}`,
+  casamento:{nome:'Casamento',desc:'Cerimônia e recepção',icon:'heart',cer:true,quem:'os noivos',de:'dos noivos',hom:'Nome dos noivos',ph:'Ex.: Ana & Pedro',auto:h=>`Casamento de ${h}`,
     tpl:['Entrada dos padrinhos','Entrada do noivo','Entrada das daminhas e pajens','Entrada da noiva','Entrada das alianças','Assinaturas','Saída dos noivos','Entrada na recepção','Primeira dança']},
-  cerimonial:{nome:'Outro cerimonial',desc:'Formatura, bodas, aniversários…',icon:'sparkle',cer:true,quem:'o cliente',hom:'Homenageado(s)',ph:'Ex.: Formandos 2026',auto:h=>h,
+  cerimonial:{nome:'Outro cerimonial',desc:'Formatura, bodas, aniversários…',icon:'sparkle',cer:true,quem:'o cliente',de:'do cliente',hom:'Homenageado(s)',ph:'Ex.: Formandos 2026',auto:h=>h,
     tpl:['Abertura','Entrada dos homenageados','Homenagem','Momento especial','Encerramento']}
 };
 const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
@@ -901,7 +941,7 @@ function openBrand(){
     f.onsubmit=async e=>{
       e.preventDefault();const b=val();
       await DB.setCfg('marca',b);fechouSalvando=true;applyBrand(b);close();
-      renderMain();Player.ui();Telao.sendBrand();
+      renderMain();Player.ui();Telao.sendBrand();pushInboxBrand();
       const evs=state.eventos.filter(x=>x.gistId);
       if(evs.length&&state.token){for(const ev of evs)await pushMeta(ev,true);toast('Marca salva e aplicada aos links dos eventos.','ok')}
       else toast('Marca salva.','ok');
@@ -961,7 +1001,7 @@ function filePicker(host,onFile,label='Toque para escolher a música ou o vídeo
 }
 
 /* Editor visual do trecho: ouvir, marcar início/fim no ponto exato e testar */
-function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
+function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null}={}){
   host.innerHTML=`<div class="trim">
     <div class="trim-load" hidden></div>
     <video controls preload="metadata" playsinline></video>
@@ -995,7 +1035,7 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
   const loop=()=>{draw();if(stopAt!==null&&a.currentTime>=stopAt-0.02){a.pause();stopAt=null}if(!a.paused)raf=requestAnimationFrame(loop)};
   a.addEventListener('play',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)});
   ['pause','loadedmetadata','seeked','durationchange'].forEach(ev=>a.addEventListener(ev,draw));
-  a.addEventListener('loadedmetadata',()=>a.classList.toggle('audio-only',!a.videoWidth));
+  a.addEventListener('loadedmetadata',()=>{a.classList.toggle('audio-only',!a.videoWidth);onMeta&&onMeta(a.videoWidth>0,a.duration)});
   a.addEventListener('seeking',()=>{if(!ownSeek)stopAt=null;ownSeek=false});
   iIn.addEventListener('input',draw);iOut.addEventListener('input',draw);
   const go=t=>{ownSeek=true;a.currentTime=Math.max(0,t)};
@@ -1030,12 +1070,13 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true}={}){
 }
 
 /* Campo de áudio completo: escolher arquivo, ver arquivo atual e editar o trecho */
-function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB}={}){
-  const st={file:null,url:null,trim:null,usandoAtual:false};
+function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMedia=null}={}){
+  const st={file:null,url:null,trim:null,usandoAtual:false,isVideo:null};
+  const meta=(vid)=>{st.isVideo=vid;onMedia&&onMedia(vid)};
   const free=()=>{st.trim?.stop();if(st.url){URL.revokeObjectURL(st.url);st.url=null}};
   const boxHTML=(name,size,extra)=>`<div class="filebox">${icon('music')}<div><strong>${esc(name)}</strong><small>${size?fmtSize(size):''}${extra||''}</small></div><button type="button" class="btn sm" data-fb="rm">${icon('refresh')}Trocar arquivo</button></div><div class="af-trim"></div>`;
   function showPicker(){
-    free();st.file=null;st.usandoAtual=false;st.trim=null;
+    free();st.file=null;st.usandoAtual=false;st.trim=null;st.isVideo=null;onMedia&&onMedia(null);
     host.innerHTML='<div class="af-pick"></div>';
     filePicker($('.af-pick',host),f=>{const e=checkFile(f,maxMB);if(e){toast(esc(e),'err',6000);return}useFile(f)});
   }
@@ -1043,13 +1084,13 @@ function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB}={})
     free();st.file=f;st.usandoAtual=false;st.url=URL.createObjectURL(f);
     host.innerHTML=boxHTML(f.name,f.size,f.size>15*1048576&&maxMB===MAX_MB?' · arquivo grande, o envio pode demorar':'');
     $('[data-fb=rm]',host).onclick=showPicker;
-    st.trim=trimEditor($('.af-trim',host),{fadeOut:true});st.trim.setSrc(st.url);
+    st.trim=trimEditor($('.af-trim',host),{fadeOut:true,onMeta:meta});st.trim.setSrc(st.url);
   }
   function useAtual(){
     free();st.usandoAtual=true;
     host.innerHTML=boxHTML(atual.nome||'Música enviada',atual.tamanho,' · arquivo atual');
     $('[data-fb=rm]',host).onclick=showPicker;
-    st.trim=trimEditor($('.af-trim',host),valores);
+    st.trim=trimEditor($('.af-trim',host),{...valores,onMeta:meta});
     if(loadAtual){
       st.trim.setLoading(true,'Carregando o arquivo enviado para você ajustar…');
       Promise.resolve(loadAtual()).then(b=>{if(!b)throw 0;if(!st.usandoAtual)return;st.url=URL.createObjectURL(b);st.trim.setSrc(st.url)})
@@ -1058,11 +1099,185 @@ function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB}={})
   }
   atual?useAtual():showPicker();
   return{
-    get file(){return st.file},get kept(){return st.usandoAtual},get has(){return!!st.file||st.usandoAtual},
+    get file(){return st.file},get kept(){return st.usandoAtual},get has(){return!!st.file||st.usandoAtual},get isVideo(){return st.isVideo},
+    mainInfo(){if(!st.url)return null;return{url:st.url,...(st.trim?st.trim.values():{})}},
     values(){return st.trim?st.trim.values():null},
     validate(){return st.trim?st.trim.validate():''},
     destroy:free
   };
+}
+
+/* reduz fotos grandes (introdução/encerramento) para no máx. 1920px */
+function resizeImageFile(file,max=1920){
+  return new Promise(res=>{
+    const u=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth,h=img.naturalHeight;const k=Math.min(1,max/Math.max(w,h));
+      if(k>=1&&file.size<1.5*1048576){URL.revokeObjectURL(u);return res(file)}
+      w=Math.round(w*k);h=Math.round(h*k);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      c.toBlob(b=>res(b?new File([b],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'}):file),'image/jpeg',.88);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(u);res(file)};img.src=u;
+  });
+}
+
+/* Editor da montagem do vídeo: introdução, encerramento, música de fundo e áudio original */
+function montageEditor(host,{valores=null,loadPart=null,maxMB=MAX_MB,getMain=null}={}){
+  const v0=valores||{};
+  const mkSeg=s=>s?{tipo:s.tipo,titulo:s.titulo||'',sub:s.sub||'',duracao:+s.duracao||5,file:null,kept:s.tipo!=='texto',nome:s.midia?.nomeArquivo||s.nome||''}
+    :{tipo:'nenhuma',titulo:'',sub:'',duracao:5,file:null,kept:false,nome:''};
+  const st={antes:mkSeg(v0.antes),depois:mkSeg(v0.depois),
+    trilha:v0.trilha?{file:null,kept:true,nome:v0.trilha.midia?.nomeArquivo||v0.trilha.nome||'Música de fundo',volume:v0.trilha.volume??.6,inicio:+v0.trilha.inicio||0,emTudo:v0.trilha.emTudo!==false}:null,
+    volOriginal:v0.volOriginal??1};
+  host.innerHTML=`<div class="mont">
+    <p class="hint">O vídeo original não é alterado: introdução, encerramento e música de fundo são aplicados ao vivo, na hora de tocar, exatamente nesta ordem — no painel, na tela cheia e no telão.</p>
+    ${['antes','depois'].map(p=>`<section class="mont-sec" data-p="${p}"><h4>${icon(p==='antes'?'flag':'check')}${p==='antes'?'Introdução (antes do vídeo)':'Encerramento (depois do vídeo)'}</h4>
+      <div class="seg">${[['nenhuma','Nenhuma'],['texto','Texto'],['imagem','Foto'],['video','Vídeo curto']].map(([k,l])=>`<button type="button" data-k="${k}">${l}</button>`).join('')}</div><div class="mp-body"></div></section>`).join('')}
+    <section class="mont-sec" data-p="trilha"><h4>${icon('music')}Música de fundo</h4><div class="mp-body"></div></section>
+    <section class="mont-sec"><h4>${icon('vol')}Áudio original do vídeo</h4>
+      <div class="rng"><input type="range" min="0" max="100" step="5" name="volOrig" aria-label="Volume do áudio original do vídeo"><output></output></div>
+      <div class="row" style="margin-top:8px"><button type="button" class="btn sm" data-vo="0">Substituir pela música de fundo</button><button type="button" class="btn sm ghost" data-vo="25">Bem baixinho</button><button type="button" class="btn sm ghost" data-vo="100">Original</button></div>
+    </section>
+    <button type="button" class="btn" data-mprev>${icon('play')}Pré-visualizar a montagem</button>
+  </div>`;
+  const nomeArq=s=>esc(s.file?s.file.name:(s.kept?(s.nome||'arquivo já enviado'):'nenhum arquivo escolhido'));
+  function drawSeg(p){
+    const s=st[p],sec=$(`[data-p=${p}]`,host),body=$('.mp-body',sec);
+    $$('.seg button',sec).forEach(b=>b.classList.toggle('on',b.dataset.k===s.tipo));
+    if(s.tipo==='nenhuma'){body.innerHTML='';return}
+    const media=s.tipo==='imagem'||s.tipo==='video';
+    body.innerHTML=`<div class="stack" style="gap:10px;margin-top:10px">
+      ${media?`<div class="row"><label class="btn sm">${icon('upload')}${s.file||s.kept?'Trocar':'Escolher'} ${s.tipo==='imagem'?'foto':'vídeo'}<input type="file" hidden accept="${s.tipo==='imagem'?'image/*':'video/*,.mp4,.mov,.webm,.m4v'}" data-f="${p}"></label><span class="muted" style="font-size:.85rem;word-break:break-all">${nomeArq(s)}</span></div>`:''}
+      ${s.tipo!=='video'?`<div class="grid2"><label class="field"><span>Título${s.tipo==='texto'?' *':' (opcional)'}</span><input data-in="${p}.titulo" value="${esc(s.titulo)}" placeholder="${p==='antes'?'Ex.: Nossa história':'Ex.: Obrigado por fazerem parte!'}"></label>
+        <label class="field"><span>Subtítulo (opcional)</span><input data-in="${p}.sub" value="${esc(s.sub)}" placeholder="Ex.: Ana & Pedro · 12.12.2026"></label></div>
+        <label class="field" style="max-width:240px"><span>Tempo na tela (segundos)</span><input type="number" min="1" max="60" step="0.5" data-in="${p}.duracao" value="${s.duracao}"></label>`
+      :'<p class="hint">O vídeo curto toca inteiro. Se a música de fundo estiver tocando durante as introduções, o som dele fica desligado.</p>'}
+    </div>`;
+  }
+  function drawTrilha(){
+    const t=st.trilha,body=$('[data-p=trilha] .mp-body',host);
+    body.innerHTML=`<div class="stack" style="gap:10px">
+      <div class="row"><label class="btn sm">${icon('upload')}${t?'Trocar música':'Escolher música'}<input type="file" hidden accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus" data-f="trilha"></label>${t?`<span class="muted" style="font-size:.85rem;word-break:break-all">${nomeArq(t)}</span><button type="button" class="btn sm ghost danger" data-rm="trilha">Remover</button>`:''}</div>
+      ${t?`<div class="rng"><span>Volume</span><input type="range" min="0" max="100" step="5" data-in="trilha.volume" value="${Math.round(t.volume*100)}" aria-label="Volume da música de fundo"><output>${Math.round(t.volume*100)}%</output></div>
+      <label class="field" style="max-width:240px"><span>Começar a música em</span><input data-in="trilha.inicio" value="${t.inicio?fmtP(t.inicio):''}" placeholder="0:00 (do começo)" inputmode="decimal"></label>
+      <label class="chk"><input type="checkbox" data-in="trilha.emTudo" ${t.emTudo?'checked':''}> Tocar também durante a introdução e o encerramento</label>`
+      :'<p class="hint">Opcional. Toca por baixo do vídeo — ajuste o volume e, se quiser, silencie o áudio original logo abaixo.</p>'}
+    </div>`;
+  }
+  function drawVo(){const r=$('[name=volOrig]',host);r.value=Math.round(st.volOriginal*100);r.nextElementSibling.textContent=st.volOriginal===0?'Mudo':Math.round(st.volOriginal*100)+'%'}
+  drawSeg('antes');drawSeg('depois');drawTrilha();drawVo();
+  host.addEventListener('click',e=>{
+    const k=e.target.closest('.seg [data-k]');
+    if(k){const p=k.closest('[data-p]').dataset.p,s=st[p];if(s.tipo!==k.dataset.k){s.tipo=k.dataset.k;s.file=null;s.kept=false;s.nome=''}drawSeg(p);return}
+    const vo=e.target.closest('[data-vo]');if(vo){st.volOriginal=+vo.dataset.vo/100;drawVo();return}
+    if(e.target.closest('[data-rm]')){st.trilha=null;drawTrilha();return}
+    if(e.target.closest('[data-mprev]'))preview();
+  });
+  host.addEventListener('change',async e=>{
+    const f=e.target.closest('[data-f]');if(!f)return;
+    const p=f.dataset.f;let fl=f.files[0];f.value='';if(!fl)return;
+    if(p==='trilha'){
+      const er=checkFile(fl,maxMB);if(er)return toast(esc(er),'err',6000);
+      st.trilha=st.trilha||{volume:.6,inicio:0,emTudo:true};Object.assign(st.trilha,{file:fl,kept:false,nome:fl.name});drawTrilha();return;
+    }
+    const s=st[p];
+    if(s.tipo==='imagem'){if(!/^image\//.test(fl.type))return toast('Escolha uma imagem (JPG, PNG…).','err');fl=await resizeImageFile(fl);if(fl.size>maxMB*1048576)return toast(`Imagem grande demais (limite ${maxMB} MB).`,'err')}
+    else{const er=checkFile(fl,maxMB);if(er)return toast(esc(er),'err',6000)}
+    s.file=fl;s.kept=false;s.nome=fl.name;drawSeg(p);
+  });
+  host.addEventListener('input',e=>{
+    const i=e.target.closest('[data-in]');
+    if(i){const[p,k]=i.dataset.in.split('.'),o=st[p];if(!o)return;
+      if(k==='volume'){o.volume=+i.value/100;i.nextElementSibling.textContent=i.value+'%'}
+      else if(k==='inicio')o.inicio=parseTime(i.value);
+      else if(k==='emTudo')o.emTudo=i.checked;
+      else if(k==='duracao')o.duracao=Math.max(1,Math.min(60,parseFloat(i.value)||5));
+      else o[k]=i.value;
+      return}
+    if(e.target.name==='volOrig'){st.volOriginal=+e.target.value/100;drawVo()}
+  });
+  const api={
+    values(){
+      const seg=p=>{const s=st[p];if(s.tipo==='nenhuma')return null;const o={tipo:s.tipo,titulo:s.tipo==='video'?'':s.titulo.trim(),sub:s.tipo==='video'?'':s.sub.trim(),duracao:s.duracao};if(s.tipo!=='texto')o.nome=s.file?.name||s.nome;return o};
+      const t=st.trilha;
+      const out={antes:seg('antes'),depois:seg('depois'),trilha:t?{volume:t.volume,inicio:t.inicio||0,emTudo:!!t.emTudo,nome:t.file?.name||t.nome}:null,volOriginal:st.volOriginal};
+      return(out.antes||out.depois||out.trilha||out.volOriginal<1)?out:null;
+    },
+    files(){return{antes:st.antes.tipo==='imagem'||st.antes.tipo==='video'?st.antes.file:null,depois:st.depois.tipo==='imagem'||st.depois.tipo==='video'?st.depois.file:null,trilha:st.trilha?.file||null}},
+    kept(p){return p==='trilha'?!!(st.trilha&&st.trilha.kept&&!st.trilha.file):!!(st[p].kept&&!st[p].file&&st[p].tipo!=='texto'&&st[p].tipo!=='nenhuma')},
+    validate(){
+      for(const p of['antes','depois']){const s=st[p],n=p==='antes'?'introdução':'encerramento';
+        if(s.tipo==='texto'&&!s.titulo.trim())return`Escreva o título da ${n}.`;
+        if((s.tipo==='imagem'||s.tipo==='video')&&!s.file&&!s.kept)return`Escolha o arquivo da ${n}.`}
+      return'';
+    }
+  };
+  async function preview(){
+    const main=getMain?.();
+    if(!main?.url)return toast('Escolha o vídeo principal primeiro (e aguarde carregar).','warn');
+    const er=api.validate();if(er)return toast(esc(er),'warn');
+    const mont=api.values()||{volOriginal:1},urls={},own=[];
+    try{for(const p of PARTS){const fl=api.files()[p];if(fl){const u=URL.createObjectURL(fl);urls[p]=u;own.push(u)}else if(api.kept(p)&&loadPart){const b=await loadPart(p);if(b){const u=URL.createObjectURL(b);urls[p]=u;own.push(u)}}}}catch{}
+    previewMontagem(main,mont,urls,()=>own.forEach(u=>URL.revokeObjectURL(u)));
+  }
+  return api;
+}
+
+/* Pré-visualização da montagem (mesma ordem e cortes do player) */
+function previewMontagem(main,mont,urls,onEnd){
+  let gen=0,alive=true;const bg=new Audio();bg.loop=true;
+  const until=f=>new Promise(r=>{const l=()=>{if(f())r();else requestAnimationFrame(l)};l()});
+  openModal(`${modalHead('Pré-visualização da montagem','É assim que vai passar no telão.')}
+    <div class="pv-wrap"><div class="vidwrap brand" id="pvW">${VW_INNER}</div></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn primary" id="pvPlay">${icon('play')}Reproduzir</button><button type="button" class="btn" id="pvStop">${icon('stop')}Parar</button></div>
+    <p class="muted" id="pvSt" style="text-align:center;margin-top:8px">Pronto para reproduzir</p>`,
+  {wide:true,onClose:()=>{alive=false;stop();onEnd&&onEnd()},onMount:md=>{
+    const W=$('#pvW',md),v=$('.vw-main',W),clip=$('.vc-clip',W),stx=$('#pvSt',md);
+    v.muted=false;clip.muted=false;
+    paintVidBrand(W,{title:'Pré-visualização',sub:'',cue:''});
+    const tr=mont.trilha&&urls.trilha?mont.trilha:null;
+    const bgVol=f=>{bg.volume=Math.max(0,Math.min(1,(tr?.volume??.6)*f))};
+    async function run(){
+      stop();const my=++gen;const live=()=>alive&&my===gen;
+      W.classList.remove('brand');
+      if(tr){bg.src=urls.trilha;await new Promise(r=>{bg.onloadedmetadata=r;setTimeout(r,3000)});try{bg.currentTime=tr.inicio||0}catch{}}
+      v.src=main.url;await new Promise(r=>{v.onloadedmetadata=r;setTimeout(r,4000)});
+      const ini=Math.min(main.inicio||0,Math.max(0,(v.duration||1)-0.3));v.currentTime=ini;v.style.opacity=1;
+      const end=main.fim&&main.fim>ini?Math.min(main.fim,v.duration||main.fim):(v.duration||0);
+      const card=async p=>{
+        const s=mont[p];if(!s||!live())return;
+        paintCard(W,s,urls[p]);$('.vw-card',W).style.opacity=1;stx.textContent=FASE[p==='antes'?'pre':'post'];
+        if(tr&&tr.emTudo&&bg.paused){bgVol(1);bg.play().catch(()=>{})}
+        if(s.tipo==='video'&&urls[p]){clip.currentTime=0;clip.muted=!!(tr&&tr.emTudo);await clip.play().catch(()=>{});await until(()=>clip.ended||!live())}
+        else{const t0=performance.now(),L=(s.duracao||5)*1000;await until(()=>performance.now()-t0>=L||!live())}
+        paintCard(W,null);
+      };
+      await card('antes');if(!live())return;
+      stx.textContent='Vídeo principal';
+      const vo=mont.volOriginal??1;v.volume=vo;
+      await v.play().catch(()=>{});if(tr&&bg.paused){bgVol(1);bg.play().catch(()=>{})}
+      const fo=main.fim&&main.fadeOut!==false?Math.min(FADE_OUT,(end-ini)/3):0;
+      await until(()=>{
+        if(!live())return true;
+        const t=v.currentTime,rem=end-t;let k=1;
+        if(main.fadeIn){const f=(t-ini)/FADE_IN;if(f>=0&&f<1)k*=f}
+        if(fo&&rem<fo)k*=Math.max(0,rem/fo);
+        v.style.opacity=k;v.volume=Math.max(0,Math.min(1,vo*k));
+        if(tr&&(!mont.depois||!tr.emTudo))bgVol(rem<1.5?Math.max(0,rem/1.5):1);
+        return v.ended||t>=end-0.02;
+      });
+      v.pause();if(!live())return;
+      if(tr&&!tr.emTudo)bg.pause();
+      await card('depois');
+      bg.pause();
+      if(live()){W.classList.add('brand');stx.textContent='Fim da montagem'}
+    }
+    $('#pvPlay',md).onclick=run;
+    $('#pvStop',md).onclick=()=>{stop();stx.textContent='Parado'};
+    function stopIn(){gen++;v.pause();clip.pause();bg.pause();paintCard(W,null);W.classList.add('brand')}
+    stop.impl=stopIn;
+  }});
+  function stop(){stop.impl&&stop.impl()}
 }
 
 /* =========================================================
@@ -1157,17 +1372,30 @@ async function fetchAudioBlob(audioGistId,audioArquivo,mime,token){
   const b64=await readGistFile(files[audioArquivo]||Object.values(files)[0]);
   return b64ToBlob(b64.trim(),mime);
 }
-/* Envio usado pela professora e pelos clientes (noivos/debutante) */
-async function enviarSub({P,file,keep,meta,substitui,onProg}){
-  const id=uid();let au;
-  if(file){
-    onProg(.02,'Preparando arquivo…');
-    const b64=await fileToB64(file);
-    const audioArquivo=`audio_${id}.b64`;
-    const g=await ghUpload('/gists','POST',P.t,{description:`[Palco Musical] Áudio: ${meta.titulo} (${P.e})`,public:false,files:{[audioArquivo]:{content:b64}}},p=>onProg(.05+p*.85,`Enviando… ${Math.round(p*100)}%`));
-    au={audioGistId:g.id,audioArquivo,mime:mimeOf(file),nomeArquivo:file.name,tamanho:file.size};
-  }else{
-    au={audioGistId:keep.audioGistId,audioArquivo:keep.audioArquivo,mime:keep.mime,nomeArquivo:keep.nomeArquivo,tamanho:keep.tamanho};
+/* Envio usado pela professora e pelos clientes (noivos/debutante).
+   partes = {antes,depois,trilha} → {file} (novo arquivo) ou {kept:true} (mantém o já enviado) */
+async function enviarSub({P,file,keep,meta,substitui,onProg,partes=null}){
+  const id=uid();
+  const ups=[];if(file)ups.push({k:'main',file});
+  for(const p of PARTS)if(partes?.[p]?.file)ups.push({k:p,file:partes[p].file});
+  const total=ups.reduce((a,u)=>a+u.file.size,0)||1;let done=0;const res={};
+  for(const[i,u]of ups.entries()){
+    const lbl=ups.length>1?` (${i+1}/${ups.length})`:'';
+    onProg(.02+done/total*.88,'Preparando arquivo'+lbl+'…');
+    const b64=await fileToB64(u.file);
+    const name=`${u.k==='main'?'audio':u.k}_${id}.b64`;
+    const g=await ghUpload('/gists','POST',P.t,{description:`[Palco Musical] ${u.k==='main'?'Arquivo':'Montagem ('+u.k+')'}: ${meta.titulo} (${P.e})`,public:false,files:{[name]:{content:b64}}},
+      p=>onProg(.02+(done+p*u.file.size)/total*.88,`Enviando${lbl}… ${Math.round((done+p*u.file.size)/total*100)}%`));
+    res[u.k]={audioGistId:g.id,audioArquivo:name,mime:u.file.type||mimeOf(u.file),nomeArquivo:u.file.name,tamanho:u.file.size};
+    done+=u.file.size;
+  }
+  const au=res.main||{audioGistId:keep.audioGistId,audioArquivo:keep.audioArquivo,mime:keep.mime,nomeArquivo:keep.nomeArquivo,tamanho:keep.tamanho};
+  if(meta.montagem){
+    for(const p of PARTS){
+      const mp=meta.montagem[p];if(!mp)continue;
+      if(res[p])mp.midia=res[p];
+      else if(partes?.[p]?.kept&&substitui?.montagem?.[p]?.midia)mp.midia=substitui.montagem[p].midia;
+    }
   }
   onProg(.93,'Registrando no cronograma…');
   const full={...meta,...au,id,enviadoEm:new Date().toISOString()};
@@ -1179,7 +1407,11 @@ async function enviarSub({P,file,keep,meta,substitui,onProg}){
     if(substitui&&e.status===422){delete files[`sub_${substitui.id}.json`];await ghRetry(`/gists/${P.g}`,{method:'PATCH',token:P.t,body:{files}})}
     else throw e;
   }
-  if(file&&substitui?.audioGistId&&substitui.audioGistId!==au.audioGistId)gh(`/gists/${substitui.audioGistId}`,{method:'DELETE',token:P.t}).catch(()=>{});
+  if(substitui){
+    const usados=new Set([full.audioGistId,...PARTS.map(p=>full.montagem?.[p]?.midia?.audioGistId)].filter(Boolean));
+    const velhos=[substitui.audioGistId,...PARTS.map(p=>substitui.montagem?.[p]?.midia?.audioGistId)].filter(Boolean);
+    for(const gid of new Set(velhos))if(!usados.has(gid))gh(`/gists/${gid}`,{method:'DELETE',token:P.t}).catch(()=>{});
+  }
   onProg(1,'Concluído!');
   return full;
 }
@@ -1210,12 +1442,13 @@ async function saveMusica(m){await DB.put('musicas',m);const i=state.musicas.fin
 async function renumber(list=sorted()){list.forEach((m,i)=>m.ordem=i+1);await DB.putMany('musicas',list)}
 async function removeLocal(m){
   await DB.del('musicas',m.id);await DB.del('audios',m.id);
+  for(const p of PARTS)await DB.del('audios',partKey(m.id,p));
   state.musicas=state.musicas.filter(x=>x.id!==m.id);
   const ev=state.evento;if(ev){ev.removidos=[...new Set([...(ev.removidos||[]),m.id])];await saveEvento(ev)}
 }
 
 /* Metadados do evento publicados no Gist (cronograma lido pelo link do cliente) */
-const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',local:ev.local||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome})),marca:publicBrand()},null,1);
+const metaJSON=ev=>JSON.stringify({app:'palco-musical',v:2,nome:ev.nome,data:ev.data||'',local:ev.local||'',tipo:ev.tipo||'escolar',homenageados:ev.homenageados||'',momentos:(ev.momentos||[]).map(({id,nome})=>({id,nome})),marca:publicBrand(),cliente:ev.cliente||null},null,1);
 let pushT=null;
 function pushMeta(ev=state.evento,now=false){
   if(!ev?.gistId||!state.token)return Promise.resolve();
@@ -1268,13 +1501,14 @@ async function processGist(ev,gist){
   const novos=[],trocas=[];let evChanged=false;
   for(const meta of subs){
     if(known.has(meta.id)||removed.has(meta.id))continue;
-    let reuse=null,ordem=null;
+    let reuse=null,ordem=null;const reuseParts={};
     if(meta.substitui){
       const old=state.musicas.find(x=>x.id===meta.substitui);
       if(old){
         if(old.audioGistId&&old.audioGistId===meta.audioGistId&&hasAudio(old))reuse=await DB.get('audios',old.id);
+        for(const p of PARTS){const x=old.montagem?.[p]?.midia?.audioGistId,y=meta.montagem?.[p]?.midia?.audioGistId;if(x&&x===y){const bl=await DB.get('audios',partKey(old.id,p));if(bl)reuseParts[p]=bl}}
         ordem=old.ordem;
-        if(Player.cur?.id===old.id&&Player.a.paused){Player.cur=null}
+        if(Player.cur?.id===old.id&&!Player.playing){Player.cur=null;Player.freeParts()}
         if(Player.cur?.id!==old.id)await removeLocal(old);
         trocas.push(meta);
       }else{ev.removidos=[...new Set([...(ev.removidos||[]),meta.substitui])];evChanged=true}
@@ -1297,9 +1531,11 @@ async function processGist(ev,gist){
       ordem:ordem!=null?ordem:(sug&&!isCer(ev)?sug-0.5:max+1),
       nomeArquivo:meta.nomeArquivo||'',mime:meta.mime||'audio/mpeg',tamanho:meta.tamanho||0,
       audioGistId:meta.audioGistId,audioArquivo:meta.audioArquivo,
-      enviadoEm:meta.enviadoEm||'',recebidoEm:new Date().toISOString(),status:'baixando',duracao:0
+      enviadoEm:meta.enviadoEm||'',recebidoEm:new Date().toISOString(),status:'baixando',duracao:0,
+      video:!!meta.video,montagem:meta.montagem||null
     };
-    if(reuse){await DB.put('audios',reuse,m.id);m.status='pronta';const inf=await getMediaInfo(reuse);m.duracao=inf.dur;m.video=inf.video}
+    for(const[p,bl]of Object.entries(reuseParts))await DB.put('audios',bl,partKey(m.id,p));
+    if(reuse){await DB.put('audios',reuse,m.id);const inf=await getMediaInfo(reuse);m.duracao=inf.dur;m.video=inf.video;if(!(await faltamPartes(m)))m.status='pronta'}
     await saveMusica(m);known.add(m.id);novos.push(m);
   }
   if(evChanged){await saveEvento(ev);pushMeta(ev)}
@@ -1313,15 +1549,26 @@ async function processGist(ev,gist){
 }
 
 const baixando=new Set();
+async function faltamPartes(m){
+  for(const p of PARTS){if(m.montagem?.[p]?.midia&&!(await DB.get('audios',partKey(m.id,p))))return true}
+  return false;
+}
 async function baixarAudio(m){
-  if(baixando.has(m.id)||!state.token||!m.audioGistId)return;
+  if(baixando.has(m.id)||!state.token)return;
   baixando.add(m.id);
   try{
     m.status='baixando';await saveMusica(m);renderList();
-    const blob=await fetchAudioBlob(m.audioGistId,m.audioArquivo,m.mime,state.token);
-    await DB.put('audios',blob,m.id);
-    const inf=await getMediaInfo(blob);m.duracao=inf.dur;m.video=inf.video;
-    m.tamanho=blob.size;m.status='pronta';m.erro='';
+    if(!(await DB.get('audios',m.id))){
+      if(!m.audioGistId)throw new Error('Arquivo principal não encontrado.');
+      const blob=await fetchAudioBlob(m.audioGistId,m.audioArquivo,m.mime,state.token);
+      await DB.put('audios',blob,m.id);
+      const inf=await getMediaInfo(blob);m.duracao=inf.dur;m.video=inf.video;m.tamanho=blob.size;
+    }
+    for(const p of PARTS){
+      const md=m.montagem?.[p]?.midia;
+      if(md&&!(await DB.get('audios',partKey(m.id,p)))){const b=await fetchAudioBlob(md.audioGistId,md.audioArquivo,md.mime,state.token);await DB.put('audios',b,partKey(m.id,p))}
+    }
+    m.status='pronta';m.erro='';
     await saveMusica(m);
   }catch(e){
     m.status='erro';m.erro=e.message;await saveMusica(m);
@@ -1344,7 +1591,7 @@ function notifyNew(list,trocas=new Set()){
     const t=trocas.has(m.id)?'Música atualizada':'Nova música recebida';
     toast(`<b>${t}</b><br>${isCer()?esc(cueOf(m))+': ':''}${esc(m.titulo)}${isCer()?'':' — '+esc(m.turma)} <span class="muted">(${esc(m.enviadoPor||m.professora)})</span>`,'new',7000);
   });
-  if(Player.a.paused)chime(); // nunca toca o aviso por cima de uma apresentação
+  if(!Player.playing)chime(); // nunca toca o aviso por cima de uma apresentação
   if(document.hidden){
     state.badge+=list.length;document.title=`(${state.badge}) ${marca.nome||'Palco Musical'}`;
     if('Notification'in window&&Notification.permission==='granted'){
@@ -1358,16 +1605,44 @@ let wakeLock=null;
 async function requestWake(){try{if('wakeLock'in navigator&&!document.hidden&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}}catch{}}
 
 /* =========================================================
-   PLAYER — corte exato de início/fim, fades e controle por frame
+   PLAYER — corte exato, fades, montagem (introdução, vídeo, encerramento, música de fundo)
    ========================================================= */
+const PARTS=['antes','depois','trilha'];
+const partKey=(id,p)=>`${id}:${p}`;
+const temMontagem=m=>{const t=m?.montagem;return!!(t&&(t.antes||t.depois||t.trilha||(t.volOriginal??1)<1))};
+const FASE={pre:'Introdução',post:'Encerramento'};
+/* Mostra (ou esconde) a tela de introdução/encerramento dentro de um quadro de vídeo */
+function paintCard(wrap,seg,url){
+  const c=$('.vw-card',wrap);if(!c)return;
+  const clip=$('.vc-clip',c);
+  if(!seg){c.hidden=true;clip.pause();return}
+  c.hidden=false;
+  const img=$('.vc-img',c),bgI=$('.vc-bg',c);
+  const isImg=seg.tipo==='imagem'&&!!url,isVid=seg.tipo==='video'&&!!url;
+  img.hidden=bgI.hidden=!isImg;
+  if(isImg&&img.dataset.u!==url){img.dataset.u=url;img.src=url;bgI.src=url}
+  clip.hidden=!isVid;
+  if(isVid){if(clip.dataset.u!==url){clip.dataset.u=url;clip.src=url}}else clip.pause();
+  c.classList.toggle('has-media',isImg||isVid);
+  $('.vc-t',c).textContent=isVid?'':(seg.titulo||'');
+  $('.vc-s',c).textContent=isVid?'':(seg.sub||'');
+}
+
 const Player={
-  a:document.getElementById('plVideo'),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,ctx:null,gain:null,lv:1,vis:1,
+  a:document.getElementById('plVideo'),bg:new Audio(),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,
+  ctx:null,gain:null,bgGain:null,lv:1,vis:1,mt:null,parts:{},phase:'main',started:false,cardPlaying:false,cardEl:0,cardT0:0,mf:1,lastUi:0,cardOp:1,
+  get clip(){return $('#vidWrap .vc-clip')},
+  get card(){return $('#vidWrap .vw-card')},
+  get playing(){return!!this.cur&&(this.phase==='main'?!this.a.paused:this.cardPlaying)},
+  get initialPhase(){return this.mt?.antes?'pre':'main'},
+  hasVisual(){const m=this.cur;return!!(m&&(m.video||this.mt?.antes||this.mt?.depois))},
   init(){
     const a=this.a;a.preload='auto';
+    this.bg.preload='auto';this.bg.loop=true;
     a.addEventListener('timeupdate',()=>this.onTime());
     a.addEventListener('play',()=>{this.watch();this.ui()});
-    a.addEventListener('pause',()=>{this.unwatch();this.ui()});
-    a.addEventListener('ended',()=>this.afterEnd());
+    a.addEventListener('pause',()=>{if(this.phase==='main'){this.unwatch();this.bg.pause()}this.ui()});
+    a.addEventListener('ended',()=>{if(this.phase==='main')this.mainEnded()});
     a.addEventListener('error',()=>{if(this.cur&&a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Baixe-o e converta (MP3 para música, MP4/H.264 para vídeo).','err',7000)});
     $('#vpFs').onclick=()=>this.fullscreen();
     $('#vpTv').onclick=()=>Telao.toggle();
@@ -1377,11 +1652,12 @@ const Player={
     const sk=$('#plSeek');
     sk.addEventListener('input',()=>{this.seeking=true;sk.style.setProperty('--p',sk.value/10+'%')});
     sk.addEventListener('change',()=>{
-      const d=a.duration||0;if(d&&this.cur){const{ini,end}=this.bounds();a.currentTime=Math.max(ini,Math.min(end-0.15,sk.value/1000*d));this.fadeInOn=false}
-      this.seeking=false;
+      const d=a.duration||0;
+      if(d&&this.cur&&this.phase==='main'){const{ini,end}=this.bounds();a.currentTime=Math.max(ini,Math.min(end-0.15,sk.value/1000*d));this.fadeInOn=false}
+      this.seeking=false;this.onTime();
     });
     const vol=$('#plVol');vol.value=state.volume;
-    vol.addEventListener('input',()=>{state.volume=+vol.value;if(a.paused&&!this.fadeT)this.setVol(state.volume*this.vis);DB.setCfg('volume',state.volume)});
+    vol.addEventListener('input',()=>{state.volume=+vol.value;if(!this.playing&&!this.fadeT)this.setVol(state.volume*this.vis*this.volOrig());DB.setCfg('volume',state.volume)});
     $('#plPlay').onclick=()=>this.toggle();
     $('#plNext').onclick=()=>this.next();
     $('#plPrev').onclick=()=>this.prev();
@@ -1395,29 +1671,40 @@ const Player={
     }
     this.ui();
   },
-  /* Ganho via Web Audio (funciona também no iPhone, onde o volume do <audio> é fixo) */
+  /* Ganho via Web Audio (funciona também no iPhone, onde o volume do elemento é fixo) */
   ensureGraph(){
     try{
-      if(!this.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;this.ctx=new C();const src=this.ctx.createMediaElementSource(this.a);this.gain=this.ctx.createGain();src.connect(this.gain).connect(this.ctx.destination);this.a.volume=1}
+      if(!this.ctx){
+        const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+        this.ctx=new C();
+        const src=this.ctx.createMediaElementSource(this.a);this.gain=this.ctx.createGain();src.connect(this.gain).connect(this.ctx.destination);this.a.volume=1;
+        const bs=this.ctx.createMediaElementSource(this.bg);this.bgGain=this.ctx.createGain();bs.connect(this.bgGain).connect(this.ctx.destination);this.bg.volume=1;
+      }
       if(this.ctx.state==='suspended')this.ctx.resume();
-    }catch{this.gain=null}
+    }catch{this.gain=null;this.bgGain=null}
   },
+  volOrig(){const v=this.mt?.volOriginal;return v==null?1:v},
   setVol(v){
     v=Math.max(0,Math.min(1,v));this.lv=v;
     if(this.gain&&this.ctx){try{this.gain.gain.setTargetAtTime(v,this.ctx.currentTime,0.008);return}catch{}}
     this.a.volume=v;
   },
+  setBg(v){
+    v=Math.max(0,Math.min(1,v));
+    if(this.bgGain&&this.ctx){try{this.bgGain.gain.setTargetAtTime(v,this.ctx.currentTime,0.02);return}catch{}}
+    this.bg.volume=v;
+  },
   /* k = fator de fade (0..1): baixa o volume e escurece o vídeo juntos */
   setK(k){
     k=Math.max(0,Math.min(1,k));
-    const v=state.volume*k;if(Math.abs(v-this.lv)>0.002||k===0||k===1)this.setVol(v);
+    const v=state.volume*k*this.volOrig();if(Math.abs(v-this.lv)>0.002||k===0||k===1)this.setVol(v);
     if(Math.abs(k-this.vis)>0.004||k===0||k===1){this.vis=k;this.a.style.opacity=k}
   },
-  /* tela de marca no lugar do vídeo: sem vídeo, preparado no início ou já encerrado */
+  /* tela da marca: nada tocando ainda (preparado), sem imagem, ou encerrado */
   brandMode(){
-    const m=this.cur;if(!m||!m.video||this.done)return true;
-    const{ini}=this.bounds();
-    return this.a.paused&&Math.abs(this.a.currentTime-ini)<0.3;
+    const m=this.cur;if(!m||this.done||!this.started)return true;
+    if(this.phase!=='main')return false;
+    return!m.video;
   },
   fullscreen(){
     const w=$('#vidWrap'),fe=document.fullscreenElement||document.webkitFullscreenElement;
@@ -1433,74 +1720,154 @@ const Player={
     if(m?.fim&&m.fim>ini&&(!d||m.fim<d)){end=m.fim;cut=true}
     return{ini,end,cut};
   },
-  seekTo(t){
-    const a=this.a;
-    if(Math.abs(a.currentTime-t)<0.005)return Promise.resolve();
-    return new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;a.removeEventListener('seeked',h);r()};a.addEventListener('seeked',h);a.currentTime=t;setTimeout(h,2500)});
+  seekTo(t,el=this.a){
+    if(Math.abs(el.currentTime-t)<0.005)return Promise.resolve();
+    return new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;el.removeEventListener('seeked',h);r()};el.addEventListener('seeked',h);try{el.currentTime=t}catch{h()}setTimeout(h,2500)});
+  },
+  /* ---- trechos de introdução / encerramento ---- */
+  seg(){return this.phase==='pre'?this.mt?.antes:this.phase==='post'?this.mt?.depois:null},
+  segUrl(){return this.phase==='pre'?this.parts.antes:this.phase==='post'?this.parts.depois:null},
+  isClip(){return this.seg()?.tipo==='video'&&!!this.segUrl()},
+  cardLen(){const s=this.seg();if(!s)return 0;if(this.isClip())return isFinite(this.clip.duration)?this.clip.duration:0;return Math.max(1,+s.duracao||5)},
+  cardElapsed(){if(this.isClip())return this.clip.currentTime||0;return this.cardPlaying?(performance.now()-this.cardT0)/1000:this.cardEl},
+  paintPhase(){paintCard($('#vidWrap'),this.seg(),this.segUrl());this.cardOp=1;this.card.style.opacity=1},
+  freeParts(){
+    const c=this.clip;c.pause();c.removeAttribute('src');delete c.dataset.u;
+    $$('#vidWrap .vc-img,#vidWrap .vc-bg').forEach(i=>{i.removeAttribute('src');delete i.dataset.u});
+    Object.values(this.parts).forEach(u=>URL.revokeObjectURL(u));this.parts={};
+    this.bg.pause();this.bg.removeAttribute('src');
+    this.card.hidden=true;
   },
   async load(m,autoplay=true){
     const blob=await DB.get('audios',m.id);
-    if(!blob){toast('O áudio desta música ainda não está disponível.','warn');return}
-    this.clearFade();this.a.pause();
+    if(!blob){toast('O arquivo desta música ainda não está disponível.','warn');return}
+    this.clearFade();this.a.pause();this.cardPlaying=false;this.unwatch();this.freeParts();
     if(this.url)URL.revokeObjectURL(this.url);
     this.url=URL.createObjectURL(blob);
-    this.cur=m;this.done=false;this.fadeInOn=false;
+    this.cur=m;this.done=false;this.fadeInOn=false;this.started=false;this.mf=1;
+    this.mt=temMontagem(m)?m.montagem:null;
+    if(this.mt){for(const p of PARTS){const s=this.mt[p];if(!s||(p!=='trilha'&&s.tipo==='texto'))continue;const b=await DB.get('audios',partKey(m.id,p));if(b)this.parts[p]=URL.createObjectURL(b)}}
     const a=this.a;a.src=this.url;
     await new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;a.removeEventListener('loadedmetadata',h);r()};a.addEventListener('loadedmetadata',h);setTimeout(h,5000)});
     if(a.videoWidth>0&&!m.video){m.video=true;const x=state.musicas.find(y=>y.id===m.id);if(x){x.video=true;saveMusica(x)}}
     if(!a.videoWidth&&m.video)m.video=false;
     await this.seekTo(this.bounds().ini);
+    this.phase=this.initialPhase;this.cardEl=0;this.paintPhase();
+    if(this.isClip())await new Promise(r=>{const c=this.clip;if(c.readyState>0)return r();c.addEventListener('loadedmetadata',r,{once:true});setTimeout(r,4000)});
+    if(this.parts.trilha){this.bg.src=this.parts.trilha;await this.seekTo(this.mt.trilha.inicio||0,this.bg)}
     Telao.sendLoad();
     if('mediaSession'in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:isCer()?cueOf(m):m.titulo,artist:descOf(m),album:state.evento?.nome||'Palco Musical'})}catch{}}
     if(autoplay)await this.play();else{this.setK(1);this.ui();this.onTime()}
     renderList();
   },
+  bgPlay(){if(this.parts.trilha&&this.bg.paused){this.setBg(0);this.bg.play().catch(()=>{})}},
   async play(){
     if(!this.cur)return;
-    const a=this.a;this.ensureGraph();
-    const{ini,end}=this.bounds();
+    this.ensureGraph();this.clearFade();this.mf=1;this.started=true;this.done=false;
+    if(this.phase!=='main')return this.startCard();
+    const a=this.a;const{ini,end}=this.bounds();
     if(a.currentTime<ini-0.05||(end&&a.currentTime>=end-0.05))await this.seekTo(ini);
-    this.clearFade();this.done=false;
     this.fadeInOn=!!this.cur.fadeIn&&a.currentTime-ini<0.25;
     this.setK(this.fadeInOn?0:1);
+    this.card.hidden=true;
     try{await a.play()}catch{toast('Toque no botão ▶ para iniciar a reprodução.','warn')}
+    this.bgPlay();
   },
-  /* chamado a cada frame: aplica fades e corta exatamente no ponto final */
+  startCard(){
+    if(!this.seg()){if(this.phase==='pre')this.enterMain();else this.afterEnd();return}
+    if(this.isClip()){const c=this.clip;c.muted=!!(this.parts.trilha&&this.mt.trilha.emTudo);c.volume=Math.min(1,state.volume);c.play().catch(()=>{})}
+    this.cardT0=performance.now()-this.cardEl*1000;this.cardPlaying=true;
+    if(this.parts.trilha&&this.mt.trilha.emTudo)this.bgPlay();
+    this.watch();this.ui();
+  },
+  pauseAll(){
+    if(this.phase==='main')this.a.pause();
+    else{this.cardEl=this.cardElapsed();this.cardPlaying=false;this.clip.pause();this.unwatch()}
+    this.bg.pause();this.ui();
+  },
+  enterMain(){
+    this.clip.pause();this.cardPlaying=false;this.phase='main';this.cardEl=0;this.card.hidden=true;
+    this.play();
+  },
+  mainEnded(){
+    if(this.done||this.phase!=='main')return;
+    if(this.mt?.depois){
+      this.phase='post';this.cardEl=0;this.a.pause();
+      if(this.parts.trilha&&!this.mt.trilha.emTudo)this.bg.pause();
+      this.paintPhase();this.startCard();
+    }else{this.a.pause();this.afterEnd()}
+  },
+  /* quanto falta para a música de fundo precisar estar em silêncio */
+  remaining(){
+    const tr=this.mt?.trilha;if(!tr)return null;
+    if(this.phase==='post')return this.cardLen()-this.cardElapsed();
+    if(this.phase==='main'){if(this.mt.depois&&tr.emTudo)return null;const{end}=this.bounds();return end-this.a.currentTime}
+    return null;
+  },
+  bgTick(){
+    if(!this.parts.trilha||this.bg.paused)return;
+    const tr=this.mt.trilha;let f=this.mf;
+    const bt=this.bg.currentTime-(tr.inicio||0);if(bt>=0&&bt<0.8)f*=bt/0.8;
+    const rem=this.remaining();if(rem!=null&&rem<1.5)f*=Math.max(0,rem/1.5);
+    this.setBg(state.volume*(tr.volume??0.6)*f);
+  },
+  /* chamado a cada frame: fases da montagem, fades e corte exato no ponto final */
   tick(){
-    const a=this.a,m=this.cur;if(!m||a.paused)return;
+    const m=this.cur;if(!m)return;
+    const now=performance.now();
+    if(this.phase!=='main'){
+      if(!this.cardPlaying)return;
+      const el=this.cardElapsed(),L=this.cardLen();
+      const ended=this.isClip()?(this.clip.ended||(L>0&&el>=L-0.03)):el>=L;
+      if(ended){if(this.phase==='pre')this.enterMain();else this.afterEnd();return}
+      if(!this.fadeT&&!this.isClip()){const op=this.phase==='pre'?Math.min(1,(L-el)/0.6):Math.min(1,el/0.6);this.cardOp=Math.max(0,op);this.card.style.opacity=this.cardOp}
+      this.bgTick();
+      if(now-this.lastUi>250){this.lastUi=now;this.onTime()}
+      return;
+    }
+    const a=this.a;if(a.paused)return;
     const t=a.currentTime,{ini,end,cut}=this.bounds();
-    if(cut&&t>=end-0.012&&!this.done){this.clearFade();a.pause();this.afterEnd();return}
+    if(cut&&t>=end-0.012&&!this.done){this.clearFade();this.mainEnded();return}
     if(this.fadeT)return;
     let k=1;
     if(this.fadeInOn){const f=(t-ini)/FADE_IN;if(f>=1||f<0)this.fadeInOn=false;else k*=f}
     if(cut&&m.fadeOut!==false){const fo=Math.min(FADE_OUT,(end-ini)/3);if(t>end-fo)k*=Math.max(0,(end-t)/fo)}
-    this.setK(k);
+    this.setK(k);this.bgTick();
   },
   watch(){this.unwatch();const loop=()=>{this.tick();this.raf=requestAnimationFrame(loop)};this.raf=requestAnimationFrame(loop);this.iv=setInterval(()=>this.tick(),30)},
   unwatch(){cancelAnimationFrame(this.raf);clearInterval(this.iv)},
   async toggle(){
     if(!this.cur){const l=sorted();const m=l.find(x=>x.status==='pronta')||l.find(hasAudio);if(m)return this.load(m,true);return toast('Nenhuma música pronta para tocar.','warn')}
-    if(this.a.paused)await this.play();else this.a.pause();
+    if(this.playing)this.pauseAll();else await this.play();
   },
-  async stop(){
+  async stop(mark=true){
     if(!this.cur)return;this.clearFade();
-    const{ini}=this.bounds();const played=this.a.currentTime-ini;
-    this.a.pause();await this.seekTo(ini);this.setK(1);
-    if(played>15)this.markPlayed(this.cur);
+    const{ini}=this.bounds();const played=this.phase==='post'?999:this.phase==='main'?this.a.currentTime-ini:0;
+    this.cardPlaying=false;this.clip.pause();this.a.pause();this.unwatch();this.bg.pause();
+    await this.seekTo(ini);
+    if(this.parts.trilha)await this.seekTo(this.mt.trilha.inicio||0,this.bg);
+    this.phase=this.initialPhase;this.cardEl=0;this.started=false;this.done=false;this.mf=1;
+    this.paintPhase();if(this.isClip()){try{this.clip.currentTime=0}catch{}}
+    this.setK(1);
+    if(mark&&played>15)this.markPlayed(this.cur);
     this.ui();this.onTime();
   },
   clearFade(){if(this.fadeT){clearInterval(this.fadeT);this.fadeT=null}},
+  /* fade manual (F): baixa tudo junto — vídeo, introdução e música de fundo — e encerra */
   fade(ms=3000){
-    const a=this.a;if(!this.cur||a.paused||this.fadeT)return;
-    const k0=this.vis,t0=performance.now();
+    if(!this.playing||this.fadeT)return;
+    const k0=this.vis,c0=this.cardOp,v0=this.clip.volume,t0=performance.now();
     this.fadeT=setInterval(()=>{
-      const k=Math.min(1,(performance.now()-t0)/ms);this.setK(k0*(1-k));
-      if(k>=1){this.clearFade();a.pause();this.afterEnd()}
+      const p=Math.min(1,(performance.now()-t0)/ms);this.mf=1-p;
+      if(this.phase==='main')this.setK(k0*this.mf);
+      else{this.cardOp=c0*this.mf;this.card.style.opacity=this.cardOp;this.clip.volume=v0*this.mf}
+      this.bgTick();
+      if(p>=1){this.clearFade();if(this.phase==='main')this.a.pause();else{this.cardPlaying=false;this.clip.pause()}this.afterEnd()}
     },30);
   },
   async afterEnd(){
     const cur=this.cur;if(!cur||this.done)return;
-    this.done=true;
+    this.done=true;this.cardPlaying=false;this.unwatch();this.clip.pause();this.bg.pause();this.card.hidden=true;
     await this.markPlayed(cur);
     const n=this.nextOf(cur);
     if(n)await this.load(n,state.auto);
@@ -1512,15 +1879,25 @@ const Player={
   },
   nextOf(m){const l=sorted();const i=l.findIndex(x=>x.id===m?.id);return l.slice(i+1).find(hasAudio)||null},
   prevOf(m){const l=sorted();const i=l.findIndex(x=>x.id===m?.id);return l.slice(0,Math.max(0,i)).reverse().find(hasAudio)||null},
-  next(){const n=this.cur?this.nextOf(this.cur):sorted().find(hasAudio);if(n)this.load(n,!this.a.paused||!this.cur);else toast('Não há próxima música pronta.','warn')},
-  prev(){
+  next(){const n=this.cur?this.nextOf(this.cur):sorted().find(hasAudio);if(n)this.load(n,this.playing||!this.cur);else toast('Não há próxima música pronta.','warn')},
+  async prev(){
+    if(!this.cur)return;
     const{ini}=this.bounds();
-    if(this.cur&&this.a.currentTime-ini>3){this.seekTo(ini).then(()=>this.onTime());return}
-    const p=this.prevOf(this.cur);if(p)this.load(p,!this.a.paused);else if(this.cur)this.seekTo(ini);
+    const prog=this.phase!==this.initialPhase||(this.phase==='main'?this.a.currentTime-ini:this.cardElapsed())>3;
+    if(this.started&&prog){const was=this.playing;await this.stop(false);if(was)this.play();return}
+    const p=this.prevOf(this.cur);if(p)this.load(p,this.playing);else this.stop(false);
   },
-  seekBy(s){if(!this.cur||!this.a.duration)return;const{ini,end}=this.bounds();this.a.currentTime=Math.max(ini,Math.min(end-0.15,this.a.currentTime+s));this.fadeInOn=false},
+  seekBy(s){if(!this.cur||!this.a.duration||this.phase!=='main')return;const{ini,end}=this.bounds();this.a.currentTime=Math.max(ini,Math.min(end-0.15,this.a.currentTime+s));this.fadeInOn=false},
   onTime(){
-    const a=this.a,d=isFinite(a.duration)?a.duration:0,c=a.currentTime||0,sk=$('#plSeek');
+    const a=this.a,sk=$('#plSeek');
+    if(this.cur&&this.phase!=='main'){
+      const el=this.cardElapsed(),L=this.cardLen();
+      sk.value=0;['--a','--b','--p'].forEach(v=>sk.style.setProperty(v,'0%'));
+      $('#plTime').innerHTML=`${fmt(el)} / ${fmt(L)}<small>${FASE[this.phase]}</small>`;
+      $('#vidWrap').classList.toggle('brand',this.brandMode());
+      Stage.tick();return;
+    }
+    const d=isFinite(a.duration)?a.duration:0,c=a.currentTime||0;
     const{ini,end,cut}=this.bounds();
     sk.style.setProperty('--a',(d&&this.cur?ini/d*100:0)+'%');
     sk.style.setProperty('--b',(d&&this.cur?end/d*100:100)+'%');
@@ -1531,19 +1908,17 @@ const Player={
     Stage.tick();
   },
   ui(){
-    const a=this.a,m=this.cur,playing=m&&!a.paused;
+    const m=this.cur,playing=this.playing;
     $('#plPlay').innerHTML=icon(playing?'pause':'play');
     $('#plCover').classList.toggle('on',!!playing);
-    const{ini}=this.bounds();
     $('#plTitle').textContent=m?cueOf(m):'Nenhuma música carregada';
-    $('#plSub').textContent=m?`${descOf(m)}${!playing&&Math.abs(a.currentTime-ini)<0.3?' · preparada':''}`:'Toque em ▶ em uma música da lista';
+    $('#plSub').textContent=m?`${descOf(m)}${this.mt?' · montagem':''}${!this.started?' · preparada':this.phase!=='main'?' · '+FASE[this.phase]:''}`:'Toque em ▶ em uma música da lista';
     $('#plAuto').classList.toggle('on',state.auto);
     $$('.song').forEach(li=>{const cur=m&&li.dataset.id===m.id;li.classList.toggle('is-current',!!cur);const b=$('.pbtn',li);if(b)b.innerHTML=icon(cur&&playing?'pause':'play')});
     $$('.moment[data-drag]').forEach(li=>li.classList.toggle('has-cur',!!(m&&m.momentoId===li.dataset.drag)));
     if(!m){$('#plSeek').value=0;['--p','--a'].forEach(v=>$('#plSeek').style.setProperty(v,'0%'));$('#plSeek').style.setProperty('--b','100%')}
-    $('#vpanel').hidden=!(m&&m.video);
+    $('#vpanel').hidden=!this.hasVisual();
     $('#plTv').classList.toggle('on',Telao.open);
-    if(m&&!m.video&&(document.fullscreenElement||document.webkitFullscreenElement)===$('#vidWrap')){/* mantém a tela de marca em tela cheia entre vídeos */}
     paintVidBrand($('#vidWrap'),vidLabels());
     this.onTime();renderNextCard();Stage.render();Telao.sendState();
   }
@@ -1572,13 +1947,13 @@ function paintVidBrand(wrap,{title,sub,cue}){
 
 /* ---------- Telão: janela separada (projetor/TV), sincronizada com o player ---------- */
 const Telao={
-  win:null,iv:null,lastId:undefined,
+  win:null,iv:null,
   get open(){return!!(this.win&&!this.win.closed)},
   toggle(){
     if(this.open){this.win.close();this.win=null;clearInterval(this.iv);Player.ui();return}
     const w=window.open(baseUrl()+'#telao','palco_telao','popup=yes,width=1280,height=720');
     if(!w)return toast('O navegador bloqueou a janela do telão. Permita pop-ups para este site e tente de novo.','warn',7000);
-    this.win=w;this.lastId=undefined;
+    this.win=w;
     clearInterval(this.iv);this.iv=setInterval(()=>this.sendState(),150);
     toast('<b>Telão aberto.</b> Arraste a janela para o projetor/TV e clique nela (ou tecle F) para tela cheia.','info',8000);
     Player.ui();
@@ -1587,15 +1962,16 @@ const Telao={
   sendBrand(){this.post({t:'brand',brand:publicBrand(),opts:{telaoMomento:marca.telaoMomento,logoNoVideo:marca.logoNoVideo}})},
   async sendLoad(){
     if(!this.open)return;
-    const m=Player.cur;
+    const m=Player.cur,mt=Player.mt;
     let blob=null;if(m?.video)blob=await DB.get('audios',m.id);
-    this.lastId=m?.id||null;
-    this.post({t:'load',id:m?.id||null,video:!!m?.video,blob});
+    const parts={};
+    if(m&&mt){for(const p of['antes','depois']){const s=mt[p];if(s&&s.tipo!=='texto'){const b=await DB.get('audios',partKey(m.id,p));if(b)parts[p]=b}}}
+    this.post({t:'load',id:m?.id||null,video:!!m?.video,blob,parts,mt:mt?{antes:mt.antes,depois:mt.depois}:null});
   },
   sendState(){
     if(!this.open){if(this.win){this.win=null;clearInterval(this.iv);$('#plTv')?.classList.remove('on')}return}
-    const a=Player.a;
-    this.post({t:'state',id:Player.cur?.id||null,playing:!a.paused,time:a.currentTime,brand:Player.brandMode(),op:Player.vis,labels:vidLabels()});
+    const P=Player,a=P.a;
+    this.post({t:'state',id:P.cur?.id||null,phase:P.phase,playing:P.playing,time:a.currentTime,cardEl:P.cur?P.cardElapsed():0,cardOp:P.cardOp,brand:P.brandMode(),op:P.vis,labels:vidLabels()});
   }
 };
 window.addEventListener('message',e=>{
@@ -1609,7 +1985,7 @@ const Stage={
   close(){$('#stage').hidden=true;this.placeVideo();try{if(document.fullscreenElement)document.exitFullscreen()}catch{}},
   /* move o quadro de vídeo para o modo palco quando ele está aberto (sem interromper a reprodução) */
   placeVideo(){
-    const w=$('#vidWrap'),want=this.on&&Player.cur?.video?$('#stVideo'):$('#vpSlot');
+    const w=$('#vidWrap'),want=this.on&&Player.hasVisual()?$('#stVideo'):$('#vpSlot');
     if(w.parentElement!==want)want.appendChild(w);
     $('#stage').classList.toggle('has-video',want.id==='stVideo');
   },
@@ -1620,15 +1996,21 @@ const Stage={
     $('#stEvent').textContent=state.evento?.nome||'';
     $('#stTitle').textContent=m?cueOf(m):'Nenhuma música carregada';
     $('#stSub').textContent=m?(isCer()?descOf(m):`${m.turma} · Prof. ${m.professora}`):'';
-    $('#stCut').textContent=m&&trechoTxt(m)?'✂ '+trechoTxt(m):'';
+    $('#stCut').textContent=m?[Player.phase!=='main'?FASE[Player.phase]:'',trechoTxt(m)?'✂ '+trechoTxt(m):'',Player.mt?'montagem':''].filter(Boolean).join(' · '):'';
     $('#stObs').textContent=m?.obs||'';
     $('#stNext').textContent=n?`${cueOf(n)}${isCer()?' — '+n.titulo:' · '+n.turma}`:'—';
-    $('#stPlayIc').innerHTML=`<use href="#i-${m&&!Player.a.paused?'pause':'play'}"/>`;
+    $('#stPlayIc').innerHTML=`<use href="#i-${Player.playing?'pause':'play'}"/>`;
     this.placeVideo();
     this.tick();
   },
   tick(){
     if(!this.on)return;
+    if(Player.cur&&Player.phase!=='main'){
+      const el=Player.cardElapsed(),L=Player.cardLen();
+      $('#stBar i').style.width=(L?Math.min(100,el/L*100):0)+'%';
+      $('#stCur').textContent=fmt(el);$('#stRem').textContent='-'+fmt(Math.max(0,L-el));
+      return;
+    }
     const a=Player.a,c=a.currentTime||0,{ini,end}=Player.bounds(),len=Math.max(0,end-ini);
     $('#stBar i').style.width=(Player.cur&&len?Math.min(100,Math.max(0,(c-ini)/len*100)):0)+'%';
     $('#stCur').textContent=fmt(Math.max(0,c-ini));
@@ -1660,12 +2042,13 @@ function renderMain(){
         <div class="step ${state.token?'done':''}"><b>${state.token?icon('check'):'1'}</b><div><strong>Conecte ao GitHub Gist</strong><span>${state.token?'Conectado'+(state.login?' como @'+esc(state.login):''):'É a “caixa de entrada” na nuvem que recebe os envios.'}</span></div><button class="btn ${state.token?'':'primary'} sm" data-w="cfg">${state.token?'Ver':'Configurar'}</button></div>
         <div class="step ${marca.nome||marca.logo?'done':''}"><b>${marca.nome||marca.logo?icon('check'):icon('palette')}</b><div><strong>Cadastre sua marca</strong><span>${marca.nome||marca.logo?esc(marca.nome||'Logo cadastrado'):'Logo, cor, contatos — aparecem nos links, no telão e na tela cheia.'}</span></div><button class="btn sm" data-w="marca">${marca.nome||marca.logo?'Editar':'Cadastrar'}</button></div>
         <div class="step"><b>2</b><div><strong>Crie o evento</strong><span>Escolar, 15 anos, casamento ou outro cerimonial — com o cronograma de momentos pronto.</span></div><button class="btn ${state.token?'primary':''} sm" data-w="ev">Criar evento</button></div>
-        <div class="step"><b>3</b><div><strong>Envie o link</strong><span>Para cada professora, ou para os noivos / a debutante escolherem a música de cada momento.</span></div></div>
+        <div class="step"><b>3</b><div><strong>Envie o link</strong><span>Para cada professora, ou um link de cadastro para os noivos / a debutante criarem o próprio evento e enviarem as músicas e vídeos.</span></div><button class="btn sm" data-w="reg">${icon('link')}Link de cadastro</button></div>
         <div class="step"><b>4</b><div><strong>Toque na hora</strong><span>Músicas e vídeos começam e param exatamente onde foi marcado. Vídeos em tela cheia ou no telão (2ª tela).</span></div></div>
       </div></div></section>`;
     $('[data-w=cfg]',main).onclick=openSettings;
     $('[data-w=ev]',main).onclick=()=>openEventForm();
     $('[data-w=marca]',main).onclick=openBrand;
+    $('[data-w=reg]',main).onclick=openCadastroLink;
     refreshLogos();
     return;
   }
@@ -1678,6 +2061,7 @@ function renderMain(){
         <h1>${esc(ev.nome)}</h1>
         <p class="muted">${info}</p>
         <span class="tipo-tag">${icon(t.icon)}${t.nome}${ev.homenageados&&cer?' · '+esc(ev.homenageados):''}</span>
+        ${ev.cliente?.nome?`<div class="cli-info"><span>${ev.origemCliente?'Cadastrado por':'Cliente'}: <b>${esc(ev.cliente.nome)}</b></span>${ev.cliente.whatsapp?`<a href="${esc(waLink(ev.cliente.whatsapp))}" target="_blank" rel="noopener">${esc(ev.cliente.whatsapp)}</a>`:''}${ev.cliente.email?`<a href="mailto:${esc(ev.cliente.email)}">${esc(ev.cliente.email)}</a>`:''}</div>`:''}
         ${!ev.gistId?`<div class="note warn" style="margin-top:14px">${icon('alert')}<div>Este evento ainda não recebe envios por link. ${state.token?'Ative abaixo.':'Configure o token do GitHub primeiro.'}</div></div>`:''}
         <div class="ev-actions">
           ${ev.gistId?`<button class="btn primary" data-a="links">${icon('link')}${cer?'Link para '+t.quem:'Links para professoras'}</button>`
@@ -1723,7 +2107,7 @@ function filtered(){
 }
 
 function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
-  const cur=Player.cur,playing=cur&&!Player.a.paused,isCur=cur&&cur.id===m.id,cer=isCer();
+  const cur=Player.cur,playing=Player.playing,isCur=cur&&cur.id===m.id,cer=isCer();
   const tr=trechoTxt(m);
   let l1,l2;
   if(cer&&inMoment){
@@ -1748,6 +2132,7 @@ function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
     <div class="meta">
       <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
       ${m.video?`<span class="chip c-soft">${icon('video')}Vídeo</span>`:''}
+      ${temMontagem(m)?`<span class="chip c-soft" title="Introdução, encerramento ou música de fundo">${icon('sparkle')}Montagem</span>`:''}
       ${m.posicaoSugerida&&!cer?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
       <span class="via">${m.origem==='link'?'via link · '+fmtHora(m.recebidoEm):'manual'}</span>
     </div>
@@ -1777,7 +2162,7 @@ function renderMoments(){
         </div>
       </div>
       <div class="mo-songs">${list.length?list.map(m=>songRow(m,{compact:true,inMoment:true})).join('')
-        :`<div class="slot-empty">${icon('music')}<span>${ev.gistId?'Aguardando envio de '+t.quem:'Sem música'}</span><button class="btn sm" data-mo="add" data-mid="${mo.id}">${icon('plus')}Adicionar</button></div>`}</div>
+        :`<div class="slot-empty">${icon('music')}<span>${ev.gistId?'Aguardando envio '+t.de:'Sem música'}</span><button class="btn sm" data-mo="add" data-mid="${mo.id}">${icon('plus')}Adicionar</button></div>`}</div>
     </li>`}).join('');
   if(orf.length)h+=`<li class="moment orphan"><div class="mo-h"><span class="mo-n">—</span><div class="mo-t"><strong>Sem momento definido</strong><small>Edite a música para escolher o momento</small></div></div><div class="mo-songs">${orf.map(m=>songRow(m,{compact:true,inMoment:true})).join('')}</div></li>`;
   return h;
@@ -1993,13 +2378,14 @@ async function deleteSong(m){
   const viaLink=m.origem==='link'&&ev.gistId&&state.token;
   const r=await confirmDialog(`A música <b>${esc(m.titulo)}</b> (${esc(isCer()?cueOf(m):m.turma)}) será removida deste evento.${isCer()?' O momento continua no cronograma.':''}`,{title:'Excluir música',ok:'Excluir',danger:true,check:viaLink?{label:'Apagar também o arquivo enviado no GitHub',checked:true}:null});
   if(!(viaLink?r.ok:r))return;
-  if(Player.cur?.id===m.id){Player.a.pause();Player.a.removeAttribute('src');Player.cur=null}
+  if(Player.cur?.id===m.id){Player.pauseAll();Player.freeParts();Player.a.removeAttribute('src');Player.cur=null;Player.mt=null}
   await removeLocal(m);
   await renumber();renderList();Player.ui();toast('Música excluída.','ok');
   if(viaLink&&r.checked){
     try{
       await ghRetry(`/gists/${ev.gistId}`,{method:'PATCH',body:{files:{[`sub_${m.id}.json`]:null}}});
       if(m.audioGistId&&!state.musicas.some(x=>x.audioGistId===m.audioGistId))await gh(`/gists/${m.audioGistId}`,{method:'DELETE'}).catch(()=>{});
+      for(const p of PARTS){const g=m.montagem?.[p]?.midia?.audioGistId;if(g)await gh(`/gists/${g}`,{method:'DELETE'}).catch(()=>{})}
     }catch(e){toast('Removida daqui, mas não foi possível apagar no GitHub: '+esc(e.message),'warn',6000)}
   }
 }
@@ -2007,7 +2393,7 @@ async function deleteSong(m){
 function openSongForm(m=null,momentoId=null){
   const isNew=!m,cer=isCer(),ev=state.evento;
   const selMom=(m?.momentoId)||momentoId||'';
-  let af=null;
+  let af=null,mv=null;
   openModal(`${modalHead(isNew?'Adicionar música':'Editar música',isNew?'Para músicas que chegaram por outro meio (WhatsApp, pen drive…).':'Ajuste os dados, o trecho (início/fim) ou troque o arquivo.')}
     <form id="sf" class="stack">
       ${cer?`<label class="field"><span>Momento *</span><select name="momento">${(ev.momentos||[]).map(mo=>`<option value="${mo.id}" ${selMom===mo.id?'selected':''}>${esc(mo.nome)}</option>`).join('')}<option value="" ${selMom&&ev.momentos.some(x=>x.id===selMom)?'':'selected'}>— sem momento —</option></select></label>`
@@ -2019,6 +2405,7 @@ function openSongForm(m=null,momentoId=null){
         <label class="field"><span>Artista</span><input name="artista" value="${esc(m?.artista)}"></label>
       </div>
       <div class="field"><span>Arquivo (música ou vídeo)${isNew?' *':''} — início, fim e fades</span><div id="sfAudio"></div></div>
+      <details class="mont-box" id="sfMont" hidden ${temMontagem(m)?'open':''}><summary>${icon('sparkle')}Montagem do vídeo <small>— introdução, encerramento e música de fundo</small></summary><div id="sfMontBody"></div></details>
       <label class="field"><span>Observações</span><textarea name="obs" rows="2">${esc(m?.obs)}</textarea></label>
       <p class="err" id="sfErr" hidden></p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}${isNew?'Adicionar':'Salvar'}</button></div>
@@ -2028,8 +2415,15 @@ function openSongForm(m=null,momentoId=null){
       atual:!isNew&&hasAudio(m)?{nome:m.nomeArquivo||'Arquivo atual',tamanho:m.tamanho}:null,
       loadAtual:m?()=>DB.get('audios',m.id):null,
       valores:{inicio:m?.inicio||0,fim:m?.fim||0,fadeIn:!!m?.fadeIn,fadeOut:m?m.fadeOut!==false:true},
-      maxMB:MAX_LOCAL_MB
+      maxMB:MAX_LOCAL_MB,
+      onMedia:vid=>{
+        const box=$('#sfMont',md);if(!box)return;
+        box.hidden=!vid&&!(vid===null&&!isNew&&temMontagem(m)&&!af?.file);
+        if(vid===null&&af&&!af.kept){mv=null;$('#sfMontBody',md).innerHTML='';box.hidden=true;return}
+        if(!box.hidden&&!mv)mv=montageEditor($('#sfMontBody',md),{valores:af?.file?null:m?.montagem,loadPart:m?p=>DB.get('audios',partKey(m.id,p)):null,maxMB:MAX_LOCAL_MB,getMain:()=>af.mainInfo()});
+      }
     });
+    if(!isNew&&temMontagem(m)&&hasAudio(m)){$('#sfMont',md).hidden=false;if(!mv)mv=montageEditor($('#sfMontBody',md),{valores:m.montagem,loadPart:p=>DB.get('audios',partKey(m.id,p)),maxMB:MAX_LOCAL_MB,getMain:()=>af.mainInfo()})}
     const f=$('#sf',md);
     f.onsubmit=async e=>{
       e.preventDefault();
@@ -2040,6 +2434,8 @@ function openSongForm(m=null,momentoId=null){
       if(!cer&&(!v('professora')||!v('turma')))return fail('Preencha professora e turma.');
       if(isNew&&!af.file)return fail('Escolha o arquivo da música ou do vídeo.');
       const ve=af.validate();if(ve)return fail(ve);
+      const useMv=mv&&!$('#sfMont',md).hidden;
+      if(useMv){const me=mv.validate();if(me)return fail(me)}
       const btn=$('[type=submit]',f);btn.disabled=true;
       try{
         const x=m||{id:uid(),eventoId:ev.id,origem:'manual',recebidoEm:new Date().toISOString(),ordem:state.musicas.reduce((a,y)=>Math.max(a,y.ordem||0),0)+1,status:'pronta',duracao:0};
@@ -2054,8 +2450,12 @@ function openSongForm(m=null,momentoId=null){
           x.mime=blob.type;x.nomeArquivo=af.file.name;x.tamanho=af.file.size;x.duracao=inf.dur;x.video=inf.video;
           if(x.status!=='tocada')x.status='pronta';x.erro='';
         }
+        if(useMv&&x.video!==false){
+          x.montagem=mv.values();const fs=mv.files();
+          for(const p of PARTS){if(fs[p])await DB.put('audios',new Blob([fs[p]],{type:fs[p].type||mimeOf(fs[p])}),partKey(x.id,p));else if(!mv.kept(p))await DB.del('audios',partKey(x.id,p))}
+        }else if(af.file&&!x.video){x.montagem=null;for(const p of PARTS)await DB.del('audios',partKey(x.id,p))}
         await saveMusica(x);
-        if(Player.cur?.id===x.id){Player.cur=x;if(Player.a.paused&&!af.file)await Player.seekTo(Player.bounds().ini);if(af.file)await Player.load(x,false)}
+        if(Player.cur?.id===x.id){if(Player.playing)Player.cur=x;else await Player.load(x,false)}
         close();renderList();Player.ui();toast(isNew?'Música adicionada.':'Alterações salvas.','ok');
       }catch(x){fail(x.message);btn.disabled=false}
     };
@@ -2078,6 +2478,7 @@ function openEventForm(ev=null){
   const isNew=!ev,tipo0=ev?.tipo||'escolar';
   openModal(`${modalHead(isNew?'Novo evento':'Editar evento')}
     <form id="ef" class="stack">
+      ${isNew?`<div class="note">${icon('sparkle')}<div style="flex:1">Prefere que a debutante ou os noivos cadastrem o evento? <button type="button" class="btn sm" id="efReg" style="margin-top:8px">${icon('link')}Link de cadastro para clientes</button></div></div>`:''}
       <div class="field"><span>Tipo de evento</span><div class="tipos">${Object.entries(TIPOS).map(([k,t])=>`<label class="tipo"><input type="radio" name="tipo" value="${k}" ${k===tipo0?'checked':''}><span>${icon(t.icon)}<b>${t.nome}</b><small>${t.desc}</small></span></label>`).join('')}</div></div>
       <label class="field" id="efHom"><span id="efHomL">Homenageado(s)</span><input name="homenageados" value="${esc(ev?.homenageados)}"></label>
       <label class="field"><span>Nome do evento</span><input name="nome" value="${esc(ev?.nome)}" placeholder="Ex.: Abertura dos Jogos Internos 2026"></label>
@@ -2095,6 +2496,7 @@ function openEventForm(ev=null){
     </form>`,
   {wide:true,onMount:(md,close)=>{
     const f=$('#ef',md);
+    const rb=$('#efReg',md);if(rb)rb.onclick=()=>{close();setTimeout(openCadastroLink,220)};
     const upd=()=>{
       const t=TIPOS[f.elements.tipo.value];
       $('#efHom',md).hidden=!t.cer;
@@ -2162,12 +2564,12 @@ async function deleteEvent(){
   const r=await confirmDialog(`O evento <b>${esc(ev.nome)}</b> e todas as músicas salvas neste aparelho serão apagados.`,{title:'Excluir evento',ok:'Excluir evento',danger:true,check:ev.gistId&&state.token?{label:'Apagar também os envios no GitHub (os links deixam de funcionar)',checked:true}:null});
   const ok=typeof r==='object'?r.ok:r;if(!ok)return;
   Player.a.pause();Player.cur=null;
-  for(const m of state.musicas){await DB.del('musicas',m.id);await DB.del('audios',m.id)}
+  for(const m of state.musicas){await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p))}
   await DB.del('eventos',ev.id);state.eventos=state.eventos.filter(e=>e.id!==ev.id);
   if(r.checked){
     try{
       const g=await gh(`/gists/${ev.gistId}`);const seen=new Set();
-      for(const[n,f]of Object.entries(g.data.files||{})){if(!n.startsWith('sub_'))continue;try{const meta=JSON.parse(await readGistFile(f));if(meta.audioGistId&&!seen.has(meta.audioGistId)){seen.add(meta.audioGistId);await gh(`/gists/${meta.audioGistId}`,{method:'DELETE'}).catch(()=>{})}}catch{}}
+      for(const[n,f]of Object.entries(g.data.files||{})){if(!n.startsWith('sub_'))continue;try{const meta=JSON.parse(await readGistFile(f));for(const gid of[meta.audioGistId,...PARTS.map(p=>meta.montagem?.[p]?.midia?.audioGistId)]){if(gid&&!seen.has(gid)){seen.add(gid);await gh(`/gists/${gid}`,{method:'DELETE'}).catch(()=>{})}}}catch{}}
       await gh(`/gists/${ev.gistId}`,{method:'DELETE'});
     }catch(e){toast('Evento removido daqui, mas houve erro ao limpar o GitHub: '+esc(e.message),'warn',6000)}
   }
@@ -2276,6 +2678,11 @@ function openSettings(){
       </div>
       <hr class="sep" style="margin:6px 0">
       <div class="row" style="justify-content:space-between">
+        <div><strong>Cadastro pelo cliente</strong><p class="muted" style="font-size:.88rem">Link para noivos e debutantes criarem o próprio evento.</p></div>
+        <button class="btn sm" id="goReg" type="button">${icon('link')}Abrir</button>
+      </div>
+      <hr class="sep" style="margin:6px 0">
+      <div class="row" style="justify-content:space-between">
         <div><strong>Minha marca</strong><p class="muted" style="font-size:.88rem">Logo, cor, contatos e opções do telão.</p></div>
         <button class="btn sm" id="goMarca" type="button">${icon('palette')}Abrir</button>
       </div>
@@ -2296,12 +2703,13 @@ function openSettings(){
         if(sc!==null&&!sc.split(',').map(s=>s.trim()).includes('gist'))throw new Error('Este token não tem a permissão “gist”. Gere outro marcando essa opção.');
         state.token=v;state.login=r.data.login;await DB.setCfg('token',v);await DB.setCfg('login',r.data.login);
         st.className='tk-status ok';st.textContent='✓ Conectado como @'+r.data.login;
-        toast('GitHub conectado!','ok');renderMain();Sync.start();retomarDownloads();
+        toast('GitHub conectado!','ok');renderMain();Sync.start();retomarDownloads();Inbox.start();
         setTimeout(close,700);
       }catch(e){st.className='tk-status err';st.textContent=e.message}
     };
     const rm=$('#tkRm',md);if(rm)rm.onclick=async()=>{state.token='';state.login='';await DB.setCfg('token','');await DB.setCfg('login','');close();renderMain();Sync.tick();toast('Token removido.','ok')};
     $('#goMarca',md).onclick=()=>{close();setTimeout(openBrand,220)};
+    $('#goReg',md).onclick=()=>{close();setTimeout(openCadastroLink,220)};
     const nb=$('#ntf',md);nb.onclick=async()=>{const p=await Notification.requestPermission();nb.disabled=true;nb.innerHTML=icon('bell')+(p==='granted'?'Ativadas':'Bloqueadas')};
   }});
 }
@@ -2347,8 +2755,9 @@ async function initAdmin(){
   window.addEventListener('online',()=>Sync.tick(true));
   window.addEventListener('offline',()=>setSync('off'));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){state.badge=0;document.title=marca.nome||'Palco Musical';Sync.tick();requestWake()}});
-  window.addEventListener('beforeunload',e=>{if(Player.cur&&!Player.a.paused){e.preventDefault();e.returnValue=''}});
+  window.addEventListener('beforeunload',e=>{if(Player.playing){e.preventDefault();e.returnValue=''}});
   if(navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
+  Inbox.start();
   const last=await DB.cfg('ultimoEvento');
   await selectEvent(state.eventos.find(e=>e.id===last)?.id||state.eventos[0]?.id);
 }
@@ -2468,14 +2877,14 @@ async function initCli(P){
     $('#cList').innerHTML=tot?C.momentos.map((mo,i)=>{
       const s=C.subs.get(mo.id);
       return`<li class="ci ${s?'ok':''}"><span class="ci-n">${s?icon('check'):i+1}</span>
-        <div class="ci-b"><strong>${esc(mo.nome)}</strong>${s?`<small class="ok">${esc(s.titulo)}${s.artista?' — '+esc(s.artista):''}</small><small>${trechoTxt(s)?'✂ '+esc(trechoTxt(s)):'Música inteira'}${s.enviadoPor?' · por '+esc(s.enviadoPor):''}</small>`:'<small>Ainda sem música</small>'}</div>
+        <div class="ci-b"><strong>${esc(mo.nome)}</strong>${s?`<small class="ok">${esc(s.titulo)}${s.artista?' — '+esc(s.artista):''}</small><small>${s.video?'🎬 vídeo · ':''}${trechoTxt(s)?'✂ '+esc(trechoTxt(s)):'Inteira'}${temMontagem(s)?' · ✨ montagem':''}${s.enviadoPor?' · por '+esc(s.enviadoPor):''}</small>`:'<small>Ainda sem música</small>'}</div>
         <button class="btn ${s?'':'primary'} sm" data-ci="${i}">${s?icon('edit')+'Trocar / ajustar':icon('upload')+'Enviar música'}</button></li>`}).join('')
       :`<li class="ci"><div class="ci-b"><strong>O cronograma ainda está vazio</strong><small>Use “Adicionar outro momento” ou aguarde a equipe do evento montar a sequência.</small></div></li>`;
   }
   $('#cList').addEventListener('click',e=>{const b=e.target.closest('[data-ci]');if(!b)return;const mo=C.momentos[+b.dataset.ci];openCliEditor(mo,C.subs.get(mo.id)||null)});
 
   function openCliEditor(mo,sub){
-    let af=null;
+    let af=null,mv=null;
     const posOpts=`<option value="">No início do cronograma</option>${C.momentos.map((m,i)=>`<option value="${m.id}" ${i===C.momentos.length-1?'selected':''}>Depois de: ${esc(m.nome)}</option>`).join('')}`;
     openModal(`${modalHead(mo.novo?'Novo momento':esc(mo.nome),sub?'Troque a música ou ajuste exatamente onde ela começa e termina.':'Escolha a música deste momento e, se quiser, marque o trecho que deve tocar.')}
       <form id="ce" class="stack">
@@ -2485,6 +2894,7 @@ async function initCli(P){
           <label class="field"><span>Artista / intérprete</span><input name="artista" value="${esc(sub?.artista)}"></label>
         </div>
         <div class="field"><span>Música ou vídeo — onde começa e onde termina</span><div id="ceAudio"></div></div>
+        <details class="mont-box" id="ceMont" hidden ${sub?.montagem?'open':''}><summary>${icon('sparkle')}Montagem do vídeo <small>— introdução, encerramento e música de fundo</small></summary><div id="ceMontBody"></div></details>
         <label class="field"><span>Observações para a equipe de som</span><textarea name="obs" rows="2" placeholder="Ex.: soltar a música quando a porta abrir">${esc(sub?.obs)}</textarea></label>
         <div class="progress" hidden><div class="bar"></div><span></span></div>
         <p class="err" hidden></p>
@@ -2494,8 +2904,17 @@ async function initCli(P){
       af=audioField($('#ceAudio',md),{
         atual:sub?{nome:sub.nomeArquivo||'Música enviada',tamanho:sub.tamanho}:null,
         loadAtual:sub?()=>fetchAudioBlob(sub.audioGistId,sub.audioArquivo,sub.mime,P.t):null,
-        valores:sub?{inicio:+sub.inicio||0,fim:+sub.fim||0,fadeIn:!!sub.fadeIn,fadeOut:sub.fadeOut!==false}:{}
+        valores:sub?{inicio:+sub.inicio||0,fim:+sub.fim||0,fadeIn:!!sub.fadeIn,fadeOut:sub.fadeOut!==false}:{},
+        onMedia:vid=>{
+          const box=$('#ceMont',md);if(!box)return;
+          if(vid===null&&af&&!af.kept){mv=null;$('#ceMontBody',md).innerHTML='';box.hidden=true;return}
+          if(vid===false&&!(af?.kept&&sub?.montagem)){box.hidden=true;return}
+          if(vid){box.hidden=false;if(!mv)mountMv(af?.file?null:sub?.montagem)}
+        }
       });
+      const mountMv=val=>{mv=montageEditor($('#ceMontBody',md),{valores:val,maxMB:MAX_MB,getMain:()=>af.mainInfo(),
+        loadPart:p=>{const md_=sub?.montagem?.[p]?.midia;return md_?fetchAudioBlob(md_.audioGistId,md_.audioArquivo,md_.mime,P.t):null}})};
+      if(sub&&(sub.video||sub.montagem)){$('#ceMont',md).hidden=false;mountMv(sub.montagem||null)}
       const f=$('#ce',md),err=$('.err',md),prog=$('.progress',md);
       const fail=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'nearest'})};
       f.onsubmit=async e=>{
@@ -2506,15 +2925,23 @@ async function initCli(P){
         if(!v('titulo'))return fail('Informe o nome da música.');
         if(!af.has)return fail('Escolha o arquivo da música.');
         const ve=af.validate();if(ve)return fail(esc(ve));
+        let mont=null,partes=null;
+        if(mv&&!$('#ceMont',md).hidden&&af.isVideo!==false){
+          const me=mv.validate();if(me)return fail(esc(me));
+          mont=mv.values();
+          if(mont){const fs=mv.files();partes={};for(const p of PARTS){if(fs[p])partes[p]={file:fs[p]};else if(mv.kept(p))partes[p]={kept:true}}}
+        }
         if(!navigator.onLine)return fail('Você está sem internet. Conecte-se e tente novamente.');
         const quem=nomeIn.value.trim();try{localStorage.setItem('palco_cli_'+P.g,quem)}catch{}
         const tv=af.values()||{};
         const meta={momentoId:mo.id,momentoNome:nomeMom,titulo:v('titulo'),artista:v('artista'),obs:v('obs'),enviadoPor:quem,professora:quem,turma:'',
           inicio:tv.inicio||0,fim:tv.fim||0,fadeIn:!!tv.fadeIn,fadeOut:tv.fadeOut!==false};
         if(mo.novo){meta.momentoNovo=true;meta.momentoApos=v('apos')||''}
+        meta.video=af.isVideo===null?!!sub?.video:!!af.isVideo;
+        meta.montagem=mont;
         $$('input,textarea,button,select',f).forEach(x=>x.disabled=true);
         try{
-          await enviarSub({P,file:af.file,keep:af.kept?sub:null,meta,substitui:sub,onProg:(p,t)=>setProg(prog,p,t)});
+          await enviarSub({P,file:af.file,keep:af.kept?sub:null,meta,substitui:sub,partes,onProg:(p,t)=>setProg(prog,p,t)});
           close();
           toast(`<b>${esc(nomeMom)}</b>: música ${sub?'atualizada':'enviada'} com sucesso!`,'ok',5000);
           await load();
@@ -2530,15 +2957,171 @@ async function initCli(P){
 }
 
 /* =========================================================
+   AUTOCADASTRO DE EVENTOS (noivos / debutante cadastram o próprio evento)
+   ========================================================= */
+/* Caixa de cadastros: um Gist onde cada evento criado pelo cliente deixa um aviso */
+async function ensureInbox(){
+  let id=await DB.cfg('inboxGistId');
+  if(id){try{await gh(`/gists/${id}`);return id}catch(e){if(e.status!==404)throw e}}
+  const r=await gh('/gists',{method:'POST',body:{description:'[Palco Musical] Cadastros de eventos feitos por clientes',public:false,files:{'cadastros.json':{content:JSON.stringify({app:'palco-musical',tipo:'caixa-de-cadastros',v:1})},'marca.json':{content:JSON.stringify(publicBrand())}}}});
+  id=r.data.id;await DB.setCfg('inboxGistId',id);Inbox.start();
+  return id;
+}
+async function pushInboxBrand(){
+  const id=await DB.cfg('inboxGistId');if(!id||!state.token)return;
+  await gh(`/gists/${id}`,{method:'PATCH',body:{files:{'marca.json':{content:JSON.stringify(publicBrand())}}}}).catch(()=>{});
+}
+const makeRegLink=id=>baseUrl()+'#enviar='+b64urlEnc(JSON.stringify({m:'n',i:id,t:state.token}));
+async function openCadastroLink(){
+  if(!state.token)return openSettings();
+  let id;try{id=await ensureInbox()}catch(e){return toast(esc(e.message),'err',6000)}
+  const link=makeRegLink(id);
+  const msg=`Olá! ✨\nPara organizarmos as músicas e vídeos do seu evento (15 anos, casamento…), cadastre o evento por este link:\n\n${link}\n\nDepois do cadastro você já pode enviar a música de cada momento e marcar onde ela começa e termina.${marca.nome?`\n\n— ${marca.nome}${marca.whatsapp?' · '+marca.whatsapp:''}`:''}`;
+  openModal(`${modalHead('Link de cadastro para clientes','Envie para a debutante ou para os noivos. Eles cadastram o próprio evento (tipo, nomes, data, local e momentos) e já seguem para enviar as músicas e vídeos. O evento aparece aqui no seu painel automaticamente.')}
+    ${location.protocol==='file:'?`<div class="note warn" style="margin-bottom:14px">${icon('alert')}<div>Este arquivo está aberto direto do computador (file://). Publique o HTML na internet para o link funcionar no celular dos clientes.</div></div>`:''}
+    <div class="field"><span>Link de cadastro (serve para todos os clientes)</span>
+      <div class="copyrow"><input readonly value="${esc(link)}" aria-label="Link de cadastro"><button class="btn icon" id="rlCopy" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="rlWa" aria-label="Enviar no WhatsApp">${icon('wa')}</button></div></div>
+    <div class="note" style="margin-top:14px">${icon('info')}<div>Cada cadastro vira um evento novo no seu painel, com aviso sonoro. A partir daí você controla o cronograma normalmente e pode editar tudo.</div></div>`,
+  {wide:true,onMount:md=>{
+    $('#rlCopy',md).onclick=async()=>{const ok=await copyText(link);toast(ok?'Link copiado!':'Não foi possível copiar.',ok?'ok':'err')};
+    $('#rlWa',md).onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener');
+    $('input[readonly]',md).onclick=e=>e.target.select();
+  }});
+}
+/* Verifica a caixa de cadastros e importa eventos novos */
+const Inbox={
+  timer:null,etag:null,busy:false,
+  start(){clearInterval(this.timer);this.etag=null;this.tick();this.timer=setInterval(()=>this.tick(),20000)},
+  async tick(){
+    if(this.busy||!state.token||!navigator.onLine)return;
+    const id=await DB.cfg('inboxGistId');if(!id)return;
+    this.busy=true;
+    try{
+      const r=await gh(`/gists/${id}`,{etag:this.etag});
+      if(r.notModified)return;this.etag=r.etag;
+      const imp=new Set((await DB.cfg('importados'))||[]);
+      for(const[n,f]of Object.entries(r.data.files||{})){
+        if(!n.startsWith('ev_'))continue;
+        let e;try{e=JSON.parse(await readGistFile(f))}catch{continue}
+        if(!e?.gistId||imp.has(e.gistId)||state.eventos.some(x=>x.gistId===e.gistId))continue;
+        imp.add(e.gistId);await DB.setCfg('importados',[...imp]);
+        await importarEvento(e);
+      }
+    }catch{}finally{this.busy=false}
+  }
+};
+async function importarEvento(e){
+  let meta={};
+  try{const g=await gh(`/gists/${e.gistId}`);meta=JSON.parse(await readGistFile(g.data.files['evento.json']))}catch{}
+  const ev={id:uid(),gistId:e.gistId,tipo:meta.tipo||e.tipo||'cerimonial',nome:meta.nome||e.nome||'Evento',homenageados:meta.homenageados||e.homenageados||'',
+    data:meta.data||e.data||'',local:meta.local||e.local||'',momentos:meta.momentos||[],cliente:meta.cliente||e.cliente||null,
+    criadoEm:e.criadoEm||new Date().toISOString(),links:[],removidos:[],origemCliente:true};
+  await saveEvento(ev);
+  toast(`<b>Novo evento cadastrado pelo cliente</b><br>${esc(ev.nome)}${ev.data?' · '+ev.data.split('-').reverse().join('/'):''}${ev.cliente?.nome?` <span class="muted">(${esc(ev.cliente.nome)})</span>`:''}`,'new',9000);
+  if(!Player.playing)chime();
+  if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){try{new Notification('Novo evento cadastrado',{body:ev.nome,tag:'palco-ev'})}catch{}}
+  renderEvSel();
+  if(!state.evento)await selectEvent(ev.id);
+}
+
+/* ---------- Página de cadastro (cliente) ---------- */
+async function initReg(P){
+  const root=$('#reg');root.hidden=false;document.title='Cadastre seu evento';
+  applyBrand(null);
+  let saved=[];try{saved=JSON.parse(localStorage.getItem('palco_meus_'+P.i)||'[]')}catch{}
+  root.innerHTML=`<div class="prof-wrap">
+    <div class="prof-hero"><span class="logo xl rose" data-brand-logo="sparkle">${icon('sparkle')}</span><span class="eyebrow">Cadastro de evento</span><h1>Cadastre o seu evento</h1><p class="muted">Depois do cadastro você envia a música (ou vídeo) de cada momento e marca exatamente onde ela começa e termina.</p></div>
+    ${saved.length?`<div class="meus"><p class="muted" style="font-size:.88rem">Eventos que você já cadastrou neste aparelho:</p>${saved.map(x=>`<a href="${esc(x.link)}">${icon('heart')}<span><b>${esc(x.nome)}</b><small>${x.data?esc(x.data.split('-').reverse().join('/')):''} · continuar enviando músicas</small></span>${icon('next')}</a>`).join('')}</div>`:''}
+    <form id="rgF" class="card prof-card stack" novalidate>
+      <div class="field"><span>Tipo de evento *</span><div class="tipos" style="grid-template-columns:repeat(3,1fr)">${['quinze','casamento','cerimonial'].map(k=>{const t=TIPOS[k];return`<label class="tipo"><input type="radio" name="tipo" value="${k}" ${k==='quinze'?'checked':''}><span>${icon(t.icon)}<b>${t.nome}</b><small>${t.desc}</small></span></label>`}).join('')}</div></div>
+      <label class="field"><span id="rgHomL">Nome da debutante *</span><input name="hom" autocomplete="off"></label>
+      <div class="grid2">
+        <label class="field"><span>Data do evento *</span><input type="date" name="data"></label>
+        <label class="field"><span>Local</span><input name="local" placeholder="Ex.: Espaço Villa Bella"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Seu nome *</span><input name="cnome" autocomplete="name"></label>
+        <label class="field"><span>Seu WhatsApp *</span><input name="cwa" inputmode="tel" autocomplete="tel" placeholder="(82) 99999-9999"></label>
+      </div>
+      <label class="field"><span>Seu e-mail</span><input name="cmail" inputmode="email" autocomplete="email"></label>
+      <div class="field"><span>Momentos do cronograma (marque os que vai ter — dá para mudar depois)</span><div class="reg-moms" id="rgMoms"></div>
+        <div class="copyrow" style="margin-top:8px"><input id="rgNew" placeholder="Outro momento (ex.: Homenagem à madrinha)"><button type="button" class="btn" id="rgAdd">${icon('plus')}Adicionar</button></div></div>
+      <div class="progress" hidden><div class="bar"></div><span></span></div>
+      <p class="err" hidden></p>
+      <button class="btn primary block lg" type="submit">${icon('check')}Cadastrar evento</button>
+    </form>
+    <div class="foot" data-brand-foot="Palco Musical"></div>
+  </div>`;
+  refreshLogos();$$('[data-brand-foot]',root).forEach(el=>el.innerHTML=brandFootHTML(el.dataset.brandFoot));
+  gh(`/gists/${P.i}`,{token:P.t}).then(r=>readGistFile(r.data.files['marca.json'])).then(t=>applyBrand(JSON.parse(t))).catch(()=>{});
+  const f=$('#rgF',root),err=$('.err',f),prog=$('.progress',f);
+  let extras=[];
+  const drawMoms=()=>{
+    const t=TIPOS[f.elements.tipo.value];
+    $('#rgHomL').textContent=t.hom+' *';f.elements.hom.placeholder=t.ph;
+    const prev=new Map($$('#rgMoms input').map(i=>[i.value,i.checked]));
+    $('#rgMoms').innerHTML=[...t.tpl,...extras].map(n=>`<label class="chk"><input type="checkbox" value="${esc(n)}" ${prev.has(n)?(prev.get(n)?'checked':''):'checked'}> ${esc(n)}</label>`).join('');
+  };
+  f.addEventListener('change',e=>{if(e.target.name==='tipo')drawMoms()});drawMoms();
+  const add=()=>{const i=$('#rgNew');const v=i.value.trim();if(!v)return;extras.push(v);i.value='';drawMoms()};
+  $('#rgAdd').onclick=add;$('#rgNew').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();add()}};
+  const fail=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'center'})};
+  f.onsubmit=async e=>{
+    e.preventDefault();err.hidden=true;
+    const v=k=>(f.elements[k]?.value||'').trim();
+    const tipo=f.elements.tipo.value,t=TIPOS[tipo];
+    if(!v('hom'))return fail(`Informe o ${t.hom.toLowerCase()}.`);
+    if(!v('data'))return fail('Informe a data do evento.');
+    if(!v('cnome')||!v('cwa'))return fail('Informe seu nome e seu WhatsApp.');
+    const momentos=$$('#rgMoms input:checked').map(i=>({id:uid(),nome:i.value}));
+    if(!momentos.length)return fail('Marque pelo menos um momento do cronograma.');
+    const nome=t.auto(v('hom')),cliente={nome:v('cnome'),whatsapp:v('cwa'),email:v('cmail')};
+    $$('input,button,select',f).forEach(x=>x.disabled=true);
+    try{
+      setProg(prog,.2,'Criando o evento…');
+      const meta={app:'palco-musical',v:2,nome,data:v('data'),local:v('local'),tipo,homenageados:v('hom'),momentos,marca:{...publicBrand()},cliente,criadoPeloCliente:true};
+      const g=await gh('/gists',{method:'POST',token:P.t,body:{description:`[Palco Musical] Evento: ${nome}`,public:false,files:{'evento.json':{content:JSON.stringify(meta,null,1)}}}});
+      setProg(prog,.7,'Avisando a equipe do evento…');
+      const gid=g.data.id;
+      await ghRetry(`/gists/${P.i}`,{method:'PATCH',token:P.t,body:{files:{[`ev_${gid}.json`]:{content:JSON.stringify({gistId:gid,nome,tipo,homenageados:v('hom'),data:v('data'),local:v('local'),cliente,criadoEm:new Date().toISOString()},null,1)}}}});
+      setProg(prog,1,'Pronto!');
+      const link=baseUrl()+'#enviar='+b64urlEnc(JSON.stringify({g:gid,t:P.t,e:nome,d:v('data'),m:'c',k:tipo,p:cliente.nome}));
+      try{saved=[{nome,data:v('data'),link,criadoEm:new Date().toISOString()},...saved];localStorage.setItem('palco_meus_'+P.i,JSON.stringify(saved));localStorage.setItem('palco_cli_'+gid,cliente.nome)}catch{}
+      f.outerHTML=`<div class="card prof-card ok-card">
+        <div class="ok-ic">${icon('check')}</div><h2>Evento cadastrado!</h2>
+        <p class="muted"><b>${esc(nome)}</b> já está com a equipe do evento. Guarde o link abaixo: é por ele que você envia e ajusta as músicas e vídeos.</p>
+        <div class="copyrow" style="margin-top:16px"><input readonly value="${esc(link)}" aria-label="Link do seu evento"><button class="btn icon" id="okCopy" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="okWa" aria-label="Enviar para mim no WhatsApp">${icon('wa')}</button></div>
+        <a class="btn primary lg block" style="margin-top:18px" href="${esc(link)}">${icon('music')}Enviar as músicas agora</a>
+      </div>`;
+      $('#okCopy').onclick=async()=>{const ok=await copyText(link);toast(ok?'Link copiado!':'Não foi possível copiar.',ok?'ok':'err')};
+      $('#okWa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(`Link das músicas do evento ${nome}:\n${link}`),'_blank','noopener');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(x){
+      let msg=esc(x.message);if(x.status===401||x.status===404)msg+=' Peça um novo link de cadastro à equipe do evento.';
+      fail(msg);$$('input,button,select',f).forEach(x=>x.disabled=false);prog.hidden=true;
+    }
+  };
+}
+
+const VW_INNER=`<video class="vw-main" playsinline muted preload="auto"></video><div class="vw-card" hidden><img class="vc-bg" alt="" hidden><img class="vc-img" alt="" hidden><video class="vc-clip" playsinline preload="auto" hidden></video><div class="vc-txt"><div class="vc-t"></div><div class="vc-s"></div></div></div><div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div><img class="vw-wm" alt="" hidden>`;
+
+/* =========================================================
    JANELA DO TELÃO (2ª tela / projetor)
    ========================================================= */
 function initTelao(){
   const tv=$('#tv');tv.hidden=false;document.title='Telão';
   document.body.style.background='#000';
-  tv.innerHTML=`<div class="vidwrap brand"><video playsinline muted preload="auto"></video><div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div><img class="vw-wm" alt="" hidden></div>
+  tv.innerHTML=`<div class="vidwrap brand">${VW_INNER}</div>
     <div class="tv-hint">Clique aqui (ou tecle F) para tela cheia · arraste esta janela para o projetor/TV</div>`;
-  const wrap=$('.vidwrap',tv),v=$('video',tv);v.muted=true;
-  let curId=null,url=null;
+  const wrap=$('.vidwrap',tv),v=$('.vw-main',tv),clip=$('.vc-clip',tv);v.muted=true;clip.muted=true;
+  let curId=null,url=null,pUrls={},mt=null;
+  const sync=(el,t,playing)=>{
+    const diff=el.currentTime-t;
+    if(!playing){if(!el.paused)el.pause();el.playbackRate=1;if(Math.abs(diff)>0.05&&el.readyState>0)el.currentTime=t;return}
+    if(Math.abs(diff)>0.35)el.currentTime=t+0.04;
+    else el.playbackRate=Math.abs(diff)<0.04?1:(diff>0?0.96:1.04);
+    if(el.paused)el.play().catch(()=>{});
+  };
   const fs=()=>{const fe=document.fullscreenElement||document.webkitFullscreenElement;if(fe)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else(tv.requestFullscreen||tv.webkitRequestFullscreen)?.call(tv)};
   tv.addEventListener('click',fs);
   document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='f')fs()});
@@ -2550,28 +3133,29 @@ function initTelao(){
     const d=e.data;
     if(d.t==='brand'){applyBrand({...d.brand,...d.opts})}
     else if(d.t==='load'){
-      if(d.id!==curId||(!url&&d.video&&d.blob)){
-        curId=d.id;if(url){URL.revokeObjectURL(url);url=null}
-        v.pause();v.removeAttribute('src');v.load();
-        if(d.video&&d.blob){url=URL.createObjectURL(d.blob);v.src=url}
-      }
+      curId=d.id;if(url){URL.revokeObjectURL(url);url=null}
+      Object.values(pUrls).forEach(u=>URL.revokeObjectURL(u));pUrls={};mt=d.mt||null;
+      paintCard(wrap,null);clip.removeAttribute('src');delete clip.dataset.u;
+      v.pause();v.removeAttribute('src');v.load();
+      if(d.video&&d.blob){url=URL.createObjectURL(d.blob);v.src=url}
+      for(const[p,b]of Object.entries(d.parts||{}))pUrls[p]=URL.createObjectURL(b);
     }
     else if(d.t==='state'){
       if(d.labels)paintVidBrand(wrap,d.labels);
-      const showBrand=d.brand||!url||d.id!==curId;
-      wrap.classList.toggle('brand',showBrand);
-      v.style.opacity=d.op;
-      if(!url)return;
-      const diff=v.currentTime-d.time;
-      if(showBrand||!d.playing){
-        if(!v.paused)v.pause();
-        v.playbackRate=1;
-        if(Math.abs(diff)>0.05&&v.readyState>0)v.currentTime=d.time;
+      const stale=d.id!==curId;
+      const card=d.phase!=='main'&&!stale&&mt;
+      wrap.classList.toggle('brand',d.brand||stale||(!url&&!card));
+      if(card&&!d.brand){
+        const key=d.phase==='pre'?'antes':'depois',seg=mt[key];
+        paintCard(wrap,seg,pUrls[key]);$('.vw-card',wrap).style.opacity=d.cardOp;
+        if(seg?.tipo==='video'&&pUrls[key])sync(clip,d.cardEl,d.playing);
+        if(url&&!v.paused)v.pause();
         return;
       }
-      if(Math.abs(diff)>0.35){v.currentTime=d.time+0.04}
-      else v.playbackRate=Math.abs(diff)<0.04?1:(diff>0?0.96:1.04);
-      if(v.paused)v.play().catch(()=>{});
+      paintCard(wrap,null);
+      v.style.opacity=d.op;
+      if(!url)return;
+      sync(v,d.time,d.playing&&!d.brand&&!stale);
     }
   });
   window.addEventListener('beforeunload',()=>{if(url)URL.revokeObjectURL(url)});
@@ -2594,7 +3178,8 @@ function invalidLink(){
   if(h==='#telao'){initTelao();return}
   if(h.startsWith('#enviar=')){
     let P=null;try{P=JSON.parse(b64urlDec(h.slice(8)))}catch{}
-    if(P&&P.g&&P.t){if(P.m==='c')initCli(P);else initProf(P)}
+    if(P&&P.m==='n'&&P.i&&P.t)initReg(P);
+    else if(P&&P.g&&P.t){if(P.m==='c')initCli(P);else initProf(P)}
     else invalidLink();
   }else{
     initAdmin();
