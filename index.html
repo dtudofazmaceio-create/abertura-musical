@@ -80,30 +80,59 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .note .ic{margin-top:1px}
 
 /* ---------- Topbar ---------- */
-.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:12px max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));background:rgba(12,14,26,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
-.brand strong{display:block;font-size:1.1rem;letter-spacing:-.01em}
-.brand small{display:block;color:var(--muted);font-size:.78rem}
+.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,rgba(14,16,30,.94),rgba(12,14,26,.86));backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border-bottom:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px -18px rgba(0,0,0,.8)}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.45),transparent);opacity:.7}
+.tb-in{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;min-height:76px;padding:12px max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+.brand{display:flex;align-items:center;gap:14px;min-width:0;text-decoration:none;color:var(--text);justify-self:start;border-radius:14px;padding:4px 6px 4px 0}
+.brand:focus-visible{outline:2px solid var(--violet);outline-offset:4px}
+.brand-txt{display:flex;flex-direction:column;min-width:0;padding-left:14px;border-left:1px solid rgba(255,255,255,.12)}
+.brand-txt strong{font-size:1.08rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-txt small{color:var(--muted);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--accent-ink);flex:none;box-shadow:0 8px 20px rgba(var(--accent-rgb),.25)}
-.logo.xl{width:64px;height:64px;border-radius:18px}
-.logo.xl .ic{width:32px;height:32px}
-.logo.rose{background:linear-gradient(135deg,#ff9ac8,#c86bff);color:#2a0620}
-.top-actions{display:flex;align-items:center;gap:8px;min-width:0}
-.ev-switch{display:flex;gap:8px;min-width:0}
-.ev-switch select{min-width:200px;max-width:340px;min-height:44px}
-.sync{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted);white-space:nowrap}
-.sync .dot{width:9px;height:9px;border-radius:50%;background:var(--faint)}
+.brand .logo{width:46px;height:46px;border-radius:14px}
+.brand .logo:not(.img)+.brand-txt{border-left:0;padding-left:0}
+/* logo da marca no cabeçalho: altura fixa, largura natural (não espreme) */
+.brand .logo.img{height:52px;width:auto;min-width:52px;max-width:230px;border-radius:12px;overflow:hidden}
+.brand .logo.img img{height:100%;width:auto;max-width:230px;object-fit:contain}
+.brand .logo.img.lm-branco,.brand .logo.img.lm-escuro{padding:6px 10px}
+.brand .logo.img.lm-moldura{box-shadow:0 8px 22px rgba(0,0,0,.45)!important}
+/* seletor de evento */
+.tb-ev{display:flex;align-items:center;gap:10px;justify-self:end;min-width:0;padding-right:14px;margin-right:2px;border-right:1px solid rgba(255,255,255,.08)}
+.evpick{position:relative;display:flex;align-items:center;gap:12px;height:52px;padding:0 14px 0 8px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);cursor:pointer;transition:border-color .15s,background .15s;width:min(440px,32vw);min-width:240px}
+.evpick:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
+.evpick:focus-within{border-color:var(--violet);box-shadow:0 0 0 3px rgba(139,108,255,.22)}
+.evpick-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.14);color:var(--accent2);flex:none}
+.evpick-ic .ic{width:18px;height:18px}
+.evpick-txt{display:flex;flex-direction:column;min-width:0;flex:1}
+.evpick-txt small{font-size:.66rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);font-weight:600;line-height:1.2}
+.evpick select{appearance:none;-webkit-appearance:none;border:0!important;background:transparent!important;box-shadow:none!important;padding:0 22px 0 0;min-height:0;height:24px;font-size:.98rem;font-weight:600;color:var(--text);cursor:pointer;width:100%;text-overflow:ellipsis}
+.evpick select:disabled{color:var(--muted);cursor:default}
+.evpick select option{background:#161930;color:var(--text)}
+.evpick-chev{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}
+.tb-new{height:52px;border-radius:14px;padding:0 18px;font-size:.95rem;box-shadow:0 10px 24px -10px rgba(var(--accent-rgb),.7)}
+.tb-new .ic{width:18px;height:18px}
+/* ações */
+.tb-act{display:flex;align-items:center;gap:10px;justify-self:end;min-width:0}
+.tb-group{display:flex;align-items:center;height:52px;padding:4px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}
+.tb-ico{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 14px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-weight:600;font-size:.9rem;cursor:pointer;transition:background .15s,color .15s}
+.tb-ico:hover{background:rgba(255,255,255,.07);color:var(--text)}
+.tb-ico:focus-visible{outline:2px solid var(--violet);outline-offset:1px}
+.tb-ico .ic{width:19px;height:19px}
+.tb-sep{width:1px;height:22px;background:rgba(255,255,255,.1);margin:0 2px}
+.sync{display:inline-flex;align-items:center;gap:9px;height:52px;padding:0 16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);cursor:pointer;font-size:.86rem;font-weight:600;color:var(--muted);white-space:nowrap;transition:background .15s,border-color .15s}
+.sync:hover{background:rgba(255,255,255,.07)}
+.sync .dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
 .sync.live .dot{background:var(--ok);animation:pulse 2s infinite}
-.sync.live{color:var(--ok)}
+.sync.live{color:var(--ok);border-color:rgba(47,209,139,.25);background:rgba(47,209,139,.06)}
 .sync.busy .dot{background:var(--accent)}
 .sync.err .dot{background:var(--danger)}
-.sync.err{color:var(--danger)}
+.sync.err{color:var(--danger);border-color:rgba(255,84,112,.3);background:rgba(255,84,112,.06)}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,209,139,.6)}70%{box-shadow:0 0 0 8px rgba(47,209,139,0)}100%{box-shadow:0 0 0 0 rgba(47,209,139,0)}}
 
 /* ---------- Layout ---------- */
 main{padding:22px max(16px,env(safe-area-inset-left)) calc(var(--player-h) + 40px + var(--safe-b));max-width:1400px;margin:0 auto}
 .layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:22px;align-items:start}
-.side{display:flex;flex-direction:column;gap:16px;position:sticky;top:90px}
+.side{display:flex;flex-direction:column;gap:16px;position:sticky;top:96px}
 .ev-card h1{font-size:1.6rem;margin:8px 0 4px;word-break:break-word}
 .ev-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
 .ev-actions .row .btn{flex:1}
@@ -358,7 +387,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .st-next strong{color:var(--text);display:block;font-size:clamp(1.1rem,2.6vw,1.6rem)}
 
 /* ---------- Toasts ---------- */
-#toasts{position:fixed;z-index:200;top:14px;right:14px;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 28px));pointer-events:none}
+#toasts{position:fixed;z-index:200;top:92px;right:20px;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 28px));pointer-events:none}
 .toast{pointer-events:auto;display:flex;gap:10px;align-items:flex-start;padding:13px 15px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);box-shadow:var(--shadow);font-size:.93rem;animation:tin .25s ease}
 .toast.ok{border-color:rgba(47,209,139,.5)}.toast.ok .ic{color:var(--ok)}
 .toast.err{border-color:rgba(255,84,112,.5)}.toast.err .ic{color:var(--danger)}
@@ -492,6 +521,21 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 .c-link{background:rgba(79,140,255,.15);color:#8fb4ff}
 
 /* ---------- Responsive ---------- */
+@media (max-width:1280px){
+  .tb-ico span{display:none}
+  .tb-ico{padding:0 11px}
+}
+@media (max-width:1100px) and (min-width:721px){
+  .tb-in{grid-template-columns:auto minmax(0,1fr) auto;gap:14px}
+  .tb-ev{justify-self:stretch;min-width:0;border-right:0;padding-right:0}
+  .evpick{flex:1;width:auto;min-width:0}
+  .brand-txt small{display:none}
+  .brand .logo.img+.brand-txt{display:none}
+  .brand .logo.img{max-width:170px}
+  .tb-new span{display:none}
+  .tb-new{width:52px;padding:0;justify-content:center}
+  .sync span:last-child{display:none}
+}
 @media (max-width:1100px){
   .layout{grid-template-columns:300px minmax(0,1fr)}
   .vol{display:none}
@@ -505,13 +549,25 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 }
 @media (max-width:720px){
   :root{--player-h:140px}
-  .brand small{display:none}
-  .topbar{gap:10px;padding-top:10px;padding-bottom:10px}
-  .top-actions{width:100%}
-  .ev-switch{flex:1;min-width:0}
-  .ev-switch select{min-width:0;max-width:none;flex:1}
+  .tb-in{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand act" "ev ev";gap:10px 10px;min-height:0;padding-top:10px;padding-bottom:12px;padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+  .brand{grid-area:brand;gap:10px}
+  .tb-act{grid-area:act;gap:6px}
+  .tb-ev{grid-area:ev;width:100%;justify-self:stretch;padding-right:0;margin-right:0;border-right:0}
+  .evpick{flex:1;width:auto;min-width:0;height:48px}
+  .tb-new{height:48px;width:48px;padding:0;justify-content:center}
+  .tb-new span{display:none}
+  .brand .logo.img{height:40px;max-width:150px}
+  .brand .logo.img img{max-width:150px}
+  .brand .logo{width:40px;height:40px}
+  .brand-txt{padding-left:10px}
+  .brand-txt small{display:none}
+  .brand-txt strong{font-size:.98rem}
+  .brand .logo.img+.brand-txt{display:none}
+  .sync,.tb-group{height:44px}
+  .sync{padding:0 13px}
   .sync span:last-child{display:none}
-  .sync{padding:0 15px}
+  .tb-ico{height:36px;padding:0 9px}
+  .tb-ico span{display:none}
   main{padding-top:16px}
   .side{grid-template-columns:1fr}
   .side .ev-card{grid-row:auto}
@@ -537,7 +593,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   #plStageBtn{grid-area:stage}
   #plTv{display:none}
   .vpanel{left:12px;right:12px;width:auto;bottom:calc(var(--player-h) + 8px + var(--safe-b))}
-  .top-actions .btn.icon{width:40px}
+  #toasts{top:auto;bottom:calc(var(--player-h) + 14px + var(--safe-b))}
   .pl-extra{display:contents}
   .pl-cover{width:44px;height:44px}
   .modal-back{align-items:flex-end;padding:0}
@@ -621,18 +677,27 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 <!-- =================== ORGANIZADOR =================== -->
 <div id="admin" hidden>
   <header class="topbar">
-    <div class="brand">
-      <span class="logo" data-brand-logo="music"><svg class="ic"><use href="#i-music"/></svg></span>
-      <div><strong id="brandName">Palco Musical</strong><small id="brandSub">Eventos escolares, 15 anos e casamentos</small></div>
-    </div>
-    <div class="top-actions">
-      <div class="ev-switch">
-        <select id="evSel" aria-label="Evento selecionado"></select>
-        <button class="btn icon" id="btnNovoEv" title="Novo evento" aria-label="Novo evento"><svg class="ic"><use href="#i-plus"/></svg></button>
+    <div class="tb-in">
+      <div class="brand" id="brandHome">
+        <span class="logo" data-brand-logo="music"><svg class="ic"><use href="#i-music"/></svg></span>
+        <span class="brand-txt"><strong id="brandName">Palco Musical</strong><small id="brandSub">Eventos escolares, 15 anos e casamentos</small></span>
       </div>
-      <button class="sync" id="syncBtn" title="Sincronizar agora"><span class="dot"></span><span id="syncTxt">—</span></button>
-      <button class="btn icon ghost" id="btnMarca" title="Minha marca (identidade visual)" aria-label="Minha marca"><svg class="ic"><use href="#i-palette"/></svg></button>
-      <button class="btn icon ghost" id="btnConfig" title="Configurações" aria-label="Configurações"><svg class="ic"><use href="#i-gear"/></svg></button>
+      <div class="tb-ev">
+        <label class="evpick" title="Trocar de evento">
+          <span class="evpick-ic"><svg class="ic"><use href="#i-list"/></svg></span>
+          <span class="evpick-txt"><small>Evento</small><select id="evSel" aria-label="Evento selecionado"></select></span>
+          <svg class="ic evpick-chev"><use href="#i-down"/></svg>
+        </label>
+        <button class="btn primary tb-new" id="btnNovoEv" title="Criar um novo evento"><svg class="ic"><use href="#i-plus"/></svg><span>Novo evento</span></button>
+      </div>
+      <div class="tb-act">
+        <button class="sync" id="syncBtn" title="Sincronizar agora"><span class="dot"></span><span id="syncTxt">—</span></button>
+        <div class="tb-group">
+          <button class="tb-ico" id="btnMarca" title="Minha marca (identidade visual)" aria-label="Minha marca"><svg class="ic"><use href="#i-palette"/></svg><span>Marca</span></button>
+          <span class="tb-sep" aria-hidden="true"></span>
+          <button class="tb-ico" id="btnConfig" title="Configurações" aria-label="Configurações"><svg class="ic"><use href="#i-gear"/></svg><span>Ajustes</span></button>
+        </div>
+      </div>
     </div>
   </header>
 
