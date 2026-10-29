@@ -472,6 +472,25 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 .cli-info{margin-top:12px;font-size:.88rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
 .cli-info a{color:var(--accent2)}
 
+/* ---------- Links (YouTube, Spotify, SoundCloud…) ---------- */
+.vw-ext{position:absolute;inset:0;pointer-events:none}
+.vw-ext:empty{display:none}
+.ext-media,.ext-in{position:absolute;inset:0}
+.ext-media iframe,.ext-in iframe,.ext-in>div,.ext-in video{position:absolute;inset:0;width:100%!important;height:100%!important;border:0;background:#000;object-fit:contain}
+#extHold{position:fixed;left:-10000px;top:0;width:400px;height:240px;opacity:0;pointer-events:none;overflow:hidden}
+.trim-ext{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}
+.trim-ext.aud{aspect-ratio:auto;height:166px;background:transparent}
+.trim-ext.ext-spotify{height:152px}
+.af-mode{margin-bottom:10px;display:inline-flex}
+.af-mode button{display:inline-flex;align-items:center;gap:6px}
+.af-mode .ic{width:16px;height:16px}
+.vpanel.in-stage{border-radius:14px;box-shadow:none}
+.vpanel.in-stage .vp-h{display:none}
+.vpanel.in-stage .vp-slot{display:block!important;height:100%}
+.vpanel.in-stage .vidwrap{height:100%;aspect-ratio:auto}
+.st-video.slot{display:block;aspect-ratio:16/9;max-height:56vh}
+.c-link{background:rgba(79,140,255,.15);color:#8fb4ff}
+
 /* ---------- Responsive ---------- */
 @media (max-width:1100px){
   .layout{grid-template-columns:300px minmax(0,1fr)}
@@ -655,6 +674,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
     <div class="vp-slot" id="vpSlot">
       <div class="vidwrap brand" id="vidWrap">
         <video id="plVideo" class="vw-main" playsinline webkit-playsinline preload="auto"></video>
+        <div class="vw-ext"></div>
         <div class="vw-card" hidden><img class="vc-bg" alt="" hidden><img class="vc-img" alt="" hidden><video class="vc-clip" playsinline preload="auto" hidden></video><div class="vc-txt"><div class="vc-t"></div><div class="vc-s"></div></div></div>
         <div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div>
         <img class="vw-wm" alt="" hidden>
@@ -762,6 +782,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 <!-- =================== TELÃO (2ª tela / projetor) =================== -->
 <div id="tv" hidden></div>
 
+<div id="extHold" aria-hidden="true"></div>
 <div id="modalRoot"></div>
 <div id="toasts" aria-live="polite"></div>
 
@@ -1085,11 +1106,236 @@ function filePicker(host,onFile,label='Toque para escolher a música ou o vídeo
   drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)onFile(f)});
 }
 
+/* =========================================================
+   LINKS DE MÚSICA/VÍDEO (YouTube, Vimeo, SoundCloud, Spotify, Drive, Dropbox, link direto)
+   ========================================================= */
+const PLAT_HINT='Funciona com <b>YouTube</b> (e YouTube Music), <b>Vimeo</b>, <b>SoundCloud</b>, <b>Spotify</b>, <b>Google Drive</b>, <b>Dropbox</b> e links diretos de MP3/MP4. No Drive, deixe o arquivo como “Qualquer pessoa com o link”.';
+const parseT=v=>{if(!v)return 0;if(/^\d+$/.test(v))return+v;const m=String(v).match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);return m?(+(m[1]||0))*3600+(+(m[2]||0))*60+(+(m[3]||0)):0};
+/* reconhece a plataforma do link */
+function parseLink(raw){
+  raw=String(raw||'').trim();if(!raw)return null;
+  if(!/^https?:\/\//i.test(raw))raw='https://'+raw;
+  let u;try{u=new URL(raw)}catch{return null}
+  const h=u.hostname.toLowerCase().replace(/^(www\.|m\.)/,'');
+  if(h==='youtu.be'||h==='youtube.com'||h==='music.youtube.com'||h.endsWith('.youtube.com')||h==='youtube-nocookie.com'){
+    let id='';
+    if(h==='youtu.be')id=u.pathname.split('/')[1];
+    else if(/^\/(shorts|embed|live|v)\//.test(u.pathname))id=u.pathname.split('/')[2];
+    else id=u.searchParams.get('v')||'';
+    id=(id||'').slice(0,11);
+    if(/^[\w-]{11}$/.test(id))return{tipo:'youtube',id,url:raw,nome:'YouTube',video:true,t:parseT(u.searchParams.get('t')||u.searchParams.get('start'))};
+    return{tipo:'outro',url:raw,nome:'YouTube',msg:'Este link do YouTube não aponta para um vídeo. Abra o vídeo e copie o link dele.'};
+  }
+  if(h==='vimeo.com'||h==='player.vimeo.com'){const id=(u.pathname.match(/(\d{5,})/)||[])[1];if(id)return{tipo:'vimeo',id,url:raw,nome:'Vimeo',video:true}}
+  if(h==='soundcloud.com'||h==='on.soundcloud.com'||h==='api.soundcloud.com')return{tipo:'soundcloud',url:raw,nome:'SoundCloud',video:false};
+  if(h==='open.spotify.com'){
+    const m=u.pathname.match(/\/(track|episode)\/([A-Za-z0-9]{10,})/);
+    if(m)return{tipo:'spotify',id:m[2],kind:m[1],url:raw,nome:'Spotify',video:false};
+    return{tipo:'outro',url:raw,nome:'Spotify',msg:'Envie o link de uma música (faixa) do Spotify — não de playlist, álbum ou artista.'};
+  }
+  if(h==='drive.google.com'||h==='docs.google.com'){
+    const id=(u.pathname.match(/\/d\/([\w-]{10,})/)||[])[1]||u.searchParams.get('id');
+    if(id)return{tipo:'stream',src:`https://drive.google.com/uc?export=download&id=${id}`,url:raw,nome:'Google Drive'};
+  }
+  if(h==='dropbox.com'||h==='dl.dropboxusercontent.com'){const x=new URL(raw);x.hostname='dl.dropboxusercontent.com';x.searchParams.delete('dl');x.searchParams.delete('raw');return{tipo:'stream',src:x.toString(),url:raw,nome:'Dropbox'}}
+  if(/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|mp4|m4v|webm|mov)$/i.test(u.pathname))return{tipo:'stream',src:raw,url:raw,nome:'Link direto'};
+  const nomes={'instagram.com':'Instagram','tiktok.com':'TikTok','vm.tiktok.com':'TikTok','music.apple.com':'Apple Music','deezer.com':'Deezer','deezer.page.link':'Deezer','facebook.com':'Facebook','fb.watch':'Facebook','music.amazon.com':'Amazon Music','music.amazon.com.br':'Amazon Music','kwai.com':'Kwai','x.com':'X','twitter.com':'X','spotify.link':'Spotify','palcomp3.com.br':'Palco MP3','suamusica.com.br':'Sua Música'};
+  const nome=Object.entries(nomes).find(([d])=>h===d||h.endsWith('.'+d))?.[1]||h;
+  return{tipo:'outro',url:raw,nome};
+}
+const linkTocavel=l=>!!l&&l.tipo!=='outro';
+const linkAviso=l=>l.msg||`O ${l.nome} não permite tocar a música fora do app/site deles. Se puder, envie o arquivo ou um link do YouTube, SoundCloud, Vimeo, Google Drive ou Dropbox. (Se enviar assim mesmo, a equipe precisará baixar a música manualmente.)`;
+
+const _scripts={};
+const loadScript=(src,ok)=>_scripts[src]||(_scripts[src]=new Promise((res,rej)=>{
+  if(ok&&ok())return res();
+  const s=document.createElement('script');s.src=src;s.async=true;s.onload=()=>res();
+  s.onerror=()=>{delete _scripts[src];rej(new Error('Não foi possível carregar o player da plataforma. Verifique a internet.'))};
+  document.head.appendChild(s);
+}));
+
+/* Player de link que se comporta como um <video>: currentTime, duration, play(), pause(), volume e eventos */
+class ExtMedia extends EventTarget{
+  constructor(info,{mount=null,controls=false,muted=false}={}){
+    super();
+    this.info=info;this.controls=controls;this.mutedInit=muted;
+    this._t=0;this._at=performance.now();this._play=false;this._dur=0;this._vol=1;this._started=false;this._pend=null;
+    this.ended=false;this.readyState=0;this.videoWidth=info.video?1:0;this.erro='';
+    this.el=document.createElement('div');this.el.className='ext-media';
+    this.inner=document.createElement('div');this.inner.className='ext-in';this.el.appendChild(this.inner);
+    (mount||document.body).appendChild(this.el);
+    this._iv=setInterval(()=>{if(this._play)this._emit('timeupdate')},100);
+    this.ready=this._init().catch(e=>{this.erro=this.erro||e.message;this._emit('error')});
+  }
+  _emit(t){this.dispatchEvent(new Event(t))}
+  get style(){return this.el.style}
+  get paused(){return this.v?this.v.paused:!this._play}
+  get duration(){return this.v?this.v.duration:(this._dur||NaN)}
+  get currentTime(){
+    if(this.v)return this.v.currentTime;
+    return this._play?Math.min(this._dur||1e9,this._t+(performance.now()-this._at)/1000):this._t;
+  }
+  set currentTime(t){if(!this._ok){this._pend=t;this._t=t;return}this._seek(t)}
+  get playbackRate(){return 1}set playbackRate(v){}
+  get volume(){return this._vol}set volume(v){this._vol=v;if(this._ok)try{this._setVol(v)}catch{}}
+  removeAttribute(){}load(){}
+  _pos(t,playing){
+    if(isFinite(t))this._t=t;this._at=performance.now();
+    if(playing!==undefined&&playing!==this._play){this._play=playing;if(playing){this._started=true;this.ended=false}this._emit(playing?'play':'pause')}
+  }
+  _meta(d){if(d&&isFinite(d)&&d!==this._dur){const first=!this._dur;this._dur=d;this.readyState=1;this._emit('durationchange');if(first)this._emit('loadedmetadata')}}
+  _fim(){if(this.ended)return;this.ended=true;this._pos(this._dur||this._t,false);this._emit('ended')}
+  play(){
+    if(!this._ok)return this.ready.then(()=>this._ok?this.play():Promise.reject(new Error(this.erro)));
+    this.ended=false;try{this._play_()}catch{}
+    return Promise.resolve();
+  }
+  pause(){if(!this._ok)return;try{this._pause_()}catch{}if(!this.v)this._pos(this.currentTime,false)}
+  destroy(){clearInterval(this._iv);clearInterval(this._sync);try{this._destroy&&this._destroy()}catch{}this.el.remove()}
+  async _init(){
+    const i=this.info;
+    if(i.tipo==='youtube')await this._yt();
+    else if(i.tipo==='vimeo')await this._vimeo();
+    else if(i.tipo==='soundcloud')await this._sc();
+    else if(i.tipo==='spotify')await this._spotify();
+    else if(i.tipo==='stream')await this._stream();
+    else throw new Error(linkAviso(i));
+    this._ok=true;
+    try{this._setVol(this._vol)}catch{}
+    if(this._pend!=null){const t=this._pend;this._pend=null;this._seek(t)}
+  }
+  _seek(t){this._seek_(t)}
+  /* ---- YouTube ---- */
+  async _yt(){
+    const i=this.info;
+    const pronto=()=>window.YT&&window.YT.Player;
+    const apiOk=new Promise(r=>{if(pronto())return r();const prev=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{prev&&prev();r()};const c=setInterval(()=>{if(pronto()){clearInterval(c);r()}},150)});
+    await loadScript('https://www.youtube.com/iframe_api',pronto);await apiOk;
+    await new Promise((res,rej)=>{
+      const to=setTimeout(()=>rej(new Error('O YouTube demorou para responder. Verifique a internet.')),20000);
+      this.p=new YT.Player(this.inner,{videoId:i.id,width:'100%',height:'100%',
+        playerVars:{controls:this.controls?1:0,disablekb:this.controls?0:1,modestbranding:1,rel:0,playsinline:1,iv_load_policy:3,fs:0,start:Math.floor(this._pend??0)},
+        events:{
+          onReady:()=>{clearTimeout(to);if(this.mutedInit)this.p.mute();this._meta(this.p.getDuration());res()},
+          onStateChange:e=>{
+            const s=e.data,t=this.p.getCurrentTime?.()??this._t;this._meta(this.p.getDuration?.());
+            if(s===1)this._pos(t,true);else if(s===2||s===5)this._pos(t,false);else if(s===0)this._fim();else this._pos(t);
+            if(this._seeking&&s!==3){this._seeking=false;this._emit('seeked')}
+          },
+          onError:e=>{clearTimeout(to);const c=e.data;this.erro=[101,150,153].includes(c)?'O dono deste vídeo não permite que ele toque fora do YouTube. Peça o arquivo ou outro link.':(c===100?'Vídeo do YouTube não encontrado (removido ou privado).':'Erro do YouTube ('+c+').');this._emit('error');rej(new Error(this.erro))}
+        }});
+    });
+    this._sync=setInterval(()=>{if(this._play&&this.p?.getCurrentTime)this._pos(this.p.getCurrentTime())},200);
+    this._play_=()=>this.p.playVideo();
+    this._pause_=()=>this.p.pauseVideo();
+    this._seek_=t=>{
+      this._seeking=true;this._pos(t);
+      if(!this._started){this.p.cueVideoById({videoId:i.id,startSeconds:t});}  // posiciona sem começar a tocar
+      else this.p.seekTo(t,true);
+      setTimeout(()=>{if(this._seeking){this._seeking=false;this._emit('seeked')}},350);
+    };
+    this._setVol=v=>{this.p.setVolume(Math.round(v*100));if(!this.mutedInit)this.p.unMute()};
+    this._destroy=()=>this.p.destroy();
+  }
+  /* ---- Vimeo ---- */
+  async _vimeo(){
+    const i=this.info;
+    await loadScript('https://player.vimeo.com/api/player.js',()=>window.Vimeo&&window.Vimeo.Player);
+    this.p=new Vimeo.Player(this.inner,{id:+i.id,controls:this.controls,autopause:false,muted:this.mutedInit,dnt:true,title:false,byline:false,portrait:false});
+    try{await this.p.ready()}catch{throw new Error('Não foi possível abrir este vídeo do Vimeo (privado ou removido?).')}
+    this._meta(await this.p.getDuration());
+    this.p.on('timeupdate',d=>this._pos(d.seconds));
+    this.p.on('play',d=>this._pos(d?.seconds??this._t,true));
+    this.p.on('pause',d=>this._pos(d?.seconds??this._t,false));
+    this.p.on('ended',()=>this._fim());
+    this.p.on('seeked',d=>{this._pos(d.seconds);this._emit('seeked')});
+    this._play_=()=>this.p.play().catch(()=>{});
+    this._pause_=()=>this.p.pause().catch(()=>{});
+    this._seek_=t=>{this._pos(t);this.p.setCurrentTime(t).catch(()=>this._emit('seeked'))};
+    this._setVol=v=>this.p.setVolume(this.mutedInit?0:v).catch(()=>{});
+    this._destroy=()=>this.p.destroy();
+  }
+  /* ---- SoundCloud ---- */
+  async _sc(){
+    const i=this.info;
+    await loadScript('https://w.soundcloud.com/player/api.js',()=>window.SC&&window.SC.Widget);
+    const f=document.createElement('iframe');f.allow='autoplay';f.title='SoundCloud';
+    f.src='https://w.soundcloud.com/player/?url='+encodeURIComponent(i.url)+'&auto_play=false&visual=false&show_comments=false&hide_related=true&show_reposts=false&show_teaser=false';
+    this.inner.appendChild(f);
+    this.p=SC.Widget(f);const E=SC.Widget.Events;
+    await new Promise((res,rej)=>{
+      const to=setTimeout(()=>rej(new Error('Não foi possível abrir este link do SoundCloud (privado ou removido?).')),20000);
+      this.p.bind(E.READY,()=>{clearTimeout(to);this.p.getDuration(d=>{this._meta(d/1000);res()})});
+      this.p.bind(E.ERROR,()=>{clearTimeout(to);rej(new Error('Erro ao abrir no SoundCloud.'))});
+    });
+    this.p.bind(E.PLAY_PROGRESS,e=>this._pos(e.currentPosition/1000));
+    this.p.bind(E.PLAY,()=>{
+      const pend=this._scPend;this._pos(this._t,true);
+      if(pend!=null){this._scPend=null;this.p.seekTo(pend*1000);this._pos(pend);setTimeout(()=>this._setVol(this._vol),150)}
+    });
+    this.p.bind(E.PAUSE,()=>this._pos(this._t,false));
+    this.p.bind(E.FINISH,()=>this._fim());
+    this.p.bind(E.SEEK,e=>{if(e&&isFinite(e.currentPosition))this._pos(e.currentPosition/1000)});
+    this._play_=()=>{if(this._scPend!=null)this.p.setVolume(0);this.p.play()};
+    this._pause_=()=>this.p.pause();
+    this._seek_=t=>{this._pos(t);if(!this._started)this._scPend=t;else this.p.seekTo(t*1000);setTimeout(()=>this._emit('seeked'),250)};
+    this._setVol=v=>this.p.setVolume(this.mutedInit?0:Math.round(v*100));
+    this._destroy=()=>{this.p.unbind&&Object.values(E).forEach(ev=>{try{this.p.unbind(ev)}catch{}})};
+  }
+  /* ---- Spotify ---- */
+  async _spotify(){
+    const i=this.info;
+    const api=window._spApi||(window._spApi=new Promise(r=>{const prev=window.onSpotifyIframeApiReady;window.onSpotifyIframeApiReady=a=>{prev&&prev(a);r(a)}}));
+    await loadScript('https://open.spotify.com/embed/iframe-api/v1');
+    const A=await Promise.race([api,new Promise((_,rej)=>setTimeout(()=>rej(new Error('O Spotify demorou para responder. Verifique a internet.')),20000))]);
+    await new Promise((res,rej)=>{
+      const to=setTimeout(()=>rej(new Error('Não foi possível abrir esta faixa do Spotify.')),20000);
+      A.createController(this.inner,{uri:`spotify:${i.kind||'track'}:${i.id}`,width:'100%',height:this.controls?152:80},c=>{
+        this.p=c;
+        c.addListener('ready',()=>{clearTimeout(to);res()});
+        c.addListener('playback_update',e=>{
+          const d=e.data||{};if(d.duration)this._meta(d.duration/1000);
+          const t=(d.position||0)/1000,tocando=!d.isPaused&&!d.isBuffering;
+          if(tocando&&this._spPend!=null){const p=this._spPend;this._spPend=null;c.seek(p);this._pos(p,true);return}
+          if(this._play&&d.isPaused&&this._dur&&t>=this._dur-0.6){this._fim();return}
+          this._pos(t,d.isBuffering?undefined:tocando);
+          if(this._seeking){this._seeking=false;this._emit('seeked')}
+        });
+      });
+    });
+    this._play_=()=>{if(this._started)this.p.resume();else this.p.play()};
+    this._pause_=()=>this.p.pause();
+    this._seek_=t=>{this._pos(t);if(!this._started){this._spPend=t;setTimeout(()=>this._emit('seeked'),200);return}this._seeking=true;this.p.seek(t);setTimeout(()=>{if(this._seeking){this._seeking=false;this._emit('seeked')}},700)};
+    this._setVol=()=>{}; // o Spotify não permite controlar o volume pelo site
+    this._destroy=()=>this.p.destroy();
+  }
+  /* ---- link direto / Google Drive / Dropbox (tocado como arquivo, pela internet) ---- */
+  async _stream(){
+    const i=this.info,v=document.createElement('video');
+    v.playsInline=true;v.preload='auto';v.controls=this.controls;v.muted=this.mutedInit;v.src=i.src;
+    this.inner.appendChild(v);this.v=v;
+    await new Promise((res,rej)=>{
+      const to=setTimeout(()=>rej(new Error('O link demorou demais para responder.')),25000);
+      v.onloadedmetadata=()=>{clearTimeout(to);this.videoWidth=v.videoWidth;this._meta(v.duration);res()};
+      v.onerror=()=>{clearTimeout(to);rej(new Error(i.nome==='Google Drive'?'Não foi possível abrir pelo Google Drive. Confira se o arquivo está compartilhado como “Qualquer pessoa com o link”.':'Não foi possível abrir este link (o arquivo pode ser privado ou o site não permite).'))};
+    });
+    v.addEventListener('play',()=>this._pos(v.currentTime,true));
+    v.addEventListener('pause',()=>this._pos(v.currentTime,false));
+    v.addEventListener('ended',()=>{this.ended=true;this._play=false;this._emit('ended')});
+    v.addEventListener('seeked',()=>this._emit('seeked'));
+    this._play_=()=>v.play().catch(()=>{});
+    this._pause_=()=>v.pause();
+    this._seek_=t=>{v.currentTime=t};
+    this._setVol=x=>{v.volume=Math.max(0,Math.min(1,x))};
+    this._destroy=()=>{v.pause();v.removeAttribute('src');v.load()};
+  }
+}
+
 /* Editor visual do trecho: ouvir, marcar início/fim no ponto exato e testar */
-function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null}={}){
+function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null,ext=null}={}){
   host.innerHTML=`<div class="trim">
     <div class="trim-load" hidden></div>
-    <video controls preload="metadata" playsinline></video>
+    ${ext?`<div class="trim-ext ${ext.video||ext.tipo==='stream'?'':'aud'} ext-${ext.tipo}"></div>`:'<video controls preload="metadata" playsinline></video>'}
     <div class="trim-bar" title="Toque para ir até este ponto"><div class="trim-sel"></div><div class="trim-head"></div></div>
     <div class="trim-scale"><span>0:00</span><b class="tr-len">Música inteira</b><span class="tr-dur">—</span></div>
     <div class="grid2">
@@ -1107,7 +1353,7 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null}=
     </div>
     <p class="hint">Como marcar: dê play, pause no ponto exato e toque em “Marcar”. Pode digitar também (ex.: 1:23.5). “Terminar suave” faz o volume baixar e chegar a zero exatamente no ponto final.</p>
   </div>`;
-  const a=$('video',host),iIn=$('[name=inicio]',host),iOut=$('[name=fim]',host),bar=$('.trim-bar',host),sel=$('.trim-sel',host),head=$('.trim-head',host),load=$('.trim-load',host);
+  const a=ext?new ExtMedia(ext,{mount:$('.trim-ext',host),controls:true}):$('video',host),iIn=$('[name=inicio]',host),iOut=$('[name=fim]',host),bar=$('.trim-bar',host),sel=$('.trim-sel',host),head=$('.trim-head',host),load=$('.trim-load',host);
   let stopAt=null,raf=null,ownSeek=false;
   const vals=()=>({inicio:parseTime(iIn.value),fim:parseTime(iOut.value)});
   const endOf=()=>{const d=a.duration||0,{inicio,fim}=vals();return fim&&fim>inicio&&(!d||fim<=d)?fim:d};
@@ -1120,7 +1366,13 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null}=
   const loop=()=>{draw();if(stopAt!==null&&a.currentTime>=stopAt-0.02){a.pause();stopAt=null}if(!a.paused)raf=requestAnimationFrame(loop)};
   a.addEventListener('play',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)});
   ['pause','loadedmetadata','seeked','durationchange'].forEach(ev=>a.addEventListener(ev,draw));
-  a.addEventListener('loadedmetadata',()=>{a.classList.toggle('audio-only',!a.videoWidth);onMeta&&onMeta(a.videoWidth>0,a.duration)});
+  a.addEventListener('loadedmetadata',()=>{a.classList?.toggle('audio-only',!a.videoWidth);onMeta&&onMeta(a.videoWidth>0,a.duration)});
+  if(ext){
+    load.hidden=false;load.textContent=`Carregando o player do ${ext.nome}…`;
+    a.addEventListener('loadedmetadata',()=>{load.hidden=true});
+    a.addEventListener('error',()=>{load.hidden=false;load.className='err';load.innerHTML=icon('alert')+esc(a.erro||'Não foi possível abrir este link.')});
+    a.addEventListener('timeupdate',draw);a.addEventListener('pause',draw);
+  }
   a.addEventListener('seeking',()=>{if(!ownSeek)stopAt=null;ownSeek=false});
   iIn.addEventListener('input',draw);iOut.addEventListener('input',draw);
   const go=t=>{ownSeek=true;a.currentTime=Math.max(0,t)};
@@ -1150,30 +1402,63 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null}=
       if(d&&fim>d+0.5)return`O fim (${fmtP(fim)}) passa da duração da música (${fmtP(d)}).`;
       return'';
     },
-    stop(){a.pause();cancelAnimationFrame(raf)}
+    stop(){try{a.pause()}catch{}cancelAnimationFrame(raf);if(ext)a.destroy()},
+    get erro(){return ext?a.erro:''}
   };
 }
 
-/* Campo de áudio completo: escolher arquivo, ver arquivo atual e editar o trecho */
+/* Campo de mídia completo: anexar arquivo OU colar link; ver o atual e editar o trecho */
 function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMedia=null}={}){
-  const st={file:null,url:null,trim:null,usandoAtual:false,isVideo:null};
+  const st={file:null,url:null,trim:null,usandoAtual:false,isVideo:null,link:null};
   const meta=(vid)=>{st.isVideo=vid;onMedia&&onMedia(vid)};
-  const free=()=>{st.trim?.stop();if(st.url){URL.revokeObjectURL(st.url);st.url=null}};
-  const boxHTML=(name,size,extra)=>`<div class="filebox">${icon('music')}<div><strong>${esc(name)}</strong><small>${size?fmtSize(size):''}${extra||''}</small></div><button type="button" class="btn sm" data-fb="rm">${icon('refresh')}Trocar arquivo</button></div><div class="af-trim"></div>`;
+  const free=()=>{st.trim?.stop();st.trim=null;if(st.url){URL.revokeObjectURL(st.url);st.url=null}};
+  const abas=m=>`<div class="seg af-mode"><button type="button" data-af="arq" class="${m==='arq'?'on':''}">${icon('upload')}Anexar arquivo</button><button type="button" data-af="link" class="${m==='link'?'on':''}">${icon('link')}Colar link</button></div>`;
+  const boxHTML=(name,size,extra,btn='Trocar arquivo',ic='music')=>`<div class="filebox">${icon(ic)}<div><strong>${esc(name)}</strong><small>${size?fmtSize(size):''}${extra||''}</small></div><button type="button" class="btn sm" data-fb="rm">${icon('refresh')}${btn}</button></div><div class="af-trim"></div>`;
+  host.addEventListener('click',e=>{
+    const b=e.target.closest('[data-af]');if(!b||!host.contains(b))return;
+    if(b.dataset.af==='arq'&&(st.link||!host.querySelector('.af-pick')))showPicker();
+    else if(b.dataset.af==='link'&&!host.querySelector('.af-url'))showLink();
+  });
   function showPicker(){
-    free();st.file=null;st.usandoAtual=false;st.trim=null;st.isVideo=null;onMedia&&onMedia(null);
-    host.innerHTML='<div class="af-pick"></div>';
+    free();st.file=null;st.usandoAtual=false;st.link=null;st.isVideo=null;onMedia&&onMedia(null);
+    host.innerHTML=abas('arq')+'<div class="af-pick"></div>';
     filePicker($('.af-pick',host),f=>{const e=checkFile(f,maxMB);if(e){toast(esc(e),'err',6000);return}useFile(f)});
   }
+  function showLink(valor=''){
+    free();st.file=null;st.usandoAtual=false;st.link=null;st.isVideo=null;onMedia&&onMedia(null);
+    host.innerHTML=abas('link')+`<div class="copyrow"><input type="url" class="af-url" inputmode="url" autocomplete="off" placeholder="Cole aqui o link da música ou do vídeo" value="${esc(valor)}"><button type="button" class="btn primary" data-lk="ok">${icon('check')}Usar link</button></div>
+      <p class="hint" style="margin-top:8px">${PLAT_HINT}</p><p class="err af-err" hidden></p>`;
+    const inp=$('.af-url',host),err=$('.af-err',host);
+    const usar=()=>{
+      const info=parseLink(inp.value);
+      if(!info){err.hidden=false;err.innerHTML=icon('alert')+'Cole um link válido (começando com https://).';return}
+      useLink(info,{fadeOut:true});
+    };
+    $('[data-lk=ok]',host).onclick=usar;
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();usar()}});
+    inp.addEventListener('paste',()=>setTimeout(()=>{if(parseLink(inp.value))usar()},50));
+    if(window.matchMedia('(min-width:721px)').matches)setTimeout(()=>inp.focus(),50);
+  }
+  function useLink(info,vals={}){
+    free();st.file=null;st.usandoAtual=false;st.link=info;
+    const ok=linkTocavel(info);
+    host.innerHTML=abas('link')+boxHTML(`Link do ${info.nome}`,0,`<br><a href="${esc(info.url)}" target="_blank" rel="noopener" style="word-break:break-all">${esc(info.url.length>70?info.url.slice(0,70)+'…':info.url)}</a>`,'Trocar link','link');
+    $('[data-fb=rm]',host).onclick=()=>showLink(info.url);
+    if(!ok){$('.af-trim',host).innerHTML=`<div class="note warn">${icon('alert')}<div>${esc(linkAviso(info))}</div></div>`;meta(false);return}
+    if(info.tipo==='spotify')$('.af-trim',host).insertAdjacentHTML('beforebegin',`<p class="hint" style="margin:-4px 0 8px">Spotify: a música toca inteira se o navegador da equipe estiver logado no Spotify; sem login, só uma prévia de 30 s. Não há controle de volume (sem fade).</p>`);
+    st.trim=trimEditor($('.af-trim',host),{...vals,onMeta:meta,ext:info});
+    if(info.video)meta(true);
+  }
   function useFile(f){
-    free();st.file=f;st.usandoAtual=false;st.url=URL.createObjectURL(f);
-    host.innerHTML=boxHTML(f.name,f.size,f.size>15*1048576&&maxMB===MAX_MB?' · arquivo grande, o envio pode demorar':'');
+    free();st.file=f;st.usandoAtual=false;st.link=null;st.url=URL.createObjectURL(f);
+    host.innerHTML=abas('arq')+boxHTML(f.name,f.size,f.size>15*1048576&&maxMB===MAX_MB?' · arquivo grande, o envio pode demorar':'');
     $('[data-fb=rm]',host).onclick=showPicker;
     st.trim=trimEditor($('.af-trim',host),{fadeOut:true,onMeta:meta});st.trim.setSrc(st.url);
   }
   function useAtual(){
+    if(atual.link){useLink(atual.link,valores);st.usandoAtual=true;return}
     free();st.usandoAtual=true;
-    host.innerHTML=boxHTML(atual.nome||'Música enviada',atual.tamanho,' · arquivo atual');
+    host.innerHTML=abas('arq')+boxHTML(atual.nome||'Música enviada',atual.tamanho,' · arquivo atual');
     $('[data-fb=rm]',host).onclick=showPicker;
     st.trim=trimEditor($('.af-trim',host),{...valores,onMeta:meta});
     if(loadAtual){
@@ -1184,9 +1469,10 @@ function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMe
   }
   atual?useAtual():showPicker();
   return{
-    get file(){return st.file},get kept(){return st.usandoAtual},get has(){return!!st.file||st.usandoAtual},get isVideo(){return st.isVideo},
-    mainInfo(){if(!st.url)return null;return{url:st.url,...(st.trim?st.trim.values():{})}},
-    values(){return st.trim?st.trim.values():null},
+    get file(){return st.file},get kept(){return st.usandoAtual&&!st.link},get has(){return!!st.file||!!st.link||st.usandoAtual},get isVideo(){return st.isVideo},
+    get link(){return st.link},
+    mainInfo(){if(st.link)return{link:st.link,...(st.trim?st.trim.values():{})};if(!st.url)return null;return{url:st.url,...(st.trim?st.trim.values():{})}},
+    values(){return st.trim?st.trim.values():(st.link?{inicio:0,fim:0,fadeIn:false,fadeOut:true}:null)},
     validate(){return st.trim?st.trim.validate():''},
     destroy:free
   };
@@ -1299,6 +1585,7 @@ function montageEditor(host,{valores=null,loadPart=null,maxMB=MAX_MB,getMain=nul
   };
   async function preview(){
     const main=getMain?.();
+    if(main?.link)return toast('Com link, a montagem é aplicada normalmente no painel da equipe. A pré-visualização aqui funciona com arquivo anexado.','info',6000);
     if(!main?.url)return toast('Escolha o vídeo principal primeiro (e aguarde carregar).','warn');
     const er=api.validate();if(er)return toast(esc(er),'warn');
     const mont=api.values()||{volOriginal:1},urls={},own=[];
@@ -1474,7 +1761,8 @@ async function enviarSub({P,file,keep,meta,substitui,onProg,partes=null}){
     res[u.k]={audioGistId:g.id,audioArquivo:name,mime:u.file.type||mimeOf(u.file),nomeArquivo:u.file.name,tamanho:u.file.size};
     done+=u.file.size;
   }
-  const au=res.main||{audioGistId:keep.audioGistId,audioArquivo:keep.audioArquivo,mime:keep.mime,nomeArquivo:keep.nomeArquivo,tamanho:keep.tamanho};
+  const au=res.main||(keep?{audioGistId:keep.audioGistId,audioArquivo:keep.audioArquivo,mime:keep.mime,nomeArquivo:keep.nomeArquivo,tamanho:keep.tamanho}
+    :{audioGistId:null,audioArquivo:null,mime:'',nomeArquivo:meta.link?`Link do ${meta.link.nome}`:'',tamanho:0});
   if(meta.montagem){
     for(const p of PARTS){
       const mp=meta.montagem[p];if(!mp)continue;
@@ -1632,7 +1920,7 @@ async function processGist(ev,gist){
       nomeArquivo:meta.nomeArquivo||'',mime:meta.mime||'audio/mpeg',tamanho:meta.tamanho||0,
       audioGistId:meta.audioGistId,audioArquivo:meta.audioArquivo,
       enviadoEm:meta.enviadoEm||'',recebidoEm:new Date().toISOString(),status:'baixando',duracao:0,
-      video:!!meta.video,montagem:meta.montagem||null
+      video:!!meta.video,montagem:meta.montagem||null,link:meta.link||null
     };
     for(const[p,bl]of Object.entries(reuseParts))await DB.put('audios',bl,partKey(m.id,p));
     if(reuse){await DB.put('audios',reuse,m.id);const inf=await getMediaInfo(reuse);m.duracao=inf.dur;m.video=inf.video;if(!(await faltamPartes(m)))m.status='pronta'}
@@ -1656,11 +1944,24 @@ async function faltamPartes(m){
   return false;
 }
 async function baixarAudio(m){
-  if(baixando.has(m.id)||!state.token)return;
+  if(baixando.has(m.id)||(!state.token&&!m.link))return;
   baixando.add(m.id);
   try{
     m.status='baixando';await saveMusica(m);renderList();
-    if(!(await DB.get('audios',m.id))){
+    if(m.link&&!m.audioGistId&&!(await DB.get('audios',m.id))){
+      if(!linkTocavel(m.link))throw new Error(`Link do ${m.link.nome}: abra o link e baixe a música manualmente (a plataforma não permite tocar fora dela).`);
+      /* links diretos/Drive/Dropbox: tenta guardar uma cópia para tocar sem internet */
+      m.offline=false;
+      if(m.link.tipo==='stream'){
+        try{
+          const r=await fetch(m.link.src);if(!r.ok)throw 0;
+          const b=await r.blob();if(b.size<20000||!/^(audio|video|application\/octet-stream)/.test(b.type||'audio/'))throw 0;
+          const bl=b.type&&!/octet/.test(b.type)?b:new Blob([b],{type:/\.(mp4|m4v|mov|webm)(\?|$)/i.test(m.link.src)?'video/mp4':'audio/mpeg'});
+          await DB.put('audios',bl,m.id);const inf=await getMediaInfo(bl);m.duracao=inf.dur;m.video=inf.video;m.tamanho=bl.size;m.offline=true;
+        }catch{}
+      }
+    }
+    else if(!(await DB.get('audios',m.id))){
       if(!m.audioGistId)throw new Error('Arquivo principal não encontrado.');
       const blob=await fetchAudioBlob(m.audioGistId,m.audioArquivo,m.mime,state.token);
       await DB.put('audios',blob,m.id);
@@ -1677,7 +1978,7 @@ async function baixarAudio(m){
     toast(`Falha ao baixar <b>${esc(m.titulo)}</b>: ${esc(e.message)}`,'err',6000);
   }finally{baixando.delete(m.id);renderList()}
 }
-function retomarDownloads(){state.musicas.filter(m=>m.origem==='link'&&m.status==='baixando').forEach(baixarAudio)}
+function retomarDownloads(){state.musicas.filter(m=>m.status==='baixando'&&(m.origem==='link'||m.link||m.audioGistId)).forEach(baixarAudio)}
 
 /* ---------- Avisos de chegada ---------- */
 let actx;
@@ -1731,21 +2032,26 @@ function paintCard(wrap,seg,url){
 }
 
 const Player={
-  a:document.getElementById('plVideo'),bg:new Audio(),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,
+  el:document.getElementById('plVideo'),ext:null,get a(){return this.ext||this.el},bg:new Audio(),cur:null,url:null,fadeT:null,seeking:false,fadeInOn:false,done:false,raf:null,iv:null,
   ctx:null,gain:null,bgGain:null,lv:1,vis:1,mt:null,parts:{},phase:'main',started:false,cardPlaying:false,cardEl:0,cardT0:0,mf:1,lastUi:0,cardOp:1,
   get clip(){return $('#vidWrap .vc-clip')},
   get card(){return $('#vidWrap .vw-card')},
   get playing(){return!!this.cur&&(this.phase==='main'?!this.a.paused:this.cardPlaying)},
   get initialPhase(){return this.mt?.antes?'pre':'main'},
   hasVisual(){const m=this.cur;return!!(m&&(m.video||this.mt?.antes||this.mt?.depois))},
+  /* liga os eventos do elemento de mídia (arquivo ou link) ao player */
+  bindMedia(a){
+    const meu=()=>a===this.a;
+    a.addEventListener('timeupdate',()=>{if(meu())this.onTime()});
+    a.addEventListener('play',()=>{if(meu()){this.watch();this.ui()}});
+    a.addEventListener('pause',()=>{if(!meu())return;if(this.phase==='main'){this.unwatch();this.bg.pause()}this.ui()});
+    a.addEventListener('ended',()=>{if(meu()&&this.phase==='main')this.mainEnded()});
+    a.addEventListener('error',()=>{if(!meu()||!this.cur)return;if(a.erro)toast(esc(a.erro),'err',8000);else if(a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Baixe-o e converta (MP3 para música, MP4/H.264 para vídeo).','err',7000)});
+  },
   init(){
-    const a=this.a;a.preload='auto';
+    const a=this.el;a.preload='auto';
     this.bg.preload='auto';this.bg.loop=true;
-    a.addEventListener('timeupdate',()=>this.onTime());
-    a.addEventListener('play',()=>{this.watch();this.ui()});
-    a.addEventListener('pause',()=>{if(this.phase==='main'){this.unwatch();this.bg.pause()}this.ui()});
-    a.addEventListener('ended',()=>{if(this.phase==='main')this.mainEnded()});
-    a.addEventListener('error',()=>{if(this.cur&&a.src)toast('Este navegador não conseguiu reproduzir o arquivo. Baixe-o e converta (MP3 para música, MP4/H.264 para vídeo).','err',7000)});
+    this.bindMedia(a);
     $('#vpFs').onclick=()=>this.fullscreen();
     $('#vpTv').onclick=()=>Telao.toggle();
     $('#plTv').onclick=()=>Telao.toggle();
@@ -1779,7 +2085,7 @@ const Player={
       if(!this.ctx){
         const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
         this.ctx=new C();
-        const src=this.ctx.createMediaElementSource(this.a);this.gain=this.ctx.createGain();src.connect(this.gain).connect(this.ctx.destination);this.a.volume=1;
+        const src=this.ctx.createMediaElementSource(this.el);this.gain=this.ctx.createGain();src.connect(this.gain).connect(this.ctx.destination);this.el.volume=1;
         const bs=this.ctx.createMediaElementSource(this.bg);this.bgGain=this.ctx.createGain();bs.connect(this.bgGain).connect(this.ctx.destination);this.bg.volume=1;
       }
       if(this.ctx.state==='suspended')this.ctx.resume();
@@ -1788,6 +2094,7 @@ const Player={
   volOrig(){const v=this.mt?.volOriginal;return v==null?1:v},
   setVol(v){
     v=Math.max(0,Math.min(1,v));this.lv=v;
+    if(this.ext){this.ext.volume=v;return}
     if(this.gain&&this.ctx){try{this.gain.gain.setTargetAtTime(v,this.ctx.currentTime,0.008);return}catch{}}
     this.a.volume=v;
   },
@@ -1842,15 +2149,27 @@ const Player={
   },
   async load(m,autoplay=true){
     const blob=await DB.get('audios',m.id);
-    if(!blob){toast('O arquivo desta música ainda não está disponível.','warn');return}
+    const porLink=!blob&&linkTocavel(m.link);
+    if(!blob&&!porLink){toast(m.link?esc(linkAviso(m.link)):'O arquivo desta música ainda não está disponível.','warn',7000);return}
+    if(porLink&&!navigator.onLine){toast('Sem internet: esta música é um link e precisa de conexão para tocar.','err',7000);return}
     this.clearFade();this.a.pause();this.cardPlaying=false;this.unwatch();this.freeParts();
-    if(this.url)URL.revokeObjectURL(this.url);
-    this.url=URL.createObjectURL(blob);
+    if(this.ext){this.ext.destroy();this.ext=null}
+    if(this.url){URL.revokeObjectURL(this.url);this.url=null}
     this.cur=m;this.done=false;this.fadeInOn=false;this.started=false;this.mf=1;
     this.mt=temMontagem(m)?m.montagem:null;
     if(this.mt){for(const p of PARTS){const s=this.mt[p];if(!s||(p!=='trilha'&&s.tipo==='texto'))continue;const b=await DB.get('audios',partKey(m.id,p));if(b)this.parts[p]=URL.createObjectURL(b)}}
-    const a=this.a;a.src=this.url;
-    await new Promise(r=>{let ok=false;const h=()=>{if(ok)return;ok=true;a.removeEventListener('loadedmetadata',h);r()};a.addEventListener('loadedmetadata',h);setTimeout(h,5000)});
+    if(porLink){
+      this.el.pause();this.el.removeAttribute('src');this.el.load();this.el.hidden=true;
+      const visivel=m.link.video||m.link.tipo==='stream';
+      this.ext=new ExtMedia(m.link,{mount:visivel?$('#vidWrap .vw-ext'):$('#extHold')});
+      this.bindMedia(this.ext);
+    }else{
+      this.el.hidden=false;this.url=URL.createObjectURL(blob);this.el.src=this.url;
+    }
+    const a=this.a;
+    const ok=await new Promise(r=>{let fim=false;const h=v=>{if(fim)return;fim=true;a.removeEventListener('loadedmetadata',okH);a.removeEventListener('error',erH);r(v)};const okH=()=>h(true),erH=()=>h(false);a.addEventListener('loadedmetadata',okH);a.addEventListener('error',erH);setTimeout(()=>h(true),porLink?25000:5000)});
+    if(!ok&&porLink){toast(`Não foi possível tocar o link do ${esc(m.link.nome)}: ${esc(a.erro||'erro desconhecido')}`,'err',9000);this.ext.destroy();this.ext=null;this.cur=null;this.ui();return}
+    if(porLink&&!m.duracao&&a.duration>0){const x=state.musicas.find(y=>y.id===m.id);if(x){x.duracao=a.duration;saveMusica(x)}}
     if(a.videoWidth>0&&!m.video){m.video=true;const x=state.musicas.find(y=>y.id===m.id);if(x){x.video=true;saveMusica(x)}}
     if(!a.videoWidth&&m.video)m.video=false;
     await this.seekTo(this.bounds().ini);
@@ -2020,7 +2339,7 @@ const Player={
     $$('.song').forEach(li=>{const cur=m&&li.dataset.id===m.id;li.classList.toggle('is-current',!!cur);const b=$('.pbtn',li);if(b)b.innerHTML=icon(cur&&playing?'pause':'play')});
     $$('.moment[data-drag]').forEach(li=>li.classList.toggle('has-cur',!!(m&&m.momentoId===li.dataset.drag)));
     if(!m){$('#plSeek').value=0;['--p','--a'].forEach(v=>$('#plSeek').style.setProperty(v,'0%'));$('#plSeek').style.setProperty('--b','100%')}
-    $('#vpanel').hidden=!this.hasVisual();
+    if(!$('#vpanel').classList.contains('in-stage'))$('#vpanel').hidden=!this.hasVisual();
     $('#plTv').classList.toggle('on',Telao.open);
     paintVidBrand($('#vidWrap'),vidLabels());
     this.onTime();renderNextCard();Stage.render();Telao.sendState();
@@ -2069,7 +2388,8 @@ const Telao={
     let blob=null;if(m?.video)blob=await DB.get('audios',m.id);
     const parts={};
     if(m&&mt){for(const p of['antes','depois']){const s=mt[p];if(s&&s.tipo!=='texto'){const b=await DB.get('audios',partKey(m.id,p));if(b)parts[p]=b}}}
-    this.post({t:'load',id:m?.id||null,video:!!m?.video,blob,parts,mt:mt?{antes:mt.antes,depois:mt.depois}:null});
+    const ext=Player.ext&&m?.video?m.link:null;
+    this.post({t:'load',id:m?.id||null,video:!!m?.video,blob:ext?null:blob,ext,parts,mt:mt?{antes:mt.antes,depois:mt.depois}:null});
   },
   sendState(){
     if(!this.open){if(this.win){this.win=null;clearInterval(this.iv);$('#plTv')?.classList.remove('on')}return}
@@ -2087,10 +2407,15 @@ const Stage={
   open(){$('#stage').hidden=false;this.render();try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch{}},
   close(){$('#stage').hidden=true;this.placeVideo();try{if(document.fullscreenElement)document.exitFullscreen()}catch{}},
   /* move o quadro de vídeo para o modo palco quando ele está aberto (sem interromper a reprodução) */
+  /* mostra o quadro de vídeo dentro do modo palco sem mover o elemento (links do YouTube recarregariam) */
   placeVideo(){
-    const w=$('#vidWrap'),want=this.on&&Player.hasVisual()?$('#stVideo'):$('#vpSlot');
-    if(w.parentElement!==want)want.appendChild(w);
-    $('#stage').classList.toggle('has-video',want.id==='stVideo');
+    const vp=$('#vpanel'),slot=$('#stVideo'),on=this.on&&Player.hasVisual();
+    $('#stage').classList.toggle('has-video',on);slot.classList.toggle('slot',on);
+    if(on){
+      vp.hidden=false;vp.classList.add('in-stage');
+      const r=slot.getBoundingClientRect();
+      Object.assign(vp.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',right:'auto',bottom:'auto',zIndex:95});
+    }else if(vp.classList.contains('in-stage')){vp.classList.remove('in-stage');vp.removeAttribute('style');vp.hidden=!Player.hasVisual()}
   },
   get on(){return!$('#stage').hidden},
   render(){
@@ -2240,6 +2565,7 @@ function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
     </div>
     <div class="meta">
       <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
+      ${m.link?`<span class="chip c-link" title="${m.offline?'Link baixado — toca sem internet':'Toca pela internet'}">${icon('link')}${esc(m.link.nome)}${m.offline?' · baixado':' · online'}</span>`:''}
       ${m.video?`<span class="chip c-soft">${icon('video')}Vídeo</span>`:''}
       ${temMontagem(m)?`<span class="chip c-soft" title="Introdução, encerramento ou música de fundo">${icon('sparkle')}Montagem</span>`:''}
       ${m.posicaoSugerida&&!cer?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
@@ -2457,7 +2783,8 @@ function openSongMenu(m){
       <button data-m="edit">${icon('cut')}Editar / ajustar início e fim / trocar arquivo</button>
       ${m.status==='tocada'?`<button data-m="pend">${icon('refresh')}Marcar como “a tocar”</button>`:m.status==='pronta'?`<button data-m="done">${icon('check')}Marcar como tocada</button>`:''}
       ${m.status==='erro'||(m.status==='baixando'&&!baixando.has(m.id))?`<button data-m="retry">${icon('refresh')}Tentar baixar novamente</button>`:''}
-      ${hasAudio(m)?`<button data-m="dl">${icon('download')}Baixar o arquivo</button>`:''}
+      ${m.link?`<button data-m="link">${icon('link')}Abrir o link original (${esc(m.link.nome)})</button>`:''}
+      ${hasAudio(m)&&!(m.link&&!m.offline)?`<button data-m="dl">${icon('download')}Baixar o arquivo</button>`:''}
       <button data-m="del" class="danger">${icon('trash')}Excluir música</button>
     </div>
     ${m.erro&&m.status==='erro'?`<p class="err" style="margin-top:12px">${icon('alert')}${esc(m.erro)}</p>`:''}`,
@@ -2470,6 +2797,7 @@ function openSongMenu(m){
     else if(k==='pend'||k==='done'){m.status=k==='done'?'tocada':'pronta';await saveMusica(m);renderList()}
     else if(k==='retry')baixarAudio(m);
     else if(k==='dl')downloadAudio(m);
+    else if(k==='link')window.open(m.link.url,'_blank','noopener');
     else if(k==='del')deleteSong(m);
   }}});
 }
@@ -2541,7 +2869,7 @@ function openSongForm(m=null,momentoId=null){
       const v=k=>(f.elements[k]?.value||'').trim();
       if(!v('titulo'))return fail('Informe o nome da música.');
       if(!cer&&(!v('professora')||!v('turma')))return fail('Preencha professora e turma.');
-      if(isNew&&!af.file)return fail('Escolha o arquivo da música ou do vídeo.');
+      if(isNew&&!af.file&&!af.link)return fail('Escolha o arquivo ou cole o link da música/vídeo.');
       const ve=af.validate();if(ve)return fail(ve);
       const useMv=mv&&!$('#sfMont',md).hidden;
       if(useMv){const me=mv.validate();if(me)return fail(me)}
@@ -2560,6 +2888,12 @@ function openSongForm(m=null,momentoId=null){
           x.audioGistId=null;x.audioArquivo=null;x.soLocal=false;
           if(x.status!=='tocada')x.status='pronta';x.erro='';
         }
+        let baixarDepois=false;
+        if(af.link){
+          await DB.del('audios',x.id);
+          Object.assign(x,{link:af.link,audioGistId:null,audioArquivo:null,offline:false,soLocal:false,nomeArquivo:`Link do ${af.link.nome}`,tamanho:0,video:!!(af.isVideo||af.link.video),duracao:0});
+          x.status='baixando';baixarDepois=true;
+        }else if(af.file){x.link=null;x.offline=false}
         if(useMv&&x.video!==false){
           const antiga=x.montagem;x.montagem=mv.values();const fs=mv.files();
           if(x.montagem)for(const p of PARTS){if(x.montagem[p]&&mv.kept(p)&&antiga?.[p]?.midia)x.montagem[p].midia=antiga[p].midia}
@@ -2568,6 +2902,7 @@ function openSongForm(m=null,momentoId=null){
         await saveMusica(x);
         if(Player.cur?.id===x.id){if(Player.playing)Player.cur=x;else await Player.load(x,false)}
         close();renderList();Player.ui();toast(isNew?'Música adicionada.':'Alterações salvas.','ok');
+        if(baixarDepois)baixarAudio(x);
         if(ev.gistId&&state.token)subirManual(x);
       }catch(x){fail(x.message);btn.disabled=false}
     };
@@ -2684,7 +3019,7 @@ async function deleteEvent(){
    NUVEM: sincronização entre aparelhos, limpeza automática e backup
    ========================================================= */
 const EV_SYNC=['nome','data','local','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
-const M_SYNC=['titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal'];
+const M_SYNC=['titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal','link'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};
 const evSyncObj=ev=>pick(ev,EV_SYNC);
 const mSyncObj=m=>({...pick(m,M_SYNC),tocada:m.status==='tocada'});
@@ -2757,13 +3092,13 @@ async function mergeEstado(ev,est){
     if(rem.has(id))continue;
     let m=mus.find(x=>x.id===id);
     if(!m){
-      if(!r.audioGistId||r.soLocal)continue;
+      if((!r.audioGistId&&!r.link)||r.soLocal)continue;
       m={id,eventoId:ev.id,...pick(r,M_SYNC),status:'baixando',duracao:0,atualizadoEm:r.atualizadoEm,recebidoEm:r.recebidoEm||agoraISO()};
       m._tocada=!!r.tocada;
       await saveMusica(m,{remote:true});baixar.push(m);mudou=true;continue;
     }
     if((r.atualizadoEm||'')<=(m.atualizadoEm||''))continue;
-    const audioNovo=r.audioGistId&&r.audioGistId!==m.audioGistId;
+    const audioNovo=(r.audioGistId&&r.audioGistId!==m.audioGistId)||JSON.stringify(r.link||null)!==JSON.stringify(m.link||null);
     const partesNovas=PARTS.filter(p=>{const a=r.montagem?.[p]?.midia?.audioGistId,b=m.montagem?.[p]?.midia?.audioGistId;return a&&a!==b});
     Object.assign(m,pick(r,M_SYNC));m.atualizadoEm=r.atualizadoEm;
     if(!r.montagem)m.montagem=null;
@@ -2861,7 +3196,7 @@ async function subirManual(m){
       return{audioGistId:g.id,audioArquivo:arq,mime:blob.type||'audio/mpeg',nomeArquivo:nome||m.titulo,tamanho:blob.size};
     };
     let grande=false;
-    if(!m.audioGistId){
+    if(!m.audioGistId&&!m.link){
       const b=await DB.get('audios',m.id);
       if(b){const r=await up(b,m.nomeArquivo,'audio');if(r){Object.assign(m,r);m.soLocal=false}else{grande=true;m.soLocal=true}}
     }
@@ -2976,6 +3311,7 @@ async function importarBackup(file){
   for(const m of h.musicas){
     const x={...m,eventoId:idMap[m.eventoId]||m.eventoId};
     if(tem.has(m.id)){if(x.status!=='tocada')x.status='pronta'}
+    else if(x.link&&linkTocavel(x.link))x.status=x.status==='tocada'?'tocada':'pronta';
     else if(x.audioGistId)x.status=x.status==='tocada'?'tocada':'baixando';
     else x.status='erro',x.erro='Arquivo não incluído no backup.';
     await DB.put('musicas',x);
@@ -3190,6 +3526,7 @@ async function initAdmin(){
   $('#btnConfig').onclick=openSettings;
   $('#syncBtn').onclick=()=>{if(!state.token)return openSettings();if(state.evento&&!state.evento.gistId)return toast('Este evento não recebe envios por link. Use “Ativar envios por link”.','info');Sync.tick(true)};
   $('#stClose').onclick=()=>Stage.close();
+  window.addEventListener('resize',()=>{if(Stage.on)Stage.placeVideo()});
   $('#stage').onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;({play:()=>Player.toggle(),next:()=>Player.next(),prev:()=>Player.prev(),stop:()=>Player.stop(),fade:()=>Player.fade()})[b.dataset.st]()};
   $('#stBar').onclick=e=>{if(!Player.cur||!Player.a.duration)return;const r=e.currentTarget.getBoundingClientRect();const{ini,end}=Player.bounds();Player.a.currentTime=Math.min(end-0.15,ini+(e.clientX-r.left)/r.width*(end-ini));Player.fadeInOn=false};
   window.addEventListener('online',()=>Sync.tick(true));
@@ -3225,14 +3562,14 @@ async function initProf(P){
     e.preventDefault();err.hidden=true;
     const v=k=>f.elements[k].value.trim();
     if(!v('professora')||!v('turma')||!v('titulo'))return showErr('Preencha o nome da professora, a turma e o nome da música.');
-    if(!af.file)return showErr('Escolha o arquivo da música.');
+    if(!af.file&&!af.link)return showErr('Escolha o arquivo ou cole o link da música.');
     const ve=af.validate();if(ve)return showErr(esc(ve));
     if(!navigator.onLine)return showErr('Você está sem internet. Conecte-se e tente novamente.');
     try{localStorage.setItem('palco_prof',JSON.stringify({professora:v('professora'),turma:v('turma')}))}catch{}
     $$('input,textarea,button',f).forEach(x=>x.disabled=true);
     try{
       const tv=af.values()||{};
-      const meta=await enviarSub({P,file:af.file,meta:{professora:v('professora'),enviadoPor:v('professora'),turma:v('turma'),titulo:v('titulo'),artista:v('artista'),ordem:parseInt(v('ordem'))||0,obs:v('obs'),inicio:tv.inicio||0,fim:tv.fim||0,fadeIn:!!tv.fadeIn,fadeOut:tv.fadeOut!==false},onProg:(p,t)=>setProg(prog,p,t)});
+      const meta=await enviarSub({P,file:af.file,meta:{link:af.link||null,video:!!(af.link?.video||af.isVideo),professora:v('professora'),enviadoPor:v('professora'),turma:v('turma'),titulo:v('titulo'),artista:v('artista'),ordem:parseInt(v('ordem'))||0,obs:v('obs'),inicio:tv.inicio||0,fim:tv.fim||0,fadeIn:!!tv.fadeIn,fadeOut:tv.fadeOut!==false},onProg:(p,t)=>setProg(prog,p,t)});
       try{await DB.put('envios',{id:meta.id,evento:P.e,gistId:P.g,titulo:meta.titulo,turma:meta.turma,enviadoEm:meta.enviadoEm})}catch{}
       $('#pOkTxt').innerHTML=`<b>${esc(meta.titulo)}</b> da turma <b>${esc(meta.turma)}</b> já está com o organizador de <b>${esc(P.e)}</b>.${meta.inicio||meta.fim?`<br>Trecho: ${fmtP(meta.inicio)} → ${meta.fim?fmtP(meta.fim):'fim'}`:''}`;
       af.destroy();f.hidden=true;$('#pOk').hidden=false;window.scrollTo({top:0,behavior:'smooth'});
@@ -3319,7 +3656,7 @@ async function initCli(P){
     $('#cList').innerHTML=tot?C.momentos.map((mo,i)=>{
       const s=C.subs.get(mo.id);
       return`<li class="ci ${s?'ok':''}"><span class="ci-n">${s?icon('check'):i+1}</span>
-        <div class="ci-b"><strong>${esc(mo.nome)}</strong>${s?`<small class="ok">${esc(s.titulo)}${s.artista?' — '+esc(s.artista):''}</small><small>${s.video?'🎬 vídeo · ':''}${trechoTxt(s)?'✂ '+esc(trechoTxt(s)):'Inteira'}${temMontagem(s)?' · ✨ montagem':''}${s.enviadoPor?' · por '+esc(s.enviadoPor):''}</small>`:'<small>Ainda sem música</small>'}</div>
+        <div class="ci-b"><strong>${esc(mo.nome)}</strong>${s?`<small class="ok">${esc(s.titulo)}${s.artista?' — '+esc(s.artista):''}</small><small>${s.link?'🔗 '+esc(s.link.nome)+' · ':''}${s.video?'🎬 vídeo · ':''}${trechoTxt(s)?'✂ '+esc(trechoTxt(s)):'Inteira'}${temMontagem(s)?' · ✨ montagem':''}${s.enviadoPor?' · por '+esc(s.enviadoPor):''}</small>`:'<small>Ainda sem música</small>'}</div>
         <button class="btn ${s?'':'primary'} sm" data-ci="${i}">${s?icon('edit')+'Trocar / ajustar':icon('upload')+'Enviar música'}</button></li>`}).join('')
       :`<li class="ci"><div class="ci-b"><strong>O cronograma ainda está vazio</strong><small>Use “Adicionar outro momento” ou aguarde a equipe do evento montar a sequência.</small></div></li>`;
   }
@@ -3379,7 +3716,8 @@ async function initCli(P){
         const meta={momentoId:mo.id,momentoNome:nomeMom,titulo:v('titulo'),artista:v('artista'),obs:v('obs'),enviadoPor:quem,professora:quem,turma:'',
           inicio:tv.inicio||0,fim:tv.fim||0,fadeIn:!!tv.fadeIn,fadeOut:tv.fadeOut!==false};
         if(mo.novo){meta.momentoNovo=true;meta.momentoApos=v('apos')||''}
-        meta.video=af.isVideo===null?!!sub?.video:!!af.isVideo;
+        meta.video=af.link?!!(af.isVideo||af.link.video):(af.isVideo===null?!!sub?.video:!!af.isVideo);
+        meta.link=af.link||null;
         meta.montagem=mont;
         $$('input,textarea,button,select',f).forEach(x=>x.disabled=true);
         try{
@@ -3545,7 +3883,7 @@ async function initReg(P){
   };
 }
 
-const VW_INNER=`<video class="vw-main" playsinline muted preload="auto"></video><div class="vw-card" hidden><img class="vc-bg" alt="" hidden><img class="vc-img" alt="" hidden><video class="vc-clip" playsinline preload="auto" hidden></video><div class="vc-txt"><div class="vc-t"></div><div class="vc-s"></div></div></div><div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div><img class="vw-wm" alt="" hidden>`;
+const VW_INNER=`<video class="vw-main" playsinline muted preload="auto"></video><div class="vw-ext"></div><div class="vw-card" hidden><img class="vc-bg" alt="" hidden><img class="vc-img" alt="" hidden><video class="vc-clip" playsinline preload="auto" hidden></video><div class="vc-txt"><div class="vc-t"></div><div class="vc-s"></div></div></div><div class="vw-brand"><img class="vw-logo" alt="" hidden><div class="vw-title"></div><div class="vw-sub"></div><div class="vw-cue"></div></div><img class="vw-wm" alt="" hidden>`;
 
 /* =========================================================
    JANELA DO TELÃO (2ª tela / projetor)
@@ -3556,11 +3894,11 @@ function initTelao(){
   tv.innerHTML=`<div class="vidwrap brand">${VW_INNER}</div>
     <div class="tv-hint">Clique aqui (ou tecle F) para tela cheia · arraste esta janela para o projetor/TV</div>`;
   const wrap=$('.vidwrap',tv),v=$('.vw-main',tv),clip=$('.vc-clip',tv);v.muted=true;clip.muted=true;
-  let curId=null,url=null,pUrls={},mt=null;
-  const sync=(el,t,playing)=>{
+  let curId=null,url=null,pUrls={},mt=null,extM=null;
+  const sync=(el,t,playing,tol=0.35)=>{
     const diff=el.currentTime-t;
-    if(!playing){if(!el.paused)el.pause();el.playbackRate=1;if(Math.abs(diff)>0.05&&el.readyState>0)el.currentTime=t;return}
-    if(Math.abs(diff)>0.35)el.currentTime=t+0.04;
+    if(!playing){if(!el.paused)el.pause();el.playbackRate=1;if(Math.abs(diff)>Math.max(0.05,tol/4)&&el.readyState>0)el.currentTime=t;return}
+    if(Math.abs(diff)>tol)el.currentTime=t+0.04;
     else el.playbackRate=Math.abs(diff)<0.04?1:(diff>0?0.96:1.04);
     if(el.paused)el.play().catch(()=>{});
   };
@@ -3579,23 +3917,28 @@ function initTelao(){
       Object.values(pUrls).forEach(u=>URL.revokeObjectURL(u));pUrls={};mt=d.mt||null;
       paintCard(wrap,null);clip.removeAttribute('src');delete clip.dataset.u;
       v.pause();v.removeAttribute('src');v.load();
+      if(extM){extM.destroy();extM=null}
       if(d.video&&d.blob){url=URL.createObjectURL(d.blob);v.src=url}
+      if(d.ext){extM=new ExtMedia(d.ext,{mount:$('.vw-ext',wrap),muted:true})}
       for(const[p,b]of Object.entries(d.parts||{}))pUrls[p]=URL.createObjectURL(b);
     }
     else if(d.t==='state'){
       if(d.labels)paintVidBrand(wrap,d.labels);
       const stale=d.id!==curId;
       const card=d.phase!=='main'&&!stale&&mt;
-      wrap.classList.toggle('brand',d.brand||stale||(!url&&!card));
+      const temMain=!!(url||extM);
+      wrap.classList.toggle('brand',d.brand||stale||(!temMain&&!card));
       if(card&&!d.brand){
         const key=d.phase==='pre'?'antes':'depois',seg=mt[key];
         paintCard(wrap,seg,pUrls[key]);$('.vw-card',wrap).style.opacity=d.cardOp;
         if(seg?.tipo==='video'&&pUrls[key])sync(clip,d.cardEl,d.playing);
         if(url&&!v.paused)v.pause();
+        if(extM&&!extM.paused)extM.pause();
         return;
       }
       paintCard(wrap,null);
-      v.style.opacity=d.op;
+      v.style.opacity=d.op;if(extM)extM.style.opacity=d.op;
+      if(extM)return sync(extM,d.time,d.playing&&!d.brand&&!stale,0.6);
       if(!url)return;
       sync(v,d.time,d.playing&&!d.brand&&!stale);
     }
