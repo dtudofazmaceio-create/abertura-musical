@@ -696,6 +696,8 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/></symbol>
   <symbol id="i-cut" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></symbol>
+  <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></symbol>
   <symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4z"/></symbol>
   <symbol id="i-tv" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
   <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="10.5" r="1.1" fill="currentColor"/><circle cx="8.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="6.5" cy="12.5" r="1.1" fill="currentColor"/><path d="M12 2a10 10 0 0 0 0 20c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16a6 6 0 0 0 6-6c0-4.9-4.5-8.6-10-8.6z"/></symbol>
@@ -868,6 +870,7 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
         <div class="cprog-t"><span id="cProgTxt">Carregando…</span><button class="btn ghost sm" id="cReload" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Atualizar</button></div>
         <div class="cprog-bar"><i id="cProgBar"></i></div>
       </div>
+      <button class="btn block" id="cFicha" type="button" disabled><svg class="ic"><use href="#i-print"/></svg>Baixar ficha do evento (PDF)</button>
     </div>
     <ol class="cli-list" id="cList"><li class="skel">Carregando o cronograma…</li></ol>
     <button class="btn block" id="cAdd" type="button"><svg class="ic"><use href="#i-plus"/></svg>Adicionar outro momento</button>
@@ -2678,6 +2681,7 @@ function renderMain(){
             :`<button class="btn primary" data-a="${state.token?'ativar':'cfg'}">${icon('cloud')}${state.token?'Ativar envios por link':'Configurar GitHub'}</button>`}
           ${cer?`<button class="btn" data-a="cron">${icon('list')}Editar cronograma</button>`:''}
           <button class="btn" data-a="add">${icon('plus')}Adicionar música manualmente</button>
+          <button class="btn" data-a="ficha">${icon('print')}Baixar ficha do evento (PDF)</button>
           <div class="row">
             <button class="btn ghost sm" data-a="bkEv" title="Exportar backup deste evento">${icon('download')}Backup</button>
             <button class="btn ghost sm" data-a="editEv">${icon('edit')}Editar</button>
@@ -2700,7 +2704,7 @@ function renderMain(){
     const b=e.target.closest('[data-a]');if(!b||!main.contains(b))return;
     if(b.tagName==='A')e.preventDefault();
     ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,cron:openCronograma,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent,
-      bkEv:()=>openBackupEvento(),trocar:openEventos,
+      bkEv:()=>openBackupEvento(),trocar:openEventos,ficha:()=>fichaDoEvento(),
       manter:async()=>{const ev=state.evento;ev.manterSempre=!ev.manterSempre;await saveEvento(ev);renderMain();Player.ui();toast(ev.manterSempre?'Este evento não será apagado automaticamente.':'Exclusão automática reativada para este evento.','ok')}
     })[b.dataset.a]?.();
   };
@@ -3512,6 +3516,136 @@ function escolherBackup(){
 }
 
 /* =========================================================
+   FICHA DO EVENTO EM PDF (para imprimir e acompanhar)
+   ========================================================= */
+const JSPDF_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+const AUTOTABLE_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+/* as fontes padrão do PDF só têm o alfabeto latino: troca setas e remove emojis */
+const pdfTxt=v=>String(v??'').replace(/[→⇒➜➔]/g,'–').replace(/[←⇐]/g,'–').replace(/[✂✨🎬🔗🎵🎶♪♫]/g,'')
+  .replace(/[^\x20-\x7E\xA0-\xFF–—‘’“”•…\n]/g,'').replace(/[ \t]+/g,' ').trim();
+const fmtTrecho=m=>{
+  const ini=+m.inicio||0,fim=+m.fim||0;
+  let t=(ini||fim)?`${fmtP(ini)} – ${fim?fmtP(fim):'fim'}`:'Inteira';
+  if(fim>ini&&fim)t+=`\n(${fmt(fim-ini)})`;
+  const f=[m.fadeIn?'fade in':'',fim&&m.fadeOut!==false?'fade out':''].filter(Boolean).join(', ');
+  return f?t+'\n'+f:t;
+};
+function descMontagem(mt){
+  if(!temMontagem({montagem:mt}))return'';
+  const seg=(s,n)=>s?`${n}: ${s.tipo==='texto'?`texto "${s.titulo||''}" (${s.duracao||5}s)`:s.tipo==='imagem'?`foto${s.titulo?` "${s.titulo}"`:''} (${s.duracao||5}s)`:'vídeo curto'}`:'';
+  return['Montagem — '+[seg(mt.antes,'introdução'),seg(mt.depois,'encerramento'),mt.trilha?`música de fundo ${Math.round((mt.trilha.volume??.6)*100)}%`:'',(mt.volOriginal??1)<1?((mt.volOriginal??1)===0?'áudio original mudo':`áudio original ${Math.round(mt.volOriginal*100)}%`):''].filter(Boolean).join('; ')].join('');
+}
+async function logoPNG(url){
+  if(!url)return null;
+  return new Promise(res=>{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+    const x=c.getContext('2d');const modo=logoModo();if(modo==='escuro'){x.fillStyle='#0b0d18';x.fillRect(0,0,c.width,c.height)}x.drawImage(img,0,0);
+    res({data:c.toDataURL('image/png'),w:c.width,h:c.height})}catch{res(null)}};img.onerror=()=>res(null);img.src=url});
+}
+/* dados: {ev:{nome,tipo,data,local,homenageados,cliente}, grupos:[{n,titulo,musicas:[...]}] } */
+async function gerarFichaPDF({ev,grupos,nomeArquivo}){
+  toast('Gerando a ficha em PDF…','info',2500);
+  await loadScript(JSPDF_URL,()=>window.jspdf&&window.jspdf.jsPDF);
+  await loadScript(AUTOTABLE_URL,()=>window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable);
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  const W=210,M=14;
+  const cor=hexRgb(/^#[0-9a-f]{6}$/i.test(marca.cor||'')?marca.cor:BRAND_DEF.cor);
+  const corTxt=lumHex(marca.cor||BRAND_DEF.cor)>.6?[60,60,60]:cor; /* cores muito claras ficam ilegíveis no papel */
+  const cer=!!tipoDe(ev).cer;
+  /* ---- cabeçalho ---- */
+  let y=M;
+  const lg=await logoPNG(marca.logo);
+  let xTxt=M;
+  if(lg){const h=18,w=Math.min(56,h*lg.w/lg.h);doc.addImage(lg.data,'PNG',M,y,w,w*lg.h/lg.w>h?h:w*lg.h/lg.w);xTxt=M+w+6}
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(30,30,30);
+  doc.text(pdfTxt(marca.nome||'Palco Musical'),xTxt,y+6);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(110,110,110);
+  const cont=[marca.whatsapp&&('WhatsApp '+marca.whatsapp),marca.instagram&&('@'+String(marca.instagram).replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'')),marca.site,marca.email].filter(Boolean).map(pdfTxt).join('   •   ');
+  if(marca.slogan)doc.text(pdfTxt(marca.slogan),xTxt,y+11);
+  if(cont)doc.text(cont,xTxt,y+(marca.slogan?15.5:11),{maxWidth:W-xTxt-M-34});
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...corTxt);
+  doc.text('FICHA DO EVENTO',W-M,y+5,{align:'right'});
+  y+=23;doc.setDrawColor(...cor);doc.setLineWidth(.8);doc.line(M,y,W-M,y);
+  /* ---- dados do evento ---- */
+  y+=9;doc.setFont('helvetica','bold');doc.setFontSize(19);doc.setTextColor(20,20,20);
+  const tl=doc.splitTextToSize(pdfTxt(ev.nome||'Evento'),W-2*M);doc.text(tl,M,y);y+=tl.length*7.4;
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(80,80,80);
+  const linha=[tipoDe(ev).nome,ev.data?fmtDate(ev.data):'',ev.local].filter(Boolean).map(pdfTxt).join('   •   ');
+  doc.text(linha,M,y);y+=5.5;
+  const linha2=[cer&&ev.homenageados?`${tipoDe(ev).hom}: ${ev.homenageados}`:'',ev.cliente?.nome?`Contato: ${ev.cliente.nome}${ev.cliente.whatsapp?' ('+ev.cliente.whatsapp+')':''}`:''].filter(Boolean).map(pdfTxt).join('   •   ');
+  if(linha2){doc.text(linha2,M,y);y+=5.5}
+  const totM=grupos.reduce((a,g)=>a+g.musicas.length,0),semM=grupos.filter(g=>!g.musicas.length).length;
+  doc.setFontSize(9);doc.setTextColor(...corTxt);
+  doc.text(pdfTxt(cer?`${grupos.length} momentos  •  ${totM} música(s)${semM?`  •  ${semM} momento(s) ainda sem música`:''}`:`${totM} apresentação(ões)`),M,y);
+  y+=4;
+  /* ---- tabela ---- */
+  const body=[];
+  grupos.forEach(g=>{
+    const ms=g.musicas.length?g.musicas:[null];
+    ms.forEach((m,i)=>{
+      const row=[];
+      if(i===0){row.push({content:String(g.n).padStart(2,'0'),rowSpan:ms.length});row.push({content:pdfTxt(g.titulo),rowSpan:ms.length})}
+      if(!m){row.push({content:'— aguardando música —',styles:{textColor:[150,150,150],fontStyle:'italic'}},'','','');body.push(row);return}
+      const fonte=m.link?`Link: ${m.link.nome}`+(m.link.url?`\n${m.link.url.length>60?m.link.url.slice(0,60)+'…':m.link.url}`:''):(m.video?'Vídeo (arquivo)':'Arquivo');
+      row.push({content:pdfTxt(`${m.titulo||'Sem título'}${m.artista?'\n'+m.artista:''}`),_sub:pdfTxt(fonte)});
+      row.push(pdfTxt(fmtTrecho(m)));
+      row.push(pdfTxt([m.obs,descMontagem(m.montagem),cer&&m.enviadoPor?`Enviado por ${m.enviadoPor}`:''].filter(Boolean).join('\n')));
+      row.push('');
+      body.push(row);
+    });
+  });
+  doc.autoTable({
+    startY:y+2,margin:{left:M,right:M,bottom:20},
+    head:[['#',cer?'Momento':'Turma / Professora','Música','Trecho','Observações','OK']],
+    body,theme:'grid',
+    styles:{font:'helvetica',fontSize:9,cellPadding:{top:2.6,bottom:2.6,left:2.4,right:2.4},textColor:[30,30,30],lineColor:[205,205,210],lineWidth:.2,valign:'middle'},
+    headStyles:{fillColor:cor,textColor:lumHex(marca.cor||BRAND_DEF.cor)>.42?[20,20,20]:[255,255,255],fontStyle:'bold',fontSize:8.5,halign:'left'},
+    alternateRowStyles:{fillColor:[248,248,250]},
+    columnStyles:{0:{cellWidth:9,halign:'center',fontStyle:'bold',textColor:corTxt},1:{cellWidth:38,fontStyle:'bold'},2:{cellWidth:52},3:{cellWidth:24,fontSize:8.2},4:{cellWidth:'auto',fontSize:8.2,textColor:[70,70,70]},5:{cellWidth:11,halign:'center'}},
+    /* linha menor e cinza sob a música (arquivo / link): reserva espaço no rodapé da célula e desenha depois */
+    didParseCell:d=>{if(d.section==='body'&&d.column.index===2&&d.cell.raw?._sub){d.cell._subL=doc.setFontSize(7.2).splitTextToSize(d.cell.raw._sub,48);d.cell.styles.cellPadding={top:2.6,bottom:2.6+d.cell._subL.length*2.9+1.2,left:2.4,right:2.4}}},
+    didDrawCell:d=>{
+      if(d.section==='body'&&d.column.index===2&&d.cell._subL){
+        const L=d.cell._subL;doc.setFont('helvetica','normal');doc.setFontSize(7.2);doc.setTextColor(125,125,135);
+        doc.text(L,d.cell.x+2.4,d.cell.y+d.cell.height-2.6-L.length*2.9+2.3,{lineHeightFactor:1.15});
+      }
+      if(d.section==='body'&&d.column.index===5&&d.row.raw[2]&&d.row.raw[2].content!=='— aguardando música —'){
+        const s=4.2;doc.setDrawColor(120,120,130);doc.setLineWidth(.35);doc.roundedRect(d.cell.x+(d.cell.width-s)/2,d.cell.y+(d.cell.height-s)/2,s,s,.6,.6);
+      }
+    }
+  });
+  /* ---- anotações ---- */
+  let fy=doc.lastAutoTable.finalY+10;
+  if(fy>297-48){doc.addPage();fy=M+6}
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...corTxt);doc.text('ANOTAÇÕES',M,fy);
+  doc.setDrawColor(210,210,215);doc.setLineWidth(.2);for(let i=1;i<=4;i++)doc.line(M,fy+i*7.5,W-M,fy+i*7.5);
+  /* ---- rodapé em todas as páginas ---- */
+  const tot=doc.getNumberOfPages(),ger=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  for(let i=1;i<=tot;i++){
+    doc.setPage(i);doc.setDrawColor(225,225,230);doc.setLineWidth(.2);doc.line(M,297-13,W-M,297-13);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(130,130,140);
+    doc.text(pdfTxt(`${ev.nome}  •  gerado em ${ger}`),M,297-8.5);
+    doc.text(`Página ${i} de ${tot}`,W-M,297-8.5,{align:'right'});
+    if(i>1){doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...corTxt);doc.text(pdfTxt(ev.nome),M,9)}
+  }
+  const nome=(nomeArquivo||`Ficha - ${ev.nome}`).replace(/[\\/:*?"<>|]/g,'').trim()+'.pdf';
+  doc.save(nome);
+  toast(`Ficha baixada: <b>${esc(nome)}</b>`,'ok',5000);
+}
+/* ficha a partir do painel do organizador */
+async function fichaDoEvento(ev=state.evento){
+  if(!ev)return;
+  const mus=state.evento?.id===ev.id?sorted():[...(await DB.byIndex('musicas','eventoId',ev.id))].sort((a,b)=>a.ordem-b.ordem);
+  let grupos;
+  if(tipoDe(ev).cer){
+    grupos=(ev.momentos||[]).map((mo,i)=>({n:i+1,titulo:mo.nome,musicas:mus.filter(m=>m.momentoId===mo.id)}));
+    const orf=mus.filter(m=>!(ev.momentos||[]).some(mo=>mo.id===m.momentoId));
+    if(orf.length)grupos.push({n:grupos.length+1,titulo:'Sem momento definido',musicas:orf});
+  }else grupos=mus.map((m,i)=>({n:i+1,titulo:[m.turma,m.professora&&('Prof. '+m.professora)].filter(Boolean).join('\n')||'—',musicas:[m]}));
+  try{await gerarFichaPDF({ev,grupos})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
+}
+
+/* =========================================================
    LINKS (professoras / noivos / debutante)
    ========================================================= */
 const baseUrl=()=>location.href.split('#')[0];
@@ -3802,6 +3936,19 @@ async function initCli(P){
   nomeIn.value=P.p||saved;
   nomeIn.addEventListener('change',()=>{try{localStorage.setItem('palco_cli_'+P.g,nomeIn.value.trim())}catch{}});
   $('#cReload').onclick=()=>load();
+  $('#cFicha').onclick=async()=>{
+    if(!C.loaded)return;
+    const m=C.meta||{};
+    const ev={nome:m.nome||P.e,tipo:m.tipo||P.k||'cerimonial',data:m.data||P.d||'',local:m.local||'',homenageados:m.homenageados||'',cliente:m.cliente||null};
+    const est=C.estado,rem=new Set(est?.ev?.removidos||[]),mus=[];
+    for(const[id,r]of Object.entries(est?.musicas||{}))if(!rem.has(id))mus.push({id,...r});
+    const tem=new Set(mus.map(x=>x.id)),subst=new Set((C.allSubs||[]).map(x=>x.substitui).filter(Boolean));
+    for(const x of C.allSubs||[])if(!tem.has(x.id)&&!rem.has(x.id)&&!subst.has(x.id))mus.push({...x,ordem:1e6});
+    for(const x of mus)if(x.substitui){const i=mus.findIndex(y=>y.id===x.substitui);if(i>=0)mus.splice(i,1)}
+    mus.sort((a,b)=>(a.ordem??1e6)-(b.ordem??1e6)||String(a.enviadoEm||'').localeCompare(String(b.enviadoEm||'')));
+    const grupos=C.momentos.map((mo,i)=>({n:i+1,titulo:mo.nome,musicas:mus.filter(x=>x.momentoId===mo.id)}));
+    try{await gerarFichaPDF({ev,grupos})}catch(e){toast('Não foi possível gerar o PDF: '+esc(e.message),'err',7000)}
+  };
   $('#cAdd').onclick=()=>{
     if(!C.loaded)return;
     openCliEditor({id:uid(),nome:'',novo:true},null);
@@ -3825,7 +3972,10 @@ async function initCli(P){
         if(!moms.some(m=>m.id===s.momentoId)){const i=moms.findIndex(m=>m.id===s.momentoApos);moms.splice(i>=0?i+1:moms.length,0,{id:s.momentoId,nome:s.momentoNome||'Momento'})}
         C.subs.set(s.momentoId,s);
       }
-      C.momentos=moms;C.loaded=true;render();
+      /* estado completo do evento (inclui músicas e ajustes feitos pela equipe) — usado na ficha */
+      C.estado=null;try{if(files['estado.json'])C.estado=JSON.parse(await readGistFile(files['estado.json']))}catch{}
+      C.allSubs=subs;
+      C.momentos=moms;C.meta=meta;C.loaded=true;render();$('#cFicha').disabled=false;
     }catch(e){
       let msg=esc(e.message);if(e.status===401||e.status===404)msg+=' Peça um novo link à equipe do evento.';
       $('#cList').innerHTML=`<li class="ci"><div class="ci-b"><strong>Não foi possível carregar o cronograma</strong><small>${msg}</small></div><button class="btn sm" id="cRetry">${icon('refresh')}Tentar de novo</button></li>`;
