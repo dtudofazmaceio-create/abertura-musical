@@ -1024,7 +1024,8 @@ function openBrand(){
     $('#bfLogoRm',md).onclick=()=>{logo='';auto='';prev()};
     f.onsubmit=async e=>{
       e.preventDefault();const b=val();
-      await DB.setCfg('marca',b);await DB.setCfg('marcaAt',agoraISO());fechouSalvando=true;applyBrand(b);close();Nuvem.marcarWs();
+      await DB.setCfg('marca',b);await DB.setCfg('marcaAt',agoraISO());fechouSalvando=true;applyBrand(b);close();
+      if(state.token)pushWorkspace().then(()=>toast('Marca enviada para os outros aparelhos.','ok')).catch(e=>Nuvem.falha(e));
       renderMain();Player.ui();Telao.sendBrand();pushInboxBrand();
       const evs=state.eventos.filter(x=>x.gistId);
       if(evs.length&&state.token){for(const ev of evs)await pushMeta(ev,true);toast('Marca salva e aplicada aos links dos eventos.','ok')}
@@ -2708,7 +2709,12 @@ const Nuvem={
       }
     }finally{this.busy=false}
   },
-  start(){clearInterval(this.wsTimer);if(!state.token)return;pullWorkspace().catch(e=>this.falha(e));this.wsTimer=setInterval(()=>pullWorkspace().catch(()=>{}),45000)}
+  async start(){
+    clearInterval(this.wsTimer);if(!state.token)return;
+    await garantirMarcaAt();
+    pullWorkspace().catch(e=>this.falha(e));
+    this.wsTimer=setInterval(()=>pullWorkspace().catch(()=>{}),12000);
+  }
 };
 
 /* ---------- estado de cada evento (estado.json dentro do Gist do evento) ---------- */
@@ -2787,9 +2793,14 @@ async function findWorkspace(criar=false){
   const r=await gh('/gists',{method:'POST',body:{description:WS_DESC,public:false,files:{'workspace.json':{content:JSON.stringify(await wsData())}}}});
   await DB.setCfg('workspaceGistId',r.data.id);return r.data.id;
 }
+/* marcas salvas antes da sincronização não tinham data: carimba agora para poderem viajar */
+async function garantirMarcaAt(){
+  const m=await DB.cfg('marca');
+  if(m&&(m.nome||m.logo||m.slogan||m.whatsapp||(m.cor&&m.cor!==BRAND_DEF.cor))&&!(await DB.cfg('marcaAt'))){await DB.setCfg('marcaAt',agoraISO());Nuvem.marcarWs()}
+}
 async function wsData(){
   return{app:'palco-musical',tipo:'workspace',v:1,atualizadoEm:agoraISO(),
-    marca:marca.logo||marca.nome?{...marca}:null,marcaAt:(await DB.cfg('marcaAt'))||'',
+    marca:(await DB.cfg('marca'))?{...marca}:null,marcaAt:(await DB.cfg('marcaAt'))||'',
     inboxGistId:(await DB.cfg('inboxGistId'))||'',importados:(await DB.cfg('importados'))||[],
     excluidos:(await DB.cfg('excluidos'))||[],autoLimpeza:(await DB.cfg('autoLimpeza'))!==false,
     eventos:state.eventos.filter(e=>e.gistId).map(e=>({gistId:e.gistId,...evSyncObj(e),atualizadoEm:e.atualizadoEm||e.criadoEm||''}))};
@@ -2804,7 +2815,15 @@ async function pullWorkspace(){
 }
 async function mergeWorkspace(w){
   let mudou=false;
-  if(w.marca&&(w.marcaAt||'')>((await DB.cfg('marcaAt'))||'')){await DB.setCfg('marca',w.marca);await DB.setCfg('marcaAt',w.marcaAt);applyBrand(w.marca);mudou=true}
+  {
+    const locAt=(await DB.cfg('marcaAt'))||'',locMarca=await DB.cfg('marca');
+    const remotaNova=w.marca&&((w.marcaAt||'')>locAt||(!locMarca&&!locAt));
+    if(remotaNova){
+      await DB.setCfg('marca',w.marca);await DB.setCfg('marcaAt',w.marcaAt||agoraISO());
+      applyBrand(w.marca);Telao.sendBrand();mudou=true;
+      toast('Identidade visual atualizada a partir de outro aparelho.','info',4000);
+    }
+  }
   if(w.inboxGistId&&!(await DB.cfg('inboxGistId'))){await DB.setCfg('inboxGistId',w.inboxGistId);Inbox.start()}
   const imp=new Set([...((await DB.cfg('importados'))||[]),...(w.importados||[])]);await DB.setCfg('importados',[...imp]);
   const exc=new Set([...((await DB.cfg('excluidos'))||[]),...(w.excluidos||[])]);await DB.setCfg('excluidos',[...exc]);
@@ -3175,7 +3194,7 @@ async function initAdmin(){
   $('#stBar').onclick=e=>{if(!Player.cur||!Player.a.duration)return;const r=e.currentTarget.getBoundingClientRect();const{ini,end}=Player.bounds();Player.a.currentTime=Math.min(end-0.15,ini+(e.clientX-r.left)/r.width*(end-ini));Player.fadeInOn=false};
   window.addEventListener('online',()=>Sync.tick(true));
   window.addEventListener('offline',()=>setSync('off'));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){state.badge=0;document.title=marca.nome||'Palco Musical';Sync.tick();requestWake()}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(state.token)pullWorkspace().catch(()=>{});state.badge=0;document.title=marca.nome||'Palco Musical';Sync.tick();requestWake()}});
   window.addEventListener('beforeunload',e=>{if(Player.playing){e.preventDefault();e.returnValue=''}});
   if(navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
   Inbox.start();
