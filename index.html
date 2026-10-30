@@ -1019,6 +1019,34 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 @media (display-mode:standalone){
   .topbar{padding-top:env(safe-area-inset-top)}
 }
+/* ===== boas-vindas e prazo de envio (página do cliente) ===== */
+.bv{text-align:center;padding:6px 4px 2px}
+.bv .logo{margin:0 auto 14px}
+.bv h2{font-size:1.55rem;margin:8px 0 10px;line-height:1.2}
+.bv p{margin:0 auto 10px;max-width:440px;line-height:1.55}
+.bv .eyebrow{justify-content:center}
+.bv-steps{display:flex;justify-content:center;gap:6px;margin:16px 0 4px}
+.bv-steps i{width:7px;height:7px;border-radius:99px;background:var(--line,rgba(127,127,127,.35));transition:.25s}
+.bv-steps i.on{width:22px;background:var(--accent)}
+.bv-ic{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;margin:2px auto 12px;background:rgba(255,159,67,.14);color:var(--warn)}
+.bv-ic .ic{width:30px;height:30px}
+.bv-ic.late{background:rgba(255,84,112,.14);color:var(--danger)}
+.bv-prazo{margin:14px auto 12px;max-width:380px;border:1px solid rgba(255,159,67,.45);background:rgba(255,159,67,.08);border-radius:14px;padding:14px 16px;display:grid;gap:4px}
+.bv-prazo small{text-transform:uppercase;letter-spacing:.12em;font-size:.7rem;opacity:.75}
+.bv-prazo strong{font-size:1.12rem}
+.bv-prazo.late{border-color:rgba(255,84,112,.5);background:rgba(255,84,112,.08)}
+.bv-tag{justify-self:center;margin-top:4px;font-size:.8rem;font-weight:600;padding:3px 10px;border-radius:99px;background:rgba(255,159,67,.18);color:var(--warn)}
+.bv-prazo.late .bv-tag{background:rgba(255,84,112,.18);color:var(--danger)}
+.bv .btn.lg{margin-top:10px}
+.bv-in{animation:bvIn .35s ease both}
+@keyframes bvIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.c-prazo{display:flex;gap:12px;align-items:center;border:1px solid rgba(255,159,67,.45);background:rgba(255,159,67,.08);border-radius:16px;padding:12px 14px;margin-bottom:16px;text-align:left}
+.c-prazo .ic{width:22px;height:22px;color:var(--warn);flex:none}
+.c-prazo div{display:grid;gap:2px;font-size:.92rem;line-height:1.4}
+.c-prazo b{font-size:.98rem}
+.c-prazo.late{border-color:rgba(255,84,112,.5);background:rgba(255,84,112,.08)}
+.c-prazo.late .ic{color:var(--danger)}
+@media (prefers-reduced-motion:reduce){.bv-in{animation:none}}
 </style>
 </head>
 <body>
@@ -1212,6 +1240,7 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
       <h1 id="pEvento">Evento</h1>
       <p class="muted" id="pData"></p>
     </div>
+    <div class="c-prazo" id="pPrazo" hidden></div>
 
     <form id="pForm" class="card prof-card stack" novalidate>
       <div class="grid2">
@@ -1255,6 +1284,7 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
       <h1 id="cEvento">Evento</h1>
       <p class="muted" id="cData"></p>
     </div>
+    <div class="c-prazo" id="cPrazo" hidden></div>
     <div class="card prof-card c-dados" id="cDados" hidden>
       <div class="row" style="justify-content:space-between;align-items:center"><strong style="font-size:1.05rem">Dados do evento</strong><button class="btn sm" id="cEditDados" type="button"><svg class="ic"><use href="#i-edit"/></svg>Editar dados e foto</button></div>
       <dl class="c-dl" id="cDadosL"></dl>
@@ -5126,7 +5156,11 @@ async function initProf(P){
   f.elements.professora.value=P.p||saved.professora||'';
   f.elements.turma.value=P.u||saved.turma||'';
   applyBrand(null);
-  gh(`/gists/${P.g}`,{token:P.t}).then(r=>readGistFile(r.data.files['evento.json'])).then(t=>{const m=JSON.parse(t);if(m.marca)applyBrand(m.marca);if(m.nome)$('#pEvento').textContent=m.nome}).catch(()=>{});
+  const evP={nome:P.e,data:P.d,quem:P.p||saved.professora||''};
+  renderPrazoBanner(evP,{prof:true});
+  gh(`/gists/${P.g}`,{token:P.t}).then(r=>readGistFile(r.data.files['evento.json'])).then(t=>{const m=JSON.parse(t);if(m.marca)applyBrand(m.marca);if(m.nome){$('#pEvento').textContent=m.nome;evP.nome=m.nome}
+      if(m.data){evP.data=m.data;$('#pData').textContent=fmtDate(m.data);renderPrazoBanner(evP,{prof:true})}}).catch(()=>{})
+    .finally(()=>boasVindas(evP,{prof:true}));
   let af=audioField($('#pAudio'));
   const showErr=m=>{err.innerHTML=icon('alert')+`<span>${m}</span>`;err.hidden=false;err.scrollIntoView({behavior:'smooth',block:'center'})};
 
@@ -5202,6 +5236,75 @@ function openOuvir(it,P){
       if(fim>ini)stopT=setInterval(()=>{if(media.currentTime>=fim-.03){media.pause();clearInterval(stopT)}},50);
     };
   }});
+}
+
+/* =========================================================
+   BOAS-VINDAS + PRAZO DE ENVIO (cliente)
+   ========================================================= */
+const PRAZO_DIAS=2,PRAZO_DIAS_PROF=1;  /* clientes: 2 dias antes · professoras: 1 dia antes */
+function prazoEnvio(data,dd=PRAZO_DIAS){
+  if(!data||!/^\d{4}-\d{2}-\d{2}$/.test(data))return null;
+  const[y,m,d]=data.split('-').map(Number);
+  const dia=new Date(y,m-1,d-dd),lim=new Date(y,m-1,d-dd,23,59,59);
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const dias=Math.round((dia-hoje)/864e5),vencido=Date.now()>lim;
+  const txt=dia.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const curta=dia.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  const status=vencido?`O prazo terminou em ${curta}`:dias<=0?'O prazo termina hoje':dias===1?'O prazo termina amanhã':`Faltam ${dias} dias`;
+  return{dia,lim,dias,vencido,txt,curta,status};
+}
+function saudacao(E){
+  const t=E?.tipo,h=(E?.homenageados||'').trim();
+  if(t==='quinze')return{ola:`Seja bem-vinda${h?', '+esc(h):''}!`,evt:'da sua festa de 15 anos'};
+  if(t==='casamento'||t==='casamento_rec')return{ola:`Sejam bem-vindos${h?', '+esc(h):''}!`,evt:'do casamento de vocês'};
+  return{ola:'Seja bem-vindo(a)!',evt:'do seu evento'};
+}
+const diasTxt=dd=>dd===1?'1 dia':dd+' dias';
+function prazoHTML(pz,dd=PRAZO_DIAS){
+  if(!pz)return`<div class="bv-prazo"><small>Prazo de envio</small><strong>Até ${diasTxt(dd)} antes do evento</strong></div>`;
+  return`<div class="bv-prazo ${pz.vencido?'late':''}"><small>Data limite para enviar</small><strong>${esc(pz.txt.charAt(0).toUpperCase()+pz.txt.slice(1))}</strong><span class="bv-tag">${esc(pz.status)}</span></div>`;
+}
+/* card de boas-vindas → em seguida o alerta do prazo. soPrazo: pula a primeira etapa */
+function boasVindas(E,{soPrazo=false,prof=false}={}){
+  return new Promise(res=>{
+    const dd=prof?PRAZO_DIAS_PROF:PRAZO_DIAS;
+    const s=prof?{ola:`Olá${E?.quem?', '+esc(E.quem):', professor(a)'}!`}:saudacao(E),pz=prazoEnvio(E?.data,dd);
+    const quem=marca.nome?`<b>${esc(marca.nome)}</b>`:'nosso trabalho';
+    const passo1=`<div class="bv bv-in">
+        <span class="logo xl rose" data-brand-logo="heart">${icon('heart')}</span>
+        <span class="eyebrow">Boas-vindas</span>
+        <h2>${s.ola}</h2>
+        ${prof?`<p>Seja bem-vindo(a) ao envio de músicas${E?.nome?' de <b>'+esc(E.nome)+'</b>':''}. Muito obrigado pela parceria e pela confiança em ${quem}!</p>
+        <p class="muted" style="font-size:.92rem">Por aqui você envia a música (ou vídeo) da apresentação da sua turma e marca exatamente onde ela começa e termina.</p>`
+        :`<p>Muito obrigado pela confiança em ${quem} para cuidar da trilha sonora ${s.evt}. É uma alegria fazer parte deste momento tão especial!</p>
+        <p class="muted" style="font-size:.92rem">Por aqui você escolhe a música de cada momento do cronograma e marca exatamente onde ela começa e termina.</p>`}
+        <div class="bv-steps"><i class="on"></i><i></i></div>
+        <button type="button" class="btn primary lg block" id="bvNext">Continuar</button>
+      </div>`;
+    const passo2=`<div class="bv bv-in">
+        <div class="bv-ic ${pz?.vencido?'late':''}">${icon('alert')}</div>
+        <span class="eyebrow">Importante</span>
+        <h2>Prazo para enviar as músicas</h2>
+        <p>As músicas ${prof?'das apresentações':'do cronograma'} devem ser enviadas <b>até, no máximo, ${diasTxt(dd)} antes do evento</b>.</p>
+        ${prazoHTML(pz,dd)}
+        <p class="muted" style="font-size:.92rem">${pz?.vencido?`O prazo já passou. Se ainda precisar enviar ou trocar alguma música, fale ${prof?'com o organizador':'com a equipe do evento'} antes.`:'Assim temos tempo de conferir cada música e deixar tudo pronto para o grande dia.'}</p>
+        ${soPrazo?'':'<div class="bv-steps"><i></i><i class="on"></i></div>'}
+        <button type="button" class="btn primary lg block" id="bvOk">${icon('check')}Entendi</button>
+      </div>`;
+    openModal(`<div class="bv-box">${soPrazo?passo2:passo1}</div>`,{onClose:()=>res(),onMount:(md,close)=>{
+      const box=$('.bv-box',md);refreshLogos();
+      const fim=()=>{$('#bvOk',md).onclick=close;setTimeout(()=>$('#bvOk',md)?.focus(),50)};
+      if(soPrazo)fim();
+      else $('#bvNext',md).onclick=()=>{box.innerHTML=passo2;fim()};
+    }});
+  });
+}
+function renderPrazoBanner(E,{prof=false}={}){
+  const el=$(prof?'#pPrazo':'#cPrazo');if(!el)return;
+  const dd=prof?PRAZO_DIAS_PROF:PRAZO_DIAS,pz=prazoEnvio(E?.data,dd);
+  el.classList.toggle('late',!!pz?.vencido);
+  el.innerHTML=`${icon('alert')}<div><b>${pz?(pz.vencido?'Prazo de envio encerrado':'Envie as músicas até '+esc(pz.txt)):'Envie as músicas até '+diasTxt(dd)+' antes do evento'}</b><span class="muted">${pz?esc(pz.status)+' · ':''}As músicas ${prof?'das apresentações':'do cronograma'} devem chegar até, no máximo, ${diasTxt(dd)} antes do evento.</span></div>`;
+  el.hidden=false;
 }
 
 /* =========================================================
@@ -5308,7 +5411,7 @@ async function initCli(P){
       if(dc?.atualizadoEm&&dc.atualizadoEm>(meta.dadosClienteAt||'')){for(const k of DADOS_CAMPOS)if(typeof dc.campos?.[k]==='string')E[k]=dc.campos[k];if(dc.campos?.cliente)E.cliente=dc.campos.cliente;if('foto' in dc)E.foto=dc.foto}
       E.nome=E.nome||P.e;E.tipo=E.tipo||P.k||'cerimonial';E.data=E.data??P.d??'';
       C.ev=E;
-      setHero(E.nome,E.data,E.tipo);renderDados();mostrarFoto();
+      setHero(E.nome,E.data,E.tipo);renderDados();mostrarFoto();renderPrazoBanner(E);
       const moms=(meta.momentos||[]).map(m=>({id:m.id,nome:m.nome}));
       const subs=[];
       for(const[n,f]of Object.entries(files)){if(!n.startsWith('sub_'))continue;try{subs.push(JSON.parse(await readGistFile(f)))}catch{}}
@@ -5436,6 +5539,9 @@ async function initCli(P){
   }
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=$$('.modal-back');if(m.length)m[m.length-1]._close()}});
   await load();
+  /* a cada acesso: boas-vindas e, em seguida, o alerta do prazo (vindo do cadastro, só o prazo) */
+  let deCadastro=false;try{deCadastro=sessionStorage.getItem('palco_bv_reg')==='1';sessionStorage.removeItem('palco_bv_reg')}catch{}
+  boasVindas(C.ev||{nome:P.e,tipo:P.k,data:P.d},{soPrazo:deCadastro});
 }
 
 /* =========================================================
@@ -5535,7 +5641,8 @@ async function initReg(P){
     <div class="foot" data-brand-foot="Palco Musical"></div>
   </div>`;
   refreshLogos();$$('[data-brand-foot]',root).forEach(el=>el.innerHTML=brandFootHTML(el.dataset.brandFoot));
-  gh(`/gists/${P.i}`,{token:P.t}).then(r=>readGistFile(r.data.files['marca.json'])).then(t=>applyBrand(JSON.parse(t))).catch(()=>{});
+  gh(`/gists/${P.i}`,{token:P.t}).then(r=>readGistFile(r.data.files['marca.json'])).then(t=>applyBrand(JSON.parse(t))).catch(()=>{})
+    .finally(()=>{boasVindas({});try{sessionStorage.setItem('palco_bv_reg','1')}catch{}});
   const f=$('#rgF',root),err=$('.err',f),prog=$('.progress',f);
   let extras=[];
   const drawMoms=()=>{
