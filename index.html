@@ -3699,6 +3699,7 @@ function renderMain(){
           ${cer?`<button class="btn" data-a="cron">${icon('list')}Editar cronograma</button>`:''}
           <button class="btn" data-a="add">${icon('plus')}Adicionar música manualmente</button>
           <button class="btn" data-a="ficha">${icon('print')}Baixar ficha do evento (PDF)</button>
+          <button class="btn" data-a="pasta">${icon('download')}Baixar pasta de músicas (MP3)</button>
           <div class="row">
             <button class="btn ghost sm" data-a="bkEv" title="Exportar backup deste evento">${icon('download')}Backup</button>
             <button class="btn ghost sm" data-a="editEv">${icon('edit')}Editar</button>
@@ -3721,7 +3722,7 @@ function renderMain(){
     const b=e.target.closest('[data-a]');if(!b||!main.contains(b))return;
     if(b.tagName==='A')e.preventDefault();
     ({links:openLinks,ativar:ativarEnvios,cfg:openSettings,cron:openCronograma,add:()=>openSongForm(),editEv:()=>openEventForm(state.evento),delEv:deleteEvent,
-      bkEv:()=>openBackupEvento(),trocar:openEventos,ficha:()=>fichaDoEvento(),
+      bkEv:()=>openBackupEvento(),trocar:openEventos,ficha:()=>fichaDoEvento(),pasta:()=>baixarPastaMusicas(),
       manter:async()=>{const ev=state.evento;ev.manterSempre=!ev.manterSempre;await saveEvento(ev);renderMain();Player.ui();toast(ev.manterSempre?'Este evento não será apagado automaticamente.':'Exclusão automática reativada para este evento.','ok')}
     })[b.dataset.a]?.();
   };
@@ -4775,6 +4776,131 @@ async function gerarFichaPDF({ev,grupos,nomeArquivo,fotoBlob=null}){
   doc.save(nome);
   toast(`Ficha baixada: <b>${esc(nome)}</b>`,'ok',5000);
 }
+
+/* =========================================================
+   PASTA DE MÚSICAS (ZIP com subpasta por momento, tudo em MP3)
+   ========================================================= */
+const JSZIP_URLS=['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'];
+const LAME_URLS=['https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js','https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'];
+async function loadAny(urls,ok){let e;for(const u of urls){try{await loadScript(u,ok);if(ok())return}catch(x){e=x}}throw e||new Error('Não foi possível carregar a biblioteca.')}
+const nomeSeguro=t=>String(t||'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').replace(/^\.+/,'').trim().slice(0,90)||'Sem nome';
+/* decodifica o arquivo (música ou vídeo), aplica o trecho marcado e codifica em MP3 */
+async function paraMp3(blob,m,aplicar,onProg){
+  const buf=await blob.arrayBuffer();
+  const AC=window.AudioContext||window.webkitAudioContext;
+  let ctx;try{ctx=new AC({sampleRate:44100})}catch{ctx=new AC()}
+  let ab;
+  try{ab=await new Promise((res,rej)=>{const r=ctx.decodeAudioData(buf,res,rej);if(r&&r.then)r.then(res,rej)})}
+  catch{throw new Error('o navegador não conseguiu ler o áudio deste arquivo')}
+  finally{try{ctx.close()}catch{}}
+  const sr=ab.sampleRate,dur=ab.duration,nch=Math.min(2,ab.numberOfChannels);
+  let s0=0,s1=ab.length,cortou=false;
+  if(aplicar){
+    const ini=Math.min(+m.inicio||0,Math.max(0,dur-.3)),fim=+m.fim||0;
+    s0=Math.floor(ini*sr);
+    if(fim>ini&&fim<dur){s1=Math.min(ab.length,Math.floor(fim*sr));cortou=true}
+  }
+  const n=Math.max(1,s1-s0),pcm=[];
+  const fi=aplicar&&m.fadeIn?Math.min(n,Math.floor(FADE_IN*sr)):0;
+  const fo=aplicar&&cortou&&m.fadeOut!==false?Math.min(n,Math.floor(Math.min(FADE_OUT,n/sr/3)*sr)):0;
+  for(let c=0;c<nch;c++){
+    const src=ab.getChannelData(c),out=new Int16Array(n);
+    for(let i=0;i<n;i++){
+      let v=src[s0+i]||0;
+      if(fi&&i<fi)v*=i/fi;
+      if(fo&&i>n-fo)v*=(n-i)/fo;
+      v=Math.max(-1,Math.min(1,v));out[i]=v<0?v*0x8000:v*0x7FFF;
+    }
+    pcm.push(out);
+  }
+  const enc=new lamejs.Mp3Encoder(nch,sr,192),parts=[],B=1152*16;
+  for(let i=0,k=0;i<n;i+=B,k++){
+    const a=enc.encodeBuffer(pcm[0].subarray(i,i+B),nch>1?pcm[1].subarray(i,i+B):undefined);
+    if(a.length)parts.push(new Uint8Array(a));
+    if(k%20===0){onProg&&onProg(i/n);await sleep(0)}
+  }
+  const z=enc.flush();if(z.length)parts.push(new Uint8Array(z));
+  return new Blob(parts,{type:'audio/mpeg'});
+}
+async function baixarPastaMusicas(ev=state.evento){
+  if(!ev)return;
+  const cer=!!tipoDe(ev).cer;
+  const mus=state.evento?.id===ev.id?sorted():[...(await DB.byIndex('musicas','eventoId',ev.id))].sort((a,b)=>a.ordem-b.ordem);
+  /* monta as pastas: um momento = uma subpasta */
+  let grupos;
+  if(cer){
+    grupos=(ev.momentos||[]).map((mo,i)=>({n:i+1,nome:mo.nome,musicas:mus.filter(m=>m.momentoId===mo.id)}));
+    const orf=mus.filter(m=>!(ev.momentos||[]).some(mo=>mo.id===m.momentoId));
+    if(orf.length)grupos.push({n:grupos.length+1,nome:'Sem momento definido',musicas:orf});
+  }else grupos=[{n:1,nome:'',musicas:mus}];
+  const prontas=[],links=[],faltam=[];
+  for(const g of grupos)for(const m of g.musicas){
+    const b=await DB.get('audios',m.id).catch(()=>null);
+    if(b)prontas.push({g,m,blob:b});
+    else if(m.link)links.push({g,m});
+    else faltam.push({g,m});
+  }
+  const vazios=cer?grupos.filter(g=>!g.musicas.length):[];
+  if(!mus.length)return toast('Este evento ainda não tem músicas para baixar.','warn');
+  let cancel=false,rodando=false;
+  const lista=(arr,f)=>`<ul style="margin:8px 0 0;padding-left:18px;font-size:.9rem">${arr.map(f).join('')}</ul>`;
+  openModal(`${modalHead('Baixar pasta de músicas','Um arquivo ZIP com uma pasta por momento, e todas as músicas em MP3.')}
+    <div class="stack">
+      ${links.length?`<div class="note warn">${icon('alert')}<div><b>${links.length} música${links.length>1?'s foram enviadas':' foi enviada'} somente por link</b> e não ${links.length>1?'entram':'entra'} na pasta. Baixe ${links.length>1?'essas músicas':'essa música'} antes (abra o link, baixe o arquivo) e anexe em <b>Editar → Trocar arquivo</b>; depois gere a pasta de novo.
+        ${lista(links,({g,m})=>`<li>${cer?'<b>'+esc(g.nome)+'</b> — ':''}${esc(m.titulo)} · <a href="${esc(m.link.url)}" target="_blank" rel="noopener">abrir link (${esc(m.link.nome)})</a></li>`)}</div></div>`:''}
+      ${faltam.length?`<div class="note warn">${icon('alert')}<div><b>${faltam.length} música${faltam.length>1?'s ainda não foram baixadas':' ainda não foi baixada'}</b> para este aparelho (aguarde o download terminar ou tente novamente):${lista(faltam,({g,m})=>`<li>${cer?'<b>'+esc(g.nome)+'</b> — ':''}${esc(m.titulo)}</li>`)}</div></div>`:''}
+      ${vazios.length?`<div class="note">${icon('info')}<div><b>${vazios.length} momento${vazios.length>1?'s estão':' está'} sem música:</b> ${vazios.map(g=>esc(g.nome)).join(', ')}.</div></div>`:''}
+      <div><b>${prontas.length}</b> música${prontas.length===1?'':'s'} pronta${prontas.length===1?'':'s'} para converter em MP3${cer?` em ${new Set(prontas.map(x=>x.g.n)).size} pasta(s)`:''}.</div>
+      <label class="chk"><input type="checkbox" id="pmCorte" checked><span>Aplicar o trecho marcado (início, fim e fades). Desmarque para baixar as músicas inteiras.</span></label>
+      <p class="hint">A conversão acontece neste aparelho e pode levar alguns minutos em vídeos ou músicas longas. Só o arquivo principal de cada música entra (introdução, encerramento e música de fundo da montagem não).</p>
+      <div class="progress" id="pmProg" hidden><div class="bar"></div><span></span></div>
+      <p class="err" id="pmErr" hidden></p>
+    </div>
+    <div class="modal-f"><button type="button" class="btn" id="pmCancel" data-close>Fechar</button><button type="button" class="btn primary" id="pmGo" ${prontas.length?'':'disabled'}>${icon('download')}Baixar pasta (ZIP)</button></div>`,
+  {wide:true,onClose:()=>{cancel=true},onMount:(md,close)=>{
+    const prog=$('#pmProg',md),err=$('#pmErr',md),go=$('#pmGo',md);
+    go.onclick=async()=>{
+      err.hidden=true;go.disabled=true;rodando=true;
+      try{
+        setProg(prog,.02,'Carregando conversor…');
+        await loadAny(JSZIP_URLS,()=>window.JSZip);
+        await loadAny(LAME_URLS,()=>window.lamejs);
+        const aplicar=$('#pmCorte',md).checked;
+        const zip=new JSZip(),raiz=nomeSeguro(ev.nome),root=zip.folder(raiz);
+        const falhas=[],usados=new Set();
+        for(const[i,x]of prontas.entries()){
+          if(cancel)return;
+          const{g,m,blob}=x;
+          setProg(prog,.05+i/prontas.length*.9,`Convertendo ${i+1} de ${prontas.length}: ${m.titulo}`);
+          try{
+            const mp3=await paraMp3(blob,m,aplicar,p=>setProg(prog,.05+(i+p)/prontas.length*.9,`Convertendo ${i+1} de ${prontas.length}: ${m.titulo}`));
+            const pasta=cer?`${String(g.n).padStart(2,'0')} - ${nomeSeguro(g.nome)}`:'';
+            const base=cer?(g.musicas.length>1?String(g.musicas.indexOf(m)+1).padStart(2,'0')+' - ':'')+nomeSeguro(m.titulo+(m.artista?' - '+m.artista:'')):
+              `${String(mus.indexOf(m)+1).padStart(2,'0')} - ${nomeSeguro([m.turma,m.titulo].filter(Boolean).join(' - '))}`;
+            let nome=base,k=2;while(usados.has(pasta+'/'+nome))nome=`${base} (${k++})`;usados.add(pasta+'/'+nome);
+            (pasta?root.folder(pasta):root).file(nome+'.mp3',mp3,{compression:'STORE'});
+          }catch(e){falhas.push(`${cer?g.nome+' — ':''}${m.titulo}: ${e.message}`)}
+        }
+        if(cancel)return;
+        const avisos=[
+          ...links.map(({g,m})=>`SÓ LINK (baixe antes e anexe no sistema): ${cer?g.nome+' — ':''}${m.titulo} — ${m.link.url}`),
+          ...faltam.map(({g,m})=>`AINDA NÃO BAIXADA: ${cer?g.nome+' — ':''}${m.titulo}`),
+          ...falhas.map(f=>'FALHA NA CONVERSÃO: '+f),
+          ...vazios.map(g=>'MOMENTO SEM MÚSICA: '+g.nome)];
+        if(avisos.length)root.file('LEIAME - pendencias.txt','Itens que não entraram nesta pasta:\r\n\r\n'+avisos.join('\r\n')+'\r\n');
+        if(prontas.length===falhas.length)throw new Error('Nenhuma música pôde ser convertida. '+(falhas[0]||''));
+        setProg(prog,.97,'Compactando…');
+        const z=await zip.generateAsync({type:'blob',compression:'STORE'},m=>setProg(prog,.97+m.percent/100*.03,'Compactando…'));
+        const u=URL.createObjectURL(z),a=document.createElement('a');a.href=u;a.download=raiz+' - músicas.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
+        setProg(prog,1,'Pronto!');
+        toast(`Pasta gerada: <b>${prontas.length-falhas.length}</b> música(s) em MP3${falhas.length?` · ${falhas.length} falharam (veja o LEIAME no ZIP)`:''}.`,falhas.length?'warn':'ok',7000);
+        close();
+      }catch(e){err.innerHTML=icon('alert')+esc(e.message);err.hidden=false;prog.hidden=true}
+      finally{rodando=false;go.disabled=!prontas.length}
+    };
+  }});
+}
+
 /* ficha a partir do painel do organizador */
 async function fichaDoEvento(ev=state.evento){
   if(!ev)return;
@@ -5011,7 +5137,8 @@ function openMais(){
       <button data-m="novo"><span class="mi">${icon('plus')}</span><span>Novo evento<small>Criar um evento do zero</small></span></button>
       <button data-m="cad"><span class="mi">${icon('link')}</span><span>Link de cadastro<small>Para noivos e debutantes cadastrarem o evento</small></span></button>
       ${ev?`<button data-m="links"><span class="mi">${icon('wa')}</span><span>${isCer(ev)?'Link para '+tipoDe(ev).quem:'Links para professoras'}<small>Enviar pelo WhatsApp</small></span></button>
-      <button data-m="ficha"><span class="mi">${icon('print')}</span><span>Ficha do evento (PDF)<small>Para imprimir e acompanhar</small></span></button>`:''}
+      <button data-m="ficha"><span class="mi">${icon('print')}</span><span>Ficha do evento (PDF)<small>Para imprimir e acompanhar</small></span></button>
+      <button data-m="pasta"><span class="mi">${icon('download')}</span><span>Pasta de músicas (MP3)<small>ZIP com uma subpasta por momento</small></span></button>`:''}
       <div class="mais-sep"></div>
       ${ev?`<button data-m="dj"><span class="mi">${icon('decks')}</span><span>Modo DJ (2 decks)<small>Mixagem contínua entre as músicas</small></span></button>`:''}
       <button data-m="auto"><span class="mi">${icon('auto')}</span><span>Tocar a próxima automaticamente<small>Ao terminar uma música</small></span><i class="sw ${state.auto?'on':''}"></i></button>
@@ -5025,7 +5152,7 @@ function openMais(){
     const b=e.target.closest('[data-m]');if(!b)return;const k=b.dataset.m;
     if(k==='auto'){$('#plAuto').click();$('.sw',b).classList.toggle('on',state.auto);return}
     if(k==='instalar'){close();return instalarApp()}
-    close();setTimeout(()=>({dj:()=>DJ.abrir(),novo:()=>openEventForm(),cad:openCadastroLink,links:openLinks,ficha:()=>fichaDoEvento(),marca:openBrand,cfg:openSettings})[k]?.(),220);
+    close();setTimeout(()=>({dj:()=>DJ.abrir(),novo:()=>openEventForm(),cad:openCadastroLink,links:openLinks,ficha:()=>fichaDoEvento(),pasta:()=>baixarPastaMusicas(),marca:openBrand,cfg:openSettings})[k]?.(),220);
   }}});
 }
 async function instalarApp(){
