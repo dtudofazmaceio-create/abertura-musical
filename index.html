@@ -751,6 +751,9 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 .vpanel.in-stage .vidwrap{height:100%;aspect-ratio:auto}
 .st-video.slot{display:block;aspect-ratio:16/9;max-height:56vh}
 .c-link{background:rgba(79,140,255,.15);color:var(--link-ink)}
+.chip-btn{border:1px solid transparent;font:inherit;font-size:.74rem;font-weight:700;cursor:pointer}
+.chip-btn:hover{border-color:currentColor}
+.chip-btn .ic{width:13px;height:13px}
 
 /* ---------- Central de eventos ---------- */
 .evc-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -2045,7 +2048,7 @@ function trimEditor(host,{inicio=0,fim=0,fadeIn=false,fadeOut=true,onMeta=null,e
 }
 
 /* Campo de mídia completo: anexar arquivo OU colar link; ver o atual e editar o trecho */
-function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMedia=null}={}){
+function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMedia=null,manterTrecho=false}={}){
   const st={file:null,url:null,trim:null,usandoAtual:false,isVideo:null,link:null};
   const meta=(vid)=>{st.isVideo=vid;onMedia&&onMedia(vid)};
   const free=()=>{st.trim?.stop();st.trim=null;if(st.url){URL.revokeObjectURL(st.url);st.url=null}};
@@ -2090,7 +2093,8 @@ function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMe
     free();st.file=f;st.usandoAtual=false;st.link=null;st.url=URL.createObjectURL(f);
     host.innerHTML=abas('arq')+boxHTML(f.name,f.size,f.size>15*1048576&&maxMB===MAX_MB?' · arquivo grande, o envio pode demorar':'');
     $('[data-fb=rm]',host).onclick=showPicker;
-    st.trim=trimEditor($('.af-trim',host),{fadeOut:true,onMeta:meta});st.trim.setSrc(st.url);
+    /* música que veio por link: o arquivo anexado herda o início/fim/fades marcados pelo cliente */
+    st.trim=trimEditor($('.af-trim',host),manterTrecho?{fadeOut:true,...valores,onMeta:meta}:{fadeOut:true,onMeta:meta});st.trim.setSrc(st.url);
   }
   function useAtual(){
     if(atual.link){useLink(atual.link,valores);st.usandoAtual=true;return}
@@ -2109,7 +2113,7 @@ function audioField(host,{atual=null,loadAtual=null,valores={},maxMB=MAX_MB,onMe
     get file(){return st.file},get kept(){return st.usandoAtual&&!st.link},get has(){return!!st.file||!!st.link||st.usandoAtual},get isVideo(){return st.isVideo},
     get link(){return st.link},
     mainInfo(){if(st.link)return{link:st.link,...(st.trim?st.trim.values():{})};if(!st.url)return null;return{url:st.url,...(st.trim?st.trim.values():{})}},
-    values(){return st.trim?st.trim.values():(st.link?{inicio:0,fim:0,fadeIn:false,fadeOut:true}:null)},
+    values(){return st.trim?st.trim.values():(st.link?(st.usandoAtual?{inicio:+valores.inicio||0,fim:+valores.fim||0,fadeIn:!!valores.fadeIn,fadeOut:valores.fadeOut!==false}:{inicio:0,fim:0,fadeIn:false,fadeOut:true}):null)},
     validate(){return st.trim?st.trim.validate():''},
     destroy:free
   };
@@ -3769,7 +3773,7 @@ function songRow(m,{pos=0,compact=false,inMoment=false,drag=false}={}){
     </div>
     <div class="meta">
       <span class="chip c-${m.status}" ${m.erro?`title="${esc(m.erro)}"`:''}>${STATUS[m.status]||m.status}</span>
-      ${m.link?`<span class="chip c-link" title="Toca pela internet, direto do ${esc(m.link.nome)}">${icon('link')}${esc(m.link.nome)} · online</span>`:''}
+      ${m.link?`<button type="button" class="chip c-link chip-btn" data-s="anexar" title="${linkTocavel(m.link)?`Toca pela internet, direto do ${esc(m.link.nome)}. `:''}Clique para baixar e anexar o arquivo (mantém início, fim e observações)">${icon('link')}${esc(m.link.nome)} · ${linkTocavel(m.link)?'online':'só link'} · ${icon('download')}anexar</button>`:''}
       ${m.video?`<span class="chip c-soft">${icon('video')}Vídeo</span>`:''}
       ${temMontagem(m)?`<span class="chip c-soft" title="Introdução, encerramento ou música de fundo">${icon('sparkle')}Montagem</span>`:''}
       ${m.posicaoSugerida&&!cer?`<span class="chip c-soft" title="Posição pedida pela professora">pediu nº ${m.posicaoSugerida}</span>`:''}
@@ -3871,6 +3875,7 @@ function bindSongs(ul){
     if(act==='play'){if(Player.cur?.id===m.id)Player.toggle();else Player.load(m,true)}
     else if(act==='up'||act==='down')move(m.id,act==='up'?-1:1);
     else if(act==='more')openSongMenu(m);
+    else if(act==='anexar')openAnexarLink(m);
   });
   ul.addEventListener('dblclick',e=>{const li=e.target.closest('.song');if(!li||e.target.closest('button'))return;const m=state.musicas.find(x=>x.id===li.dataset.id);if(m&&hasAudio(m))Player.load(m,true)});
   let dragId=null;
@@ -3984,11 +3989,13 @@ function openSongMenu(m){
   openModal(`${modalHead(esc(isCer()?cueOf(m):m.titulo),esc(descOf(m)))}
     <div class="sheet-list">
       ${hasAudio(m)?`<button data-m="play">${icon('play')}Tocar agora</button><button data-m="prep">${icon('next')}Preparar (carregar sem tocar)</button>`:''}
+      ${m.link?`<button data-m="anexar">${icon('download')}Baixar e anexar o arquivo (mantém início, fim e observações)</button>`:''}
       <button data-m="edit">${icon('cut')}Editar / ajustar início e fim / trocar arquivo</button>
       ${m.status==='tocada'?`<button data-m="pend">${icon('refresh')}Marcar como “a tocar”</button>`:m.status==='pronta'?`<button data-m="done">${icon('check')}Marcar como tocada</button>`:''}
       ${!ehLink(m)&&(m.status==='erro'||(m.status==='baixando'&&!baixando.has(m.id)))?`<button data-m="retry">${icon('refresh')}Tentar baixar novamente</button>`:''}
-      ${m.link?`<button data-m="link">${icon('link')}Abrir o link original (${esc(m.link.nome)})</button>`:''}
+      ${linkDe(m)?`<button data-m="link">${icon('link')}Abrir o link original (${esc(linkDe(m).nome)})</button>`:''}
       ${hasAudio(m)&&!ehLink(m)?`<button data-m="dl">${icon('download')}Baixar o arquivo</button>`:''}
+      ${hasAudio(m)&&!ehLink(m)&&trechoTxt(m)?`<button data-m="dlc">${icon('cut')}Baixar MP3 já cortado (início/fim e fades)</button>`:''}
       <button data-m="del" class="danger">${icon('trash')}Excluir música</button>
     </div>
     ${m.erro&&m.status==='erro'?`<p class="err" style="margin-top:12px">${icon('alert')}${esc(m.erro)}</p>`:''}`,
@@ -4001,7 +4008,9 @@ function openSongMenu(m){
     else if(k==='pend'||k==='done'){m.status=k==='done'?'tocada':'pronta';await saveMusica(m);renderList()}
     else if(k==='retry')baixarAudio(m);
     else if(k==='dl')downloadAudio(m);
-    else if(k==='link')window.open(m.link.url,'_blank','noopener');
+    else if(k==='dlc')baixarCortado(m);
+    else if(k==='anexar')openAnexarLink(m);
+    else if(k==='link')window.open(linkDe(m).url,'_blank','noopener');
     else if(k==='del')deleteSong(m);
   }}});
 }
@@ -4012,6 +4021,139 @@ async function downloadAudio(m){
   const n=String(sorted().findIndex(x=>x.id===m.id)+1).padStart(2,'0');
   const name=(isCer()?`${n} - ${cueOf(m)} - ${m.titulo}`:`${n} - ${m.turma} - ${m.titulo}`).replace(/[\\/:*?"<>|]/g,'')+'.'+ext;
   const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);
+}
+
+/* =========================================================
+   BAIXAR E ANEXAR (música enviada por link → vira arquivo)
+   Mantém o início, o fim, os fades e as observações do cliente.
+   ========================================================= */
+const linkDe=m=>m.link||m.linkOrigem||null;
+const MIME_EXT={'audio/mpeg':'mp3','audio/mp3':'mp3','audio/mp4':'m4a','audio/x-m4a':'m4a','audio/aac':'aac','audio/wav':'wav','audio/x-wav':'wav','audio/ogg':'ogg','audio/opus':'opus','audio/flac':'flac','audio/webm':'webm','video/mp4':'mp4','video/quicktime':'mov','video/webm':'webm'};
+/* tenta baixar direto no navegador (só funciona em links de arquivo que permitem: link direto, Dropbox…) */
+async function baixarDoLink(info,onProg){
+  if(info.tipo!=='stream'||!info.src)throw new Error(`O ${info.nome} não permite baixar a música direto pelo navegador.`);
+  let r;
+  try{r=await fetch(info.src,{mode:'cors',redirect:'follow'})}
+  catch{throw new Error(`O ${info.nome} bloqueou o download automático.`)}
+  if(!r.ok)throw new Error(`O ${info.nome} respondeu com erro ${r.status} (arquivo privado ou removido?).`);
+  const tipo=(r.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
+  if(/text\/html/.test(tipo))throw new Error(`O ${info.nome} devolveu uma página em vez do arquivo (arquivo grande, privado ou com aviso de vírus).`);
+  const total=+r.headers.get('content-length')||0;
+  let blob;
+  if(r.body&&r.body.getReader){
+    const rd=r.body.getReader(),parts=[];let got=0;
+    for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;onProg&&onProg(total?got/total:0,got)}
+    blob=new Blob(parts,{type:tipo||'audio/mpeg'});
+  }else blob=await r.blob();
+  if(!blob.size)throw new Error('O arquivo baixado veio vazio.');
+  const disp=r.headers.get('content-disposition')||'';
+  let nome=(disp.match(/filename\*=UTF-8''([^;]+)/i)||[])[1];nome=nome?decodeURIComponent(nome):(disp.match(/filename="?([^";]+)"?/i)||[])[1];
+  if(!nome){try{nome=decodeURIComponent(new URL(info.src).pathname.split('/').pop()||'')}catch{nome=''}}
+  if(!nome||!/\.\w{2,4}$/.test(nome))nome=(nome||'musica')+'.'+(MIME_EXT[blob.type]||'mp3');
+  return new File([blob],nome,{type:blob.type&&blob.type!=='application/octet-stream'?blob.type:MIMES[(nome.split('.').pop()||'').toLowerCase()]||'audio/mpeg'});
+}
+function openAnexarLink(m){
+  const info=linkDe(m);if(!info)return openSongForm(m);
+  const auto=info.tipo==='stream'&&!!info.src;
+  const trechoCli=trechoTxt(m);
+  const dur=(+m.fim||0)>(+m.inicio||0)?' ('+fmt(m.fim-m.inicio)+')':'';
+  const dicas={
+    youtube:'Baixe o <b>vídeo completo</b> (o mesmo do link) em MP3 ou MP4. Os tempos marcados pelo cliente valem para a versão inteira.',
+    vimeo:'No Vimeo, use o botão “Baixar” (quando o dono permite) e escolha a versão completa.',
+    soundcloud:'No SoundCloud, use “Baixar arquivo” (quando o artista permite) ou peça o arquivo ao cliente.',
+    spotify:'O Spotify não permite baixar o arquivo. Procure a mesma versão da música (mesma duração) em outra fonte ou peça o arquivo ao cliente.',
+    stream:auto?'Toque em “Baixar automaticamente”. Se o site bloquear, use “Baixar pelo navegador” e depois anexe o arquivo que foi para a sua pasta de downloads.':'',
+    outro:`O ${esc(info.nome)} não deixa tocar fora do app deles. Baixe a música por lá (ou peça o arquivo ao cliente) e anexe abaixo.`};
+  let trim=null,url=null,file=null;
+  const free=()=>{trim?.stop();trim=null;if(url){URL.revokeObjectURL(url);url=null}};
+  openModal(`${modalHead('Baixar e anexar a música',esc([isCer()?cueOf(m):m.turma,m.titulo].filter(Boolean).join(' · ')))}
+    <div class="stack">
+      <div class="note">${icon('info')}<div>
+        <b>O que o cliente definiu (fica valendo para o arquivo anexado):</b>
+        <div style="margin-top:6px">${icon('cut')} <b>Trecho:</b> ${trechoCli?esc(trechoCli)+dur:'música inteira'}</div>
+        <div style="margin-top:4px">${icon('note')} <b>Observações:</b> ${m.obs?esc(m.obs):'<span class="muted">nenhuma</span>'}</div>
+      </div></div>
+      <div class="step"><b>1</b><div><strong>Baixe a música do link</strong><span style="word-break:break-all"><a href="${esc(info.url)}" target="_blank" rel="noopener">${esc(info.url.length>80?info.url.slice(0,80)+'…':info.url)}</a></span></div></div>
+      <div class="row">
+        ${auto?`<button type="button" class="btn primary" data-al="auto">${icon('download')}Baixar automaticamente</button><button type="button" class="btn" data-al="nav">${icon('download')}Baixar pelo navegador</button>`:''}
+        <button type="button" class="btn${auto?' ghost':''}" data-al="abrir">${icon('link')}Abrir o link (${esc(info.nome)})</button>
+        <button type="button" class="btn ghost" data-al="copiar">${icon('copy')}Copiar link</button>
+      </div>
+      ${dicas[info.tipo]?`<p class="hint" style="margin-top:-6px">${dicas[info.tipo]}</p>`:''}
+      <div class="progress" id="alProg" hidden><div class="bar"></div><span></span></div>
+      <div class="step"><b>2</b><div><strong>Anexe o arquivo baixado</strong><span>O início, o fim e os fades do cliente já vêm preenchidos. Use “Ouvir o trecho” para conferir se bateu.</span></div></div>
+      <div id="alFile"></div>
+      <label class="field"><span>Observações para quem vai tocar</span><textarea name="alObs" rows="2">${esc(m.obs)}</textarea></label>
+      <p class="err" id="alErr" hidden></p>
+    </div>
+    <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn primary" id="alGo" disabled>${icon('check')}Anexar arquivo</button></div>`,
+  {wide:true,onClose:free,onMount:(md,close)=>{
+    const host=$('#alFile',md),err=$('#alErr',md),go=$('#alGo',md),prog=$('#alProg',md);
+    const fail=msg=>{err.innerHTML=icon('alert')+esc(msg);err.hidden=false};
+    const picker=()=>{free();file=null;go.disabled=true;filePicker(host,f=>{const e=checkFile(f,MAX_LOCAL_MB);if(e){toast(esc(e),'err',6000);return}usar(f)},'Toque para escolher o arquivo que você baixou')};
+    function usar(f){
+      free();file=f;err.hidden=true;url=URL.createObjectURL(f);
+      host.innerHTML=`<div class="filebox">${icon('music')}<div><strong>${esc(f.name)}</strong><small>${fmtSize(f.size)}</small></div><button type="button" class="btn sm" data-al="trocar">${icon('refresh')}Trocar arquivo</button></div><div class="al-trim"></div>`;
+      trim=trimEditor($('.al-trim',host),{inicio:+m.inicio||0,fim:+m.fim||0,fadeIn:!!m.fadeIn,fadeOut:m.fadeOut!==false,
+        onMeta:(vid,d)=>{if(d&&(+m.fim||0)>d+0.5)fail(`Atenção: o cliente marcou o fim em ${fmtP(m.fim)}, mas o arquivo baixado tem só ${fmtP(d)}. Confira se é a versão completa da música.`)}});
+      trim.setSrc(url);go.disabled=false;
+    }
+    picker();
+    md.addEventListener('click',async e=>{
+      const b=e.target.closest('[data-al]');if(!b)return;
+      const k=b.dataset.al;
+      if(k==='abrir')window.open(info.url,'_blank','noopener');
+      else if(k==='nav')window.open(info.src,'_blank','noopener');
+      else if(k==='copiar'){const ok=await copyText(info.url);toast(ok?'Link copiado.':'Não foi possível copiar.',ok?'ok':'warn')}
+      else if(k==='trocar')picker();
+      else if(k==='auto'){
+        b.disabled=true;err.hidden=true;setProg(prog,0,'Baixando…');
+        try{
+          const f=await baixarDoLink(info,(p,got)=>setProg(prog,p||.05,p?`Baixando… ${Math.round(p*100)}%`:`Baixando… ${fmtSize(got)}`));
+          const ce=checkFile(f,MAX_LOCAL_MB);if(ce)throw new Error(ce);
+          setProg(prog,1,'Baixado!');setTimeout(()=>{prog.hidden=true},1500);usar(f);
+          toast('Música baixada. Confira o trecho e toque em “Anexar arquivo”.','ok');
+        }catch(x){prog.hidden=true;fail(x.message+' Use “Baixar pelo navegador” ou “Abrir o link”, baixe o arquivo e anexe aqui.')}
+        finally{b.disabled=false}
+      }
+    });
+    go.onclick=async()=>{
+      err.hidden=true;
+      if(!file||!trim)return fail('Anexe o arquivo baixado.');
+      const ve=trim.validate();if(ve)return fail(ve);
+      go.disabled=true;
+      try{
+        const blob=new Blob([file],{type:mimeOf(file)});
+        const inf=await getMediaInfo(blob);
+        await DB.put('audios',blob,m.id);
+        Object.assign(m,trim.values(),{
+          obs:($('[name=alObs]',md).value||'').trim(),
+          linkOrigem:info,link:null,offline:false,
+          mime:blob.type,nomeArquivo:file.name,tamanho:file.size,duracao:inf.dur,video:inf.video,
+          audioGistId:null,audioArquivo:null,soLocal:false,erro:''
+        });
+        if(m.status!=='tocada')m.status=(await faltamPartes(m))?'baixando':'pronta';
+        await saveMusica(m);
+        if(Player.cur?.id===m.id){if(Player.playing)Player.cur=m;else await Player.load(m,false)}
+        close();renderList();Player.ui();
+        toast(`Arquivo anexado em <b>${esc(m.titulo)}</b>${trechoTxt(m)?' · ✂ '+esc(trechoTxt(m)):''}.`,'ok',5000);
+        if(m.status==='baixando')baixarAudio(m);
+        const ev=state.evento;if(ev?.gistId&&state.token)subirManual(m);
+      }catch(x){fail(x.message);go.disabled=false}
+    };
+  }});
+}
+
+/* baixa um MP3 já cortado no trecho (início/fim + fades) */
+async function baixarCortado(m){
+  const blob=await DB.get('audios',m.id);if(!blob)return toast('Áudio não encontrado neste aparelho.','err');
+  toast('Gerando o MP3 cortado…','info',2500);
+  try{
+    await loadAny(LAME_URLS,()=>window.lamejs);
+    const mp3=await paraMp3(blob,m,true);
+    const nome=nomeSeguro([isCer()?cueOf(m):m.turma,m.titulo,m.artista].filter(Boolean).join(' - '))+(trechoTxt(m)?' (cortada)':'')+'.mp3';
+    const u=URL.createObjectURL(mp3),a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);
+  }catch(e){toast('Não foi possível gerar o MP3: '+esc(e.message),'err',7000)}
 }
 
 async function deleteSong(m){
@@ -4053,7 +4195,8 @@ function openSongForm(m=null,momentoId=null){
     </form>`,
   {wide:true,onClose:()=>af?.destroy(),onMount:(md,close)=>{
     af=audioField($('#sfAudio',md),{
-      atual:!isNew&&hasAudio(m)?{nome:m.nomeArquivo||'Arquivo atual',tamanho:m.tamanho}:null,
+      atual:!isNew&&ehLink(m)?{link:m.link}:!isNew&&hasAudio(m)?{nome:m.nomeArquivo||'Arquivo atual',tamanho:m.tamanho}:null,
+      manterTrecho:!isNew&&!!m.link,
       loadAtual:m?()=>DB.get('audios',m.id):null,
       valores:{inicio:m?.inicio||0,fim:m?.fim||0,fadeIn:!!m?.fadeIn,fadeOut:m?m.fadeOut!==false:true},
       maxMB:MAX_LOCAL_MB,
@@ -4096,7 +4239,7 @@ function openSongForm(m=null,momentoId=null){
           await DB.del('audios',x.id);
           Object.assign(x,{link:af.link,audioGistId:null,audioArquivo:null,offline:false,soLocal:false,nomeArquivo:`Link do ${af.link.nome}`,tamanho:0,video:!!(af.isVideo||af.link.video),duracao:0});
           if(!linkTocavel(af.link)){x.status='erro';x.erro=linkAviso(af.link)}else if(x.status!=='tocada'){x.status='pronta';x.erro=''}
-        }else if(af.file){x.link=null;x.offline=false}
+        }else if(af.file){if(x.link)x.linkOrigem=x.link;x.link=null;x.offline=false}
         if(useMv&&x.video!==false){
           const antiga=x.montagem;x.montagem=mv.values();const fs=mv.files();
           if(x.montagem)for(const p of PARTS){if(x.montagem[p]&&mv.kept(p)&&antiga?.[p]?.midia)x.montagem[p].midia=antiga[p].midia}
@@ -4245,7 +4388,7 @@ async function deleteEvent(){
    NUVEM: sincronização entre aparelhos, limpeza automática e backup
    ========================================================= */
 const EV_SYNC=['nome','data','hora','local','endereco','obsEvento','foto','dadosClienteAt','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
-const M_SYNC=['titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal','link'];
+const M_SYNC=['linkOrigem','titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal','link'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};
 const evSyncObj=ev=>pick(ev,EV_SYNC);
 const mSyncObj=m=>({...pick(m,M_SYNC),tocada:m.status==='tocada'});
@@ -4846,7 +4989,7 @@ async function baixarPastaMusicas(ev=state.evento){
   const lista=(arr,f)=>`<ul style="margin:8px 0 0;padding-left:18px;font-size:.9rem">${arr.map(f).join('')}</ul>`;
   openModal(`${modalHead('Baixar pasta de músicas','Um arquivo ZIP com uma pasta por momento, e todas as músicas em MP3.')}
     <div class="stack">
-      ${links.length?`<div class="note warn">${icon('alert')}<div><b>${links.length} música${links.length>1?'s foram enviadas':' foi enviada'} somente por link</b> e não ${links.length>1?'entram':'entra'} na pasta. Baixe ${links.length>1?'essas músicas':'essa música'} antes (abra o link, baixe o arquivo) e anexe em <b>Editar → Trocar arquivo</b>; depois gere a pasta de novo.
+      ${links.length?`<div class="note warn">${icon('alert')}<div><b>${links.length} música${links.length>1?'s foram enviadas':' foi enviada'} somente por link</b> e não ${links.length>1?'entram':'entra'} na pasta. Use o botão <b>“anexar”</b> no selo do link (ou <b>⋯ → Baixar e anexar o arquivo</b>) — o início, o fim e as observações do cliente são mantidos; depois gere a pasta de novo.
         ${lista(links,({g,m})=>`<li>${cer?'<b>'+esc(g.nome)+'</b> — ':''}${esc(m.titulo)} · <a href="${esc(m.link.url)}" target="_blank" rel="noopener">abrir link (${esc(m.link.nome)})</a></li>`)}</div></div>`:''}
       ${faltam.length?`<div class="note warn">${icon('alert')}<div><b>${faltam.length} música${faltam.length>1?'s ainda não foram baixadas':' ainda não foi baixada'}</b> para este aparelho (aguarde o download terminar ou tente novamente):${lista(faltam,({g,m})=>`<li>${cer?'<b>'+esc(g.nome)+'</b> — ':''}${esc(m.titulo)}</li>`)}</div></div>`:''}
       ${vazios.length?`<div class="note">${icon('info')}<div><b>${vazios.length} momento${vazios.length>1?'s estão':' está'} sem música:</b> ${vazios.map(g=>esc(g.nome)).join(', ')}.</div></div>`:''}
