@@ -753,6 +753,10 @@ details.mont-box[open]>summary{border-bottom:1px solid var(--line)}
 .c-link{background:rgba(79,140,255,.15);color:var(--link-ink)}
 .chip-btn{border:1px solid transparent;font:inherit;font-size:.74rem;font-weight:700;cursor:pointer}
 .chip-btn:hover{border-color:currentColor}
+.curto-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--link-ink);word-break:break-all}
+.curto-ed{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--input)}
+.curto-ed span{display:flex;align-items:center;padding:0 10px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9rem;background:rgba(127,127,127,.08)}
+.curto-ed input{flex:1;min-width:0;border:0!important;border-radius:0!important;box-shadow:none!important;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .chip-btn .ic{width:13px;height:13px}
 
 /* ---------- Central de eventos ---------- */
@@ -1407,7 +1411,7 @@ const tipoDe=ev=>TIPOS[ev?.tipo]||TIPOS.escolar;
 /* =========================================================
    IDENTIDADE VISUAL (marca)
    ========================================================= */
-const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,logoModo:'auto',logoAuto:'',logoTam:'m',cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false,fundo:'',fundoEsc:.6,fundoBlur:0,fundoCli:true};
+const BRAND_DEF={nome:'',slogan:'',logo:'',logoBranco:false,logoModo:'auto',logoAuto:'',logoTam:'m',cor:'#ffb627',whatsapp:'',instagram:'',site:'',email:'',cidade:'',telaoMomento:true,logoNoVideo:false,fundo:'',fundoEsc:.6,fundoBlur:0,fundoCli:true,linkCurto:true,linkPrefixo:null};
 let marca={...BRAND_DEF};
 const CORES=['#ffb627','#ff7a59','#ff5c8a','#e8b4c8','#c9a227','#b88a4a','#8b6cff','#4f8cff','#2fbfa0','#ffffff'];
 const hexRgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255]};
@@ -1601,6 +1605,11 @@ function openBrand(){
         <label class="chk"><input type="checkbox" name="telaoMomento" ${marca.telaoMomento?'checked':''}> Mostrar o nome do momento entre os vídeos (ex.: “Entrada da noiva”)</label>
         <label class="chk"><input type="checkbox" name="logoNoVideo" ${marca.logoNoVideo?'checked':''}> Mostrar meu logo no canto dos vídeos</label>
       </fieldset>
+      <fieldset class="box"><legend>Links enviados aos clientes</legend>
+        <label class="chk"><input type="checkbox" name="linkCurto" ${marca.linkCurto!==false?'checked':''}> Encurtar e personalizar os links automaticamente (is.gd, grátis)</label>
+        <label class="field" style="margin-top:8px"><span>Prefixo dos links</span><input name="linkPrefixo" value="${esc(marca.linkPrefixo??Curto.slug(marca.nome,12))}" maxlength="20" placeholder="Ex.: AlexDJ" spellcheck="false"></label>
+        <p class="hint" id="bfLinkEx"></p>
+      </fieldset>
       <p class="hint">O logo é reduzido e tem as bordas vazias cortadas automaticamente. No modo automático, logos com fundo próprio ganham moldura; logos transparentes aparecem livres (ou sobre placa clara, se forem escuros).</p>
       <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary" type="submit">${icon('check')}Salvar marca</button></div>
     </form>`,
@@ -1611,7 +1620,8 @@ function openBrand(){
     const val=()=>({nome:f.elements.nome.value.trim(),slogan:f.elements.slogan.value.trim(),logo,logoBranco:false,logoModo:modo,logoAuto:auto,logoTam:tam,cor:f.elements.cor.value,
       whatsapp:f.elements.whatsapp.value.trim(),instagram:f.elements.instagram.value.trim(),site:f.elements.site.value.trim(),email:f.elements.email.value.trim(),cidade:f.elements.cidade.value.trim(),
       telaoMomento:f.elements.telaoMomento.checked,logoNoVideo:f.elements.logoNoVideo.checked,
-      fundo,fundoEsc:+f.elements.fundoEsc.value/100,fundoBlur:+f.elements.fundoBlur.value,fundoCli:f.elements.fundoCli.checked});
+      fundo,fundoEsc:+f.elements.fundoEsc.value/100,fundoBlur:+f.elements.fundoBlur.value,fundoCli:f.elements.fundoCli.checked,
+      linkCurto:f.elements.linkCurto.checked,linkPrefixo:Curto.slug(f.elements.linkPrefixo.value,12)});
     const prev=()=>{
       const p=$('#bfPrev',md),b=val();
       p.innerHTML=logo?`<div><span class="logo xl img lm-${logoModo(b)}" style="--logo-h:${Math.round((LOGO_TAM[tam]||104)*.75)}px"><img src="${logo}" alt="Logo"></span><small>Prévia como o cliente vê${modo==='auto'?' · automático: '+(LOGO_MODOS.find(x=>x[0]===logoModo(b))||['',''])[1].toLowerCase():''}</small></div>`:'Sem logo<br>(use o botão ao lado)';
@@ -1622,6 +1632,8 @@ function openBrand(){
       bp.style.setProperty('--esc',f.elements.fundoEsc.value/100);bp.style.setProperty('--blur',(+f.elements.fundoBlur.value/3)+'px');
       f.elements.fundoEsc.nextElementSibling.textContent=f.elements.fundoEsc.value+'%';f.elements.fundoBlur.nextElementSibling.textContent=f.elements.fundoBlur.value+'px';
       applyBrand(val());
+      const vb=val(),ex=$('#bfLinkEx',md);f.elements.linkPrefixo.disabled=!vb.linkCurto;
+      ex.innerHTML=vb.linkCurto?`Exemplo: <b>is.gd/${esc(Curto.base(['Formatura 5º A'],vb.linkPrefixo))}_k7QmZ</b> — o código no final é aleatório e protege o link. Cada link pode ser renomeado na tela de links do evento.`:'Os links serão enviados completos (longos).';
     };
     prev();
     f.addEventListener('input',prev);f.addEventListener('change',prev);
@@ -4387,7 +4399,7 @@ async function deleteEvent(){
 /* =========================================================
    NUVEM: sincronização entre aparelhos, limpeza automática e backup
    ========================================================= */
-const EV_SYNC=['nome','data','hora','local','endereco','obsEvento','foto','dadosClienteAt','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
+const EV_SYNC=['curtos','nome','data','hora','local','endereco','obsEvento','foto','dadosClienteAt','tipo','homenageados','momentos','links','removidos','cliente','manterSempre','origemCliente','criadoEm','ultimaExecucao'];
 const M_SYNC=['linkOrigem','titulo','artista','obs','inicio','fim','fadeIn','fadeOut','momentoId','momentoNome','professora','turma','enviadoPor','ordem','montagem','video','posicaoSugerida','origem','audioGistId','audioArquivo','mime','nomeArquivo','enviadoEm','recebidoEm','soLocal','link'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};
 const evSyncObj=ev=>pick(ev,EV_SYNC);
@@ -5060,6 +5072,90 @@ async function fichaDoEvento(ev=state.evento){
 }
 
 /* =========================================================
+   LINKS CURTOS E PERSONALIZADOS (is.gd — grátis, sem cadastro)
+   O nome escolhido + um código aleatório no final: os links levam o
+   token, então o código impede que alguém “adivinhe” um link.
+   ========================================================= */
+const Curto={
+  SERV:'https://is.gd/create.php',
+  ALFA:'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',
+  ativo:(cfg=marca)=>cfg.linkCurto!==false&&/^https?:$/.test(location.protocol),
+  /* "Formatura 5º Ano – Turma A" → "Formatura5AnoTurmaA" */
+  slug(s,max=30){
+    return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[ºª°]/g,'').split(/[^A-Za-z0-9]+/).filter(Boolean)
+      .map(w=>/^\d/.test(w)||w===w.toUpperCase()&&w.length<=3?w:w===w.toLowerCase()||w===w.toUpperCase()?w[0].toUpperCase()+w.slice(1).toLowerCase():w[0].toUpperCase()+w.slice(1))
+      .reduce((a,w)=>!a?w.slice(0,max):(a+w).length<=max?a+w:a,'');
+  },
+  codigo(n=5){const a=crypto.getRandomValues(new Uint8Array(n));return[...a].map(b=>this.ALFA[b%this.ALFA.length]).join('')},
+  /* sem prefixo definido, usa o nome da marca (ex.: “DJ Alex Eventos” → “DJAlex”) */
+  prefixo:(cfg=marca)=>Curto.slug(cfg.linkPrefixo??cfg.nome??'',12),
+  /* nome visível do link (sem o código), respeitando o limite de 30 caracteres do is.gd */
+  base(partes,pref=this.prefixo()){
+    const max=30-6-(pref?pref.length+1:0);
+    const corpo=this.slug(partes.filter(Boolean).join(' '),max)||'Musicas';
+    return(pref?pref+'_':'')+corpo;
+  },
+  limparBase:s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9_]/g,'').replace(/_+/g,'_').replace(/^_|_$/g,'').slice(0,24),
+  jsonp(url){
+    return new Promise((res,rej)=>{
+      const cb='__curto'+Math.random().toString(36).slice(2),s=document.createElement('script');
+      const fim=()=>{clearTimeout(t);try{delete window[cb]}catch{window[cb]=undefined}s.remove()};
+      const t=setTimeout(()=>{fim();rej(new Error('O encurtador (is.gd) não respondeu.'))},12000);
+      window[cb]=d=>{fim();res(d)};
+      s.onerror=()=>{fim();rej(new Error('Não foi possível falar com o encurtador (is.gd).'))};
+      s.src=url+'&callback='+cb;document.head.appendChild(s);
+    });
+  },
+  /* cria o link curto; se o nome já existir no is.gd, troca o código e tenta de novo */
+  async criar(longo,base){
+    let ult='';
+    for(let i=0;i<4;i++){
+      const alias=(base?base+'_':'')+this.codigo();
+      const d=await this.jsonp(`${this.SERV}?format=json&url=${encodeURIComponent(longo)}&shorturl=${alias}`);
+      if(d?.shorturl)return{url:d.shorturl,base};
+      ult=d?.errormessage||'erro desconhecido';
+      if(+d?.errorcode!==2)break;
+    }
+    throw new Error('Não foi possível encurtar o link: '+ult);
+  },
+  /* link curto de um evento, guardado no próprio evento (sincroniza entre aparelhos) */
+  async doEvento(ev,chave,longo,partes,{base=null,salvar=true}={}){
+    if(!this.ativo())return longo;
+    ev.curtos=ev.curtos||{};
+    const c=ev.curtos[chave];
+    if(c?.url&&c.longo===longo&&(base==null||c.base===base))return c.url;
+    const r=await this.criar(longo,base??c?.base??this.base(partes));
+    ev.curtos[chave]={url:r.url,longo,base:r.base,criadoEm:agoraISO()};
+    if(salvar)await saveEvento(ev);
+    return r.url;
+  },
+  /* versão que nunca falha: devolve o link longo se o is.gd estiver fora */
+  async seguro(fn,longo){try{return await fn()}catch(e){console.warn(e);toast('Não foi possível encurtar agora ('+esc(e.message)+'). Usando o link completo.','warn',5000);return longo}},
+  semProtocolo:u=>String(u||'').replace(/^https?:\/\//,''),
+};
+/* janelinha para personalizar o nome do link */
+function personalizarLink(baseAtual,{titulo='Personalizar link'}={}){
+  return new Promise(resolve=>{
+    let ok=false;
+    openModal(`${modalHead(titulo,'Escolha como o link vai aparecer. O código no final é colocado automaticamente: ele impede que estranhos adivinhem o link.')}
+      <div class="stack">
+        <label class="field"><span>Nome do link</span>
+          <div class="curto-ed"><span>is.gd/</span><input name="cb" value="${esc(baseAtual)}" maxlength="24" spellcheck="false" autocomplete="off" aria-label="Nome do link"><span>_xxxxx</span></div></label>
+        <p class="hint">Use letras, números e “_” (sem acentos nem espaços), até 24 caracteres. Ex.: <code>AlexDJ_Formatura5A</code>, <code>Casamento_AnaePedro</code>.</p>
+        <p class="hint">O link antigo continua funcionando; o novo passa a ser o usado nas mensagens.</p>
+      </div>
+      <div class="modal-f"><button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn primary" id="cbOk">${icon('check')}Criar link</button></div>`,
+    {onClose:()=>{if(!ok)resolve(null)},onMount:(md,close)=>{
+      const inp=$('[name=cb]',md);
+      inp.oninput=()=>{const p=inp.selectionStart,v=Curto.limparBase(inp.value.replace(/[\s-]+/g,'_'));if(v!==inp.value){inp.value=v;try{inp.setSelectionRange(p,p)}catch{}}};
+      inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#cbOk',md).click()}};
+      setTimeout(()=>inp.select(),60);
+      $('#cbOk',md).onclick=()=>{const v=Curto.limparBase(inp.value);if(v.length<1)return toast('Digite um nome para o link.','warn');ok=true;close();resolve(v)};
+    }});
+  });
+}
+
+/* =========================================================
    LINKS (professoras / noivos / debutante)
    ========================================================= */
 const baseUrl=()=>location.href.split('#')[0];
@@ -5086,6 +5182,14 @@ async function prepararParaCliente(ev){
   for(const m of pend)await subirManual(m);
   try{await pushEstado(ev);Nuvem.dirty.delete(ev.id)}catch(e){Nuvem.falha(e)}
 }
+const chaveLink=(prof='',turma='')=>prof||turma?`p:${prof}|${turma}`:'geral';
+/* link que vai para o cliente: curto quando possível, longo como reserva */
+async function linkFinal(ev,prof='',turma='',opts={}){
+  const longo=makeLink(ev,prof,turma);
+  /* link geral: nome do evento; personalizado: quem envia + turma (e o evento, se couber) */
+  const partes=prof||turma?(isCer(ev)?[prof,ev.nome]:[prof,turma]):[ev.nome];
+  return Curto.seguro(()=>Curto.doEvento(ev,chaveLink(prof,turma),longo,partes,opts),longo);
+}
 async function openLinks(){
   const ev=state.evento;
   if(!ev.gistId)return ativarEnvios();
@@ -5093,16 +5197,18 @@ async function openLinks(){
   const cer=isCer(ev),t=tipoDe(ev);
   if(cer)pushMeta(ev,true);
   prepararParaCliente(ev);
-  const local=location.protocol==='file:';
-  const geral=makeLink(ev);
-  const linksHTML=()=>(ev.links||[]).length?(ev.links||[]).map((l,i)=>`<li><div><strong>${esc(l.professora||(cer?'Cliente':'Professora'))} ${l.turma?'· '+esc(l.turma):''}</strong><small>Criado em ${fmtHora(l.criadoEm)}</small></div>
+  const local=location.protocol==='file:',curtoOn=Curto.ativo();
+  const cache=(prof,turma)=>{const c=ev.curtos?.[chaveLink(prof,turma)];return c?.url&&c.longo===makeLink(ev,prof,turma)?c.url:''};
+  const linksHTML=()=>(ev.links||[]).length?(ev.links||[]).map((l,i)=>{const c=cache(l.professora,l.turma);return`<li><div><strong>${esc(l.professora||(cer?'Cliente':'Professora'))} ${l.turma?'· '+esc(l.turma):''}</strong><small>${c?`<span class="curto-url">${esc(Curto.semProtocolo(c))}</span>`:'Criado em '+fmtHora(l.criadoEm)}</small></div>
+      ${curtoOn?`<button class="btn icon ghost sm" data-l="ed" data-i="${i}" title="Personalizar o link" aria-label="Personalizar">${icon('edit')}</button>`:''}
       <button class="btn icon sm" data-l="copy" data-i="${i}" title="Copiar link" aria-label="Copiar">${icon('copy')}</button>
       <button class="btn icon sm wa" data-l="wa" data-i="${i}" title="Enviar no WhatsApp" aria-label="WhatsApp">${icon('wa')}</button>
-      <button class="btn icon ghost sm" data-l="rm" data-i="${i}" title="Remover da lista" aria-label="Remover">${icon('x')}</button></li>`).join(''):'<li style="justify-content:center;color:var(--muted)">Nenhum link personalizado ainda.</li>';
+      <button class="btn icon ghost sm" data-l="rm" data-i="${i}" title="Remover da lista" aria-label="Remover">${icon('x')}</button></li>`}).join(''):'<li style="justify-content:center;color:var(--muted)">Nenhum link personalizado ainda.</li>';
   openModal(`${modalHead(cer?'Link para '+t.quem:'Links para professoras',cer?`Pelo link, ${t.quem} veem o cronograma, escolhem a música de cada momento e marcam onde ela começa e termina. Você recebe tudo aqui em tempo real.`:'Cada professora abre o link, preenche os dados da turma e anexa a música. Você recebe aqui em tempo real.')}
     ${local?`<div class="note warn" style="margin-bottom:14px">${icon('alert')}<div><b>Atenção:</b> este arquivo está aberto direto do computador (file://). Para os links funcionarem no celular de quem vai enviar, publique este HTML na internet (ex.: GitHub Pages ou Netlify) e abra o sistema por lá.</div></div>`:''}
     <div class="field"><span>${cer?'Link do cerimonial':'Link geral do evento (qualquer professora)'}</span>
-      <div class="copyrow"><input readonly value="${esc(geral)}" aria-label="Link"><button class="btn icon" id="lgCopy" title="Copiar" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="lgWa" title="Enviar no WhatsApp" aria-label="WhatsApp">${icon('wa')}</button></div>
+      <div class="copyrow"><input readonly id="lgIn" value="${esc(cache('','')||(curtoOn?'Gerando link curto…':makeLink(ev)))}" aria-label="Link">${curtoOn?`<button class="btn icon" id="lgEd" title="Personalizar o link" aria-label="Personalizar">${icon('edit')}</button>`:''}<button class="btn icon" id="lgCopy" title="Copiar" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="lgWa" title="Enviar no WhatsApp" aria-label="WhatsApp">${icon('wa')}</button></div>
+      ${curtoOn?`<small class="hint">Link curto gerado automaticamente (is.gd). Toque no lápis para escolher o nome. <a href="#" id="lgLongo">Ver o link completo</a></small>`:`<small class="hint">Links curtos desativados em <b>Minha marca</b>.</small>`}
     </div>
     <hr class="sep">
     <h3 style="font-size:1.05rem;margin-bottom:4px">Link personalizado</h3>
@@ -5120,22 +5226,35 @@ async function openLinks(){
   {wide:true,onMount:(md)=>{
     const cp=async t=>{const ok=await copyText(t);toast(ok?'Copiado!':'Não foi possível copiar.',ok?'ok':'err')};
     const wa=t=>window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank','noopener');
-    $('#lgCopy',md).onclick=()=>cp(geral);
-    $('#lgWa',md).onclick=()=>wa(waMsg(ev,geral));
+    const lgIn=$('#lgIn',md);
+    let geral=linkFinal(ev).then(u=>{lgIn.value=u;return u});
+    const refresh=()=>{$('#lpList',md).innerHTML=linksHTML()};
+    $('#lgCopy',md).onclick=async()=>cp(await geral);
+    $('#lgWa',md).onclick=async()=>{const w=window.open('about:blank','_blank');const msg=waMsg(ev,await geral);if(w)w.location='https://wa.me/?text='+encodeURIComponent(msg);else wa(msg)};
+    if($('#lgLongo',md))$('#lgLongo',md).onclick=e=>{e.preventDefault();lgIn.value=makeLink(ev);lgIn.select()};
+    if($('#lgEd',md))$('#lgEd',md).onclick=async()=>{
+      const b=await personalizarLink(ev.curtos?.geral?.base||Curto.base([ev.nome]));if(!b)return;
+      lgIn.value='Gerando link curto…';
+      geral=linkFinal(ev,'','',{base:b}).then(u=>{lgIn.value=u;if(u!==makeLink(ev))toast('Link personalizado criado!','ok');return u});
+    };
     $('#gidCopy',md).onclick=()=>cp(ev.gistId);
     $('#lpF',md).onsubmit=async e=>{
       e.preventDefault();const f=e.target;const p=f.elements.p.value.trim(),u=cer?'':f.elements.u.value.trim();
       if(!p&&!u)return toast(cer?'Informe o nome.':'Informe a professora ou a turma.','warn');
-      ev.links=[{professora:p,turma:u,criadoEm:new Date().toISOString()},...(ev.links||[])];await saveEvento(ev);
-      f.reset();$('#lpList',md).innerHTML=linksHTML();
-      const ok=await copyText(makeLink(ev,p,u));toast(ok?'Link gerado e copiado!':'Link gerado.','ok');
+      ev.links=[{professora:p,turma:u,criadoEm:new Date().toISOString()},...(ev.links||[]).filter(l=>!(l.professora===p&&l.turma===u))];await saveEvento(ev);
+      f.reset();refresh();
+      const link=await linkFinal(ev,p,u);refresh();
+      const ok=await copyText(link);toast(ok?'Link gerado e copiado!':'Link gerado.','ok');
     };
     $('#lpList',md).onclick=async e=>{
       const b=e.target.closest('[data-l]');if(!b)return;const l=ev.links[+b.dataset.i];if(!l)return;
-      const link=makeLink(ev,l.professora,l.turma);
-      if(b.dataset.l==='copy')cp(link);
-      else if(b.dataset.l==='wa')wa(waMsg(ev,link,l.professora,l.turma));
-      else{ev.links.splice(+b.dataset.i,1);await saveEvento(ev);$('#lpList',md).innerHTML=linksHTML()}
+      const k=b.dataset.l;
+      if(k==='rm'){ev.links.splice(+b.dataset.i,1);if(ev.curtos)delete ev.curtos[chaveLink(l.professora,l.turma)];await saveEvento(ev);return refresh()}
+      if(k==='ed'){const nb=await personalizarLink(ev.curtos?.[chaveLink(l.professora,l.turma)]?.base||(isCer(ev)?Curto.base([l.professora,ev.nome]):Curto.base([l.professora,l.turma])));if(!nb)return;await linkFinal(ev,l.professora,l.turma,{base:nb});refresh();return toast('Link personalizado criado!','ok')}
+      const w=k==='wa'?window.open('about:blank','_blank'):null;
+      const link=await linkFinal(ev,l.professora,l.turma);refresh();
+      if(k==='copy')cp(link);
+      else{const u='https://wa.me/?text='+encodeURIComponent(waMsg(ev,link,l.professora,l.turma));if(w)w.location=u;else wa(waMsg(ev,link,l.professora,l.turma))}
     };
     $$('input[readonly]',md).forEach(i=>i.onclick=()=>i.select());
   }});
@@ -5830,20 +5949,31 @@ async function pushInboxBrand(){
   const id=await DB.cfg('inboxGistId');if(!id||!state.token)return;
   await gh(`/gists/${id}`,{method:'PATCH',body:{files:{'marca.json':{content:JSON.stringify(publicBrand())}}}}).catch(()=>{});
 }
-const makeRegLink=id=>baseUrl()+'#enviar='+b64urlEnc(JSON.stringify({m:'n',i:id,t:state.token}));
+/* x = prefixo dos links curtos, c:0 = links curtos desativados (o cliente usa isso ao gerar o link do evento dele) */
+const makeRegLink=id=>baseUrl()+'#enviar='+b64urlEnc(JSON.stringify({m:'n',i:id,t:state.token,...(Curto.prefixo()?{x:Curto.prefixo()}:{}),...(Curto.ativo()?{}:{c:0})}));
+async function linkCadastro(id,base=null){
+  const longo=makeRegLink(id);if(!Curto.ativo())return longo;
+  return Curto.seguro(async()=>{
+    const c=await DB.cfg('curtoCadastro');
+    if(c?.url&&c.longo===longo&&(base==null||c.base===base))return c.url;
+    const r=await Curto.criar(longo,base??c?.base??Curto.base(['Cadastro']));
+    await DB.setCfg('curtoCadastro',{url:r.url,longo,base:r.base});return r.url;
+  },longo);
+}
 async function openCadastroLink(){
   if(!state.token)return openSettings();
   let id;try{id=await ensureInbox()}catch(e){return toast(esc(e.message),'err',6000)}
-  const link=makeRegLink(id);
-  const msg=`Olá! ✨\nPara organizarmos as músicas e vídeos do seu evento (15 anos, casamento…), cadastre o evento por este link:\n\n${link}\n\nDepois do cadastro você já pode enviar a música de cada momento e marcar onde ela começa e termina.${marca.nome?`\n\n— ${marca.nome}${marca.whatsapp?' · '+marca.whatsapp:''}`:''}`;
+  let link=await linkCadastro(id);
+  const msgDe=link=>`Olá! ✨\nPara organizarmos as músicas e vídeos do seu evento (15 anos, casamento…), cadastre o evento por este link:\n\n${link}\n\nDepois do cadastro você já pode enviar a música de cada momento e marcar onde ela começa e termina.${marca.nome?`\n\n— ${marca.nome}${marca.whatsapp?' · '+marca.whatsapp:''}`:''}`;
   openModal(`${modalHead('Link de cadastro para clientes','Envie para a debutante ou para os noivos. Eles cadastram o próprio evento (tipo, nomes, data, local e momentos) e já seguem para enviar as músicas e vídeos. O evento aparece aqui no seu painel automaticamente.')}
     ${location.protocol==='file:'?`<div class="note warn" style="margin-bottom:14px">${icon('alert')}<div>Este arquivo está aberto direto do computador (file://). Publique o HTML na internet para o link funcionar no celular dos clientes.</div></div>`:''}
     <div class="field"><span>Link de cadastro (serve para todos os clientes)</span>
-      <div class="copyrow"><input readonly value="${esc(link)}" aria-label="Link de cadastro"><button class="btn icon" id="rlCopy" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="rlWa" aria-label="Enviar no WhatsApp">${icon('wa')}</button></div></div>
+      <div class="copyrow"><input readonly id="rlIn" value="${esc(link)}" aria-label="Link de cadastro">${Curto.ativo()?`<button class="btn icon" id="rlEd" title="Personalizar o link" aria-label="Personalizar">${icon('edit')}</button>`:''}<button class="btn icon" id="rlCopy" aria-label="Copiar">${icon('copy')}</button><button class="btn icon wa" id="rlWa" aria-label="Enviar no WhatsApp">${icon('wa')}</button></div></div>
     <div class="note" style="margin-top:14px">${icon('info')}<div>Cada cadastro vira um evento novo no seu painel, com aviso sonoro. A partir daí você controla o cronograma normalmente e pode editar tudo.</div></div>`,
   {wide:true,onMount:md=>{
     $('#rlCopy',md).onclick=async()=>{const ok=await copyText(link);toast(ok?'Link copiado!':'Não foi possível copiar.',ok?'ok':'err')};
-    $('#rlWa',md).onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener');
+    $('#rlWa',md).onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(msgDe(link)),'_blank','noopener');
+    if($('#rlEd',md))$('#rlEd',md).onclick=async()=>{const c=await DB.cfg('curtoCadastro');const b=await personalizarLink(c?.base||Curto.base(['Cadastro']));if(!b)return;$('#rlIn',md).value='Gerando link curto…';link=await linkCadastro(id,b);$('#rlIn',md).value=link;toast('Link personalizado criado!','ok')};
     $('input[readonly]',md).onclick=e=>e.target.select();
   }});
 }
@@ -5947,7 +6077,9 @@ async function initReg(P){
       const gid=g.data.id;
       await ghRetry(`/gists/${P.i}`,{method:'PATCH',token:P.t,body:{files:{[`ev_${gid}.json`]:{content:JSON.stringify({gistId:gid,nome,tipo,homenageados:v('hom'),data:v('data'),local:v('local'),cliente,criadoEm:new Date().toISOString()},null,1)}}}});
       setProg(prog,1,'Pronto!');
-      const link=baseUrl()+'#enviar='+b64urlEnc(JSON.stringify({g:gid,t:P.t,e:nome,d:v('data'),m:'c',k:tipo,p:cliente.nome}));
+      const longo=baseUrl()+'#enviar='+b64urlEnc(JSON.stringify({g:gid,t:P.t,e:nome,d:v('data'),m:'c',k:tipo,p:cliente.nome}));
+      let link=longo;
+      if(P.c!==0&&/^https?:$/.test(location.protocol)){setProg(prog,1,'Gerando o seu link…');try{link=(await Curto.criar(longo,Curto.base([nome],Curto.slug(P.x||'',12)))).url}catch{}}
       try{saved=[{nome,data:v('data'),link,criadoEm:new Date().toISOString()},...saved];localStorage.setItem('palco_meus_'+P.i,JSON.stringify(saved));localStorage.setItem('palco_cli_'+gid,cliente.nome)}catch{}
       f.outerHTML=`<div class="card prof-card ok-card">
         <div class="ok-ic">${icon('check')}</div><h2>Evento cadastrado!</h2>
