@@ -1054,12 +1054,62 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 .c-prazo.late{border-color:rgba(255,84,112,.5);background:rgba(255,84,112,.08)}
 .c-prazo.late .ic{color:var(--danger)}
 @media (prefers-reduced-motion:reduce){.bv-in{animation:none}}
+/* ===== Controladora / offline / Deezer ===== */
+.dj-chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font-size:.72rem;font-weight:800;letter-spacing:.08em;cursor:pointer;white-space:nowrap;transition:box-shadow .1s}
+.dj-chip .ic{width:16px;height:16px;flex:none}
+.dj-chip.ok{color:var(--ok);border-color:rgba(47,209,139,.45);background:rgba(47,209,139,.1)}
+.dj-chip.off{color:var(--warn);border-color:rgba(255,159,67,.5);background:rgba(255,159,67,.12)}
+.dj-chip.blink{box-shadow:0 0 0 3px rgba(47,209,139,.4)}
+#djNet{cursor:default}
+@media (max-width:720px){.dj-chip span{display:none}.dj-chip{padding:0 10px}}
+.dk-pfl{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none}
+.dk-pfl .ic{width:20px;height:20px}
+.dk-pfl.on{background:var(--dk);color:#fff;border-color:transparent}
+.deck-B .dk-pfl.on{color:var(--accent-ink)}
+.knob.flt input{accent-color:var(--ok)}
+.dk-eq{gap:6px}
+.dj-ol li.sel{box-shadow:inset 0 0 0 2px var(--ok)}
+.dj-ol li.net{opacity:.45}
+.dj-ol .b button .ic{width:15px;height:15px}
+.dz-btn .ic{color:#a238ff}
+/* tela da controladora */
+.mstat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);margin:12px 0}
+.mstat b{display:block}.mstat small{color:var(--muted);font-size:.82rem}
+.mh{font-size:1rem;margin:20px 0 10px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.mh small{color:var(--muted);font-weight:500;font-size:.8rem}
+.mgrp{border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.mgrp summary{padding:12px 14px;cursor:pointer;font-weight:700;background:var(--surface2)}
+.mgrp summary small{color:var(--muted);font-weight:500;margin-left:6px}
+.mrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 14px;border-top:1px solid var(--line);font-size:.88rem}
+.mrow em{font-style:normal;color:var(--faint);font-size:.74rem}
+.mrow .mk{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+.mrow .mb{display:flex;gap:4px}
+.mrow.learn{background:rgba(47,209,139,.08)}
+.mrow.learn .mk{color:var(--ok);font-weight:700;animation:piscar 1s steps(2) infinite}
+.mlog{background:var(--input);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.78rem;min-height:90px;max-height:180px;overflow:auto;white-space:pre-wrap;margin:0;color:var(--muted)}
+@media (max-width:560px){.mrow{grid-template-columns:1fr auto}.mrow .mk{grid-column:1/3;grid-row:2}}
+/* Deezer */
+.dz-res,.dz-trk,.dz-src{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto}
+.dz-res:empty{display:none}
+.dz-res li,.dz-trk li,.dz-src li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--surface2)}
+.dz-res .i,.dz-trk .i,.dz-src li>div{flex:1;min-width:0}
+.dz-res b,.dz-trk b,.dz-src b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.9rem}
+.dz-res small,.dz-trk small,.dz-src small{display:block;color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dz-trk .st{width:34px;text-align:center;font-weight:800;font-size:.72rem;color:var(--warn);flex:none}
+.dz-trk li.ok .st{color:var(--ok);font-size:1rem}
+.dz-trk li.vazio{justify-content:center;color:var(--muted)}
 </style>
 </head>
 <body>
 <div id="bgLayer" aria-hidden="true"><div class="bg-img"></div><div class="bg-shade"></div></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-phones" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></symbol>
+  <symbol id="i-midi" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><circle cx="7.5" cy="12" r="2.5"/><circle cx="16.5" cy="12" r="2.5"/><path d="M12 8v8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-deezer" viewBox="0 0 24 24"><path d="M3 18h3M8 18h3M13 18h3M18 18h3M13 14h3M18 14h3M8 14h3M18 10h3M13 10h3M18 6h3" stroke-width="2.4"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="m2 2 20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2.3-1.6"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.7 5"/><path d="M12 20h.01"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.9a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></symbol>
   <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.6v14.8a1 1 0 0 0 1.53.85l11.6-7.4a1 1 0 0 0 0-1.7L8.53 3.75A1 1 0 0 0 7 4.6z" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="5.5" y="4" width="4.6" height="16" rx="1.3" fill="currentColor" stroke="none"/><rect x="13.9" y="4" width="4.6" height="16" rx="1.3" fill="currentColor" stroke="none"/></symbol>
@@ -3129,8 +3179,12 @@ class Deck{
       const mid=ctx.createBiquadFilter();mid.type='peaking';mid.frequency.value=1000;mid.Q.value=.8;
       const hi=ctx.createBiquadFilter();hi.type='highshelf';hi.frequency.value=3500;
       const gain=ctx.createGain(),an=ctx.createAnalyser();an.fftSize=1024;
-      src.connect(lo).connect(mid).connect(hi).connect(gain).connect(an);gain.connect(this.dj.master);
-      this.g={lo,mid,hi,gain,an,buf:new Float32Array(1024)};this.el.volume=1;this.applyEq();
+      /* filtro (LP/HP) e envio pré-fader para o fone (pré-escuta) */
+      const flt=ctx.createBiquadFilter();flt.type='lowpass';flt.frequency.value=ctx.sampleRate/2;flt.Q.value=.7;
+      const cue=ctx.createGain();cue.gain.value=0;
+      src.connect(lo).connect(mid).connect(hi).connect(flt).connect(gain).connect(an);gain.connect(this.dj.master);
+      flt.connect(cue);if(this.dj.cueBus)cue.connect(this.dj.cueBus);
+      this.g={lo,mid,hi,flt,cue,gain,an,buf:new Float32Array(1024)};this.el.volume=1;this.applyEq();this.applyFx?.();
     }catch{this.g=null}
   }
   applyEq(){if(!this.g)return;const t=this.dj.ctx.currentTime;this.g.lo.gain.setTargetAtTime(this.eq.lo,t,.02);this.g.mid.gain.setTargetAtTime(this.eq.mid,t,.02);this.g.hi.gain.setTargetAtTime(this.eq.hi,t,.02)}
@@ -3315,11 +3369,11 @@ const DJ={
   montar(){
     const el=$('#dj');if(el.dataset.ok)return;el.dataset.ok='1';
     const deckHTML=id=>`<section class="deck deck-${id}" data-deck="${id}">
-      <div class="dk-top"><span class="dk-id">${id}</span><div class="dk-tt"><strong data-f="tt">Vazio</strong><small data-f="st">Carregue uma música da lista</small></div><div class="dk-rem"><b data-f="rem">-0:00</b><small data-f="el">0:00 / 0:00</small></div></div>
+      <div class="dk-top"><span class="dk-id">${id}</span><div class="dk-tt"><strong data-f="tt">Vazio</strong><small data-f="st">Carregue uma música da lista</small></div><button type="button" class="dk-pfl" data-act="pfl" title="Pré-escuta no fone (CUE/PFL)">${icon('phones')}</button><div class="dk-rem"><b data-f="rem">-0:00</b><small data-f="el">0:00 / 0:00</small></div></div>
       <div class="dk-wave"><canvas></canvas><div class="dk-ext"></div><div class="dk-load" data-f="ld" hidden>Carregando…</div></div>
       <div class="dk-alert" data-f="al" hidden></div>
       <div class="dk-mid">
-        <div class="dk-eq">${[['hi','AGUDOS'],['mid','MÉDIOS'],['lo','GRAVES']].map(([k,l])=>`<label class="knob" title="Duplo clique: corta/volta esta faixa"><input type="range" min="-24" max="6" step="1" value="0" data-eq="${k}" class="eq-r"><span>${l}</span></label>`).join('')}</div>
+        <div class="dk-eq">${[['hi','AGUDOS'],['mid','MÉDIOS'],['lo','GRAVES']].map(([k,l])=>`<label class="knob" title="Duplo clique: corta/volta esta faixa"><input type="range" min="-24" max="6" step="1" value="0" data-eq="${k}" class="eq-r"><span>${l}</span></label>`).join('')}<label class="knob flt" title="Filtro: esquerda = graves (low-pass), direita = agudos (high-pass). Duplo clique: centraliza"><input type="range" min="-1" max="1" step="0.01" value="0" data-flt class="eq-r"><span>FILTRO</span></label></div>
         <div class="dk-pitch dk-gain"><span>GANHO</span><input type="range" min="-12" max="12" step="0.5" value="0" data-trim class="pitch-r" title="Ganho do deck em dB. Duplo clique: volta a 0"><b data-f="gn">0 dB</b><small data-f="ga"></small></div>
         <div class="dk-pitch"><span>PITCH</span><input type="range" min="-8" max="8" step="0.1" value="0" data-pitch class="pitch-r" title="Duplo clique: volta a 0%"><b data-f="pt">0.0%</b></div>
         <div class="dk-fader"><div class="vu"><i data-f="vu"></i></div><input type="range" min="0" max="1" step="0.01" value="1" data-fader class="fader-r" orient="vertical" aria-label="Volume do deck ${id}"></div>
@@ -3333,7 +3387,7 @@ const DJ={
     </section>`;
     el.innerHTML=`<div class="dj-head">
         <div class="dj-tl"><span class="dj-badge">DJ</span><div><strong>${esc(state.evento?.nome||'')}</strong><small>Dois decks · passagem contínua</small></div></div>
-        <div class="row" style="gap:8px;flex-wrap:nowrap"><button class="btn sm" id="djTv" title="Abrir o telão">${icon('tv')}<span class="hide-sm">Telão</span></button><button class="btn sm" id="djClose">${icon('down')}<span class="hide-sm">Minimizar</span></button></div>
+        <div class="row" style="gap:8px;flex-wrap:nowrap"><button type="button" class="dj-chip" id="djNet" title="Conexão com a internet"></button><button type="button" class="dj-chip" id="djMidi" title="Controladora DJ (MIDI): conectar e mapear">${icon('midi')}<span>CONTROLADORA</span></button><button class="btn sm" id="djTv" title="Abrir o telão">${icon('tv')}<span class="hide-sm">Telão</span></button><button class="btn sm" id="djClose">${icon('down')}<span class="hide-sm">Minimizar</span></button></div>
       </div>
       <div class="dj-body">
         <div class="dj-decks">
@@ -3353,6 +3407,8 @@ const DJ={
         <section class="dj-list">
           <div class="dj-add">
             <label class="btn sm primary">${icon('upload')}Importar do aparelho<input type="file" id="djFile" accept="audio/*,video/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac,.mp4,.mov,.webm" multiple hidden></label>
+            <label class="btn sm" title="Importa todas as músicas de uma pasta do computador (ficam salvas para tocar offline)">${icon('folder')}Pasta<input type="file" id="djDir" webkitdirectory directory multiple hidden></label>
+            <button type="button" class="btn sm dz-btn" id="djDz" title="Importar e sincronizar playlists do Deezer">${icon('deezer')}Deezer</button>
             <form class="copyrow dj-url" id="djUrlF"><input type="url" id="djUrl" inputmode="url" placeholder="Cole um link do YouTube (ou SoundCloud, Vimeo, Drive…)" aria-label="Link da música"><button class="btn sm" type="submit">${icon('link')}Adicionar</button></form>
           </div>
           <div id="djAvWrap" hidden><div class="dj-lh"><strong>Avulsas</strong><small>Fora do cronograma · ficam salvas neste aparelho para este evento</small></div><ol id="djAv" class="dj-ol"></ol></div>
@@ -3497,7 +3553,7 @@ const Avulsas={
     this.evId=id;this.lista=id?((await DB.cfg(this.chave()))||[]):[];
     for(const m of this.lista)Object.assign(m,{avulsa:true,status:m.status||'pronta',inicio:0,fim:0});
   },
-  salvar(){if(!this.evId)return;DB.setCfg(this.chave(),this.lista.map(({id,titulo,artista,link,mime,nomeArquivo,tamanho,video,semTitulo})=>({id,titulo,artista,link,mime,nomeArquivo,tamanho,video,semTitulo})));DJ.render()},
+  salvar(){if(!this.evId)return;DB.setCfg(this.chave(),this.lista.map(({id,titulo,artista,link,mime,nomeArquivo,tamanho,video,semTitulo,dz,off,previa})=>({id,titulo,artista,link,mime,nomeArquivo,tamanho,video,semTitulo,dz,off,previa})));DJ.render()},
   get(id){return this.lista.find(x=>x.id===id)},
   async addArquivos(files){
     const out=[];
@@ -6169,11 +6225,542 @@ function invalidLink(){
 }
 
 /* =========================================================
+   CONTROLADORA DJ (MIDI) · SAÍDA DE ÁUDIO / FONE · OFFLINE · DEEZER
+   ========================================================= */
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- efeitos por deck: filtro, pré-escuta (fone), pitch bend ---------- */
+Deck.prototype.applyFx=function(){
+  if(!this.g)return;const ctx=this.dj.ctx,t=ctx.currentTime,f=this.g.flt,v=this.flt||0;
+  if(v<-.02){f.type='lowpass';f.frequency.setTargetAtTime(20000*Math.pow(70/20000,-v),t,.02);f.Q.setTargetAtTime(.9,t,.02)}
+  else if(v>.02){f.type='highpass';f.frequency.setTargetAtTime(20*Math.pow(7000/20,v),t,.02);f.Q.setTargetAtTime(.9,t,.02)}
+  else{f.type='lowpass';f.frequency.setTargetAtTime(ctx.sampleRate/2,t,.02);f.Q.setTargetAtTime(.7,t,.02)}
+  this.g.cue.gain.setTargetAtTime(this.pfl?1:0,t,.02);
+};
+Deck.prototype.applyRate=function(){try{this.el.playbackRate=clamp(1+(this.pitch||0)+(this.bend||0),.5,2)}catch{}};
+Deck.prototype.seekTo=function(s){if(!this.m||!this.dur)return;try{this.media.currentTime=clamp(s,0,Math.max(0,this.dur-.2))}catch{}this.fadeIn=false};
+
+/* ---------- saída de áudio: master na placa da controladora e fone em outra saída ---------- */
+const AudioOut={
+  master:lsGet('palco_out_master',''),cue:lsGet('palco_out_cue',''),cueVol:lsGet('palco_cue_vol',1),el:null,
+  suporta(){const C=window.AudioContext||window.webkitAudioContext;return!!(C&&'setSinkId' in C.prototype)},
+  onCtx(ctx){
+    DJ.cueBus=ctx.createGain();DJ.cueBus.gain.value=this.cueVol;
+    try{const dest=ctx.createMediaStreamDestination();DJ.cueBus.connect(dest);this.el=new Audio();this.el.srcObject=dest.stream}catch{this.el=null}
+    this.aplicar();
+  },
+  async aplicar(){
+    const ctx=DJ.ctx;if(!ctx)return;
+    if(ctx.setSinkId){try{await ctx.setSinkId(this.master||'')}catch{toast('Não foi possível usar a saída de áudio escolhida para o master. Usando a padrão.','warn',6000)}}
+    if(DJ.cueBus)DJ.cueBus.gain.setTargetAtTime(this.cueVol,ctx.currentTime,.02);
+    if(this.el){
+      if(this.cue){try{await this.el.setSinkId?.(this.cue);await this.el.play()}catch{}}
+      else try{this.el.pause()}catch{}
+    }
+  },
+  async lista(){try{return(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput')}catch{return[]}},
+  async liberarNomes(){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop());return true}catch{return false}},
+  set(tipo,id){this[tipo]=id;lsSet(tipo==='master'?'palco_out_master':'palco_out_cue',id);this.aplicar()}
+};
+{const _ens=DJ.ensureCtx;DJ.ensureCtx=function(){const tinha=!!this.ctx;const c=_ens.call(this);if(c&&!tinha)AudioOut.onCtx(c);return c}}
+function togglePfl(d){
+  d.pfl=!d.pfl;d.applyFx();DJ.render();
+  if(d.pfl&&!AudioOut.cue)toast('Para ouvir no fone, escolha a <b>saída do fone</b> em <b>Controladora → Saídas de áudio</b>.','info',6000);
+}
+
+/* ---------- hot cues (salvos por música, neste aparelho) ---------- */
+const HotCue={
+  all:lsGet('palco_hotcues',{}),
+  of(d){return d.m?(this.all[d.m.id]||[]):[]},
+  press(d,n){
+    if(!d.m)return;const L=this.all[d.m.id]||(this.all[d.m.id]=[]);
+    if(L[n]==null){L[n]=+d.t.toFixed(3);lsSet('palco_hotcues',this.all);toast(`Deck ${d.id}: hot cue ${n+1} marcado em ${fmt(L[n])}.`,'ok',1800)}
+    else{d.seekTo(L[n]);if(!d.playing)d.play()}
+    DJ.drawWave(d,true);
+  },
+  del(d,n){if(!d.m)return;const L=this.all[d.m.id];if(L&&L[n]!=null){L[n]=null;lsSet('palco_hotcues',this.all);toast(`Deck ${d.id}: hot cue ${n+1} apagado.`,'info',1600);DJ.drawWave(d,true)}}
+};
+const HC_COR=['#ff5470','#2fd18b','#4fa3ff','#ffd36b','#ff7eb6','#8b6cff','#ff9f43','#ffffff'];
+{const _dw=DJ.drawWave;DJ.drawWave=function(d,force){
+  _dw.call(this,d,force);
+  const L=HotCue.of(d);if(!L.length||!d.dur)return;
+  const cv=$(`#dj [data-deck=${d.id}] canvas`);if(!cv)return;const x=cv.getContext('2d'),W=cv.width,H=cv.height,dpr=window.devicePixelRatio||1;
+  L.forEach((t,i)=>{if(t==null)return;const px=Math.round(t/d.dur*W);x.fillStyle=HC_COR[i%8];x.fillRect(px-dpr,0,2*dpr,H);x.beginPath();x.moveTo(px-6*dpr,0);x.lineTo(px+6*dpr,0);x.lineTo(px,8*dpr);x.fill();
+    x.font=`bold ${10*dpr}px system-ui`;x.fillText(String(i+1),px+4*dpr,H-4*dpr)});
+}}
+
+/* ---------- navegação na lista (encoder "browse" da controladora) ---------- */
+const Browse={
+  id:null,
+  rows(){return $$('#djAv li, #djList li').filter(li=>li.querySelector('[data-load]'))},
+  aplicar(scroll){const R=this.rows();R.forEach(li=>li.classList.toggle('sel',li.querySelector('[data-load]').dataset.id===this.id));if(scroll){const s=R.find(li=>li.classList.contains('sel'));s?.scrollIntoView({block:'nearest'})}},
+  move(n){const R=this.rows();if(!R.length)return;let i=R.findIndex(li=>li.querySelector('[data-load]').dataset.id===this.id);i=i<0?(n>0?0:R.length-1):clamp(i+n,0,R.length-1);this.id=R[i].querySelector('[data-load]').dataset.id;this.aplicar(true)},
+  carregar(d){
+    if(!this.id){this.move(1);if(!this.id)return toast('A lista está vazia.','warn')}
+    const m=state.musicas.find(x=>x.id===this.id)||Avulsas.get(this.id);if(m)d.load(m);
+  }
+};
+
+/* =========================================================
+   MIDI — Web MIDI API (Chrome / Edge / Opera)
+   ========================================================= */
+const MIDI_CMDS=(()=>{
+  const deck=[
+    ['play','Play / Pause','btn'],['cue','CUE (volta ao início marcado)','btn'],['stop','Stop / descarregar','btn'],
+    ['load','Carregar a música selecionada na lista','btn'],['next','Carregar a próxima do cronograma','btn'],['mixTo','Mixar para este deck (botão SYNC)','btn'],
+    ['vol','Fader do canal (volume)','abs'],['gain','Ganho / TRIM','abs'],['hi','EQ agudos (HI)','abs'],['mid','EQ médios (MID)','abs'],['lo','EQ graves (LOW)','abs'],
+    ['flt','Filtro (CFX / FILTER)','abs'],['pitch','Pitch / tempo','abs'],
+    ['jog','Jog wheel (pitch bend / arrastar)','rel'],['jogSeek','Jog com SHIFT (busca rápida)','rel'],
+    ['bendUp','Pitch bend + (segurar)','hold'],['bendDn','Pitch bend − (segurar)','hold'],
+    ['back','Voltar 5 s','btn'],['fwd','Avançar 5 s','btn'],['pfl','Fone / pré-escuta (CUE do canal)','btn'],
+    ...[0,1,2,3,4,5,6,7].map(i=>['hc'+(i+1),`Hot cue ${i+1}`,'btn']),
+    ...[0,1,2,3,4,5,6,7].map(i=>['hcx'+(i+1),`Apagar hot cue ${i+1} (SHIFT + pad)`,'btn'])
+  ];
+  const glob=[
+    ['xf','Crossfader','abs'],['master','Volume master','abs'],['mix','MIX (passagem para o outro deck)','btn'],['len','Tempo da mixagem (4 / 8 / 12 / 16 s)','btn'],
+    ['auto','AUTO MIX liga/desliga','btn'],['niv','NIVELAR liga/desliga','btn'],['browse','Navegar na lista (encoder BROWSE)','rel'],
+    ['up','Lista: subir','btn'],['down','Lista: descer','btn'],['xfc','Centralizar o crossfader','btn'],['tv','Abrir / fechar o telão','btn'],['dj','Abrir / minimizar os decks','btn']
+  ];
+  const L=[];for(const D of['A','B'])for(const[k,l,t]of deck)L.push({id:D+'.'+k,deck:D,label:l,tipo:t});
+  for(const[k,l,t]of glob)L.push({id:'g.'+k,deck:null,label:l,tipo:t});
+  return L;
+})();
+const MIDI_TIPO=Object.fromEntries(MIDI_CMDS.map(c=>[c.id,c.tipo]));
+
+/* Presets. O MIDI Learn funciona com qualquer controladora; estes são pontos de partida. */
+const MIDI_PRESETS={
+  ddj400:{nome:'Pioneer DDJ-400 / DDJ-FLX4',match:/DDJ-?(400|FLX4)/i,desc:'Play, CUE, SYNC (= mixar para o deck), fone, faders, TRIM, EQ, CFX (= filtro), tempo, jog, crossfader, BROWSE e LOAD. Pads (modo HOT CUE): 1–4 hot cues · 5 voltar 5 s · 6 avançar 5 s · 7 AUTO MIX (deck 1) / NIVELAR (deck 2) · 8 MIX. SHIFT + pads 1–4 apaga o hot cue.',
+    map(){const M=[];
+      [['A',0,7,8],['B',1,9,10]].forEach(([D,c,pad,spad])=>{
+        M.push({k:`n:${c}:11`,cmd:D+'.play'},{k:`n:${c}:12`,cmd:D+'.cue'},{k:`n:${c}:88`,cmd:D+'.mixTo'},{k:`n:${c}:84`,cmd:D+'.pfl'},
+          {k:`c:${c}:19`,cmd:D+'.vol',hr:true},{k:`c:${c}:4`,cmd:D+'.gain',hr:true},{k:`c:${c}:7`,cmd:D+'.hi',hr:true},{k:`c:${c}:11`,cmd:D+'.mid',hr:true},{k:`c:${c}:15`,cmd:D+'.lo',hr:true},
+          {k:`c:${c}:0`,cmd:D+'.pitch',hr:true,inv:true},{k:`c:${c}:33`,cmd:D+'.jog',enc:'64'},{k:`c:${c}:34`,cmd:D+'.jog',enc:'64'});
+        for(let i=0;i<4;i++)M.push({k:`n:${pad}:${i}`,cmd:`${D}.hc${i+1}`},{k:`n:${spad}:${i}`,cmd:`${D}.hcx${i+1}`});
+        M.push({k:`n:${pad}:4`,cmd:D+'.back'},{k:`n:${pad}:5`,cmd:D+'.fwd'},{k:`n:${pad}:6`,cmd:D==='A'?'g.auto':'g.niv'},{k:`n:${pad}:7`,cmd:'g.mix'});
+      });
+      M.push({k:'c:6:31',cmd:'g.xf',hr:true},{k:'c:6:23',cmd:'A.flt',hr:true},{k:'c:6:24',cmd:'B.flt',hr:true},{k:'c:6:64',cmd:'g.browse',enc:'2c'},{k:'n:6:70',cmd:'A.load'},{k:'n:6:71',cmd:'B.load'});
+      return M}}
+};
+
+const MIDI={
+  acc:null,maps:lsGet('palco_midi_map',[]),preset:lsGet('palco_midi_preset',''),leds:lsGet('palco_midi_leds',true),soft:lsGet('palco_midi_soft',true),
+  learn:null,log:[],msb:{},st:{},ledSt:{},ledIv:null,ui:null,
+  get suporta(){return!!navigator.requestMIDIAccess},
+  get inputs(){return this.acc?[...this.acc.inputs.values()].filter(i=>i.state!=='disconnected'):[]},
+  index(){this.byKey=new Map();for(const m of this.maps)this.byKey.set(m.k,m)},
+  save(){lsSet('palco_midi_map',this.maps);lsSet('palco_midi_preset',this.preset);this.index()},
+  async conectar(silencioso){
+    if(!this.suporta){if(!silencioso)toast('Este navegador não tem suporte a controladoras MIDI. Use o <b>Google Chrome</b> ou o <b>Microsoft Edge</b> no computador.','err',8000);return false}
+    if(this.acc){this.bind();return true}
+    try{this.acc=await navigator.requestMIDIAccess({sysex:false})}catch(e){if(!silencioso)toast('Acesso à controladora negado. Libere o “Controle de dispositivos MIDI” no cadeado da barra de endereço.','err',8000);return false}
+    lsSet('palco_midi_on',true);
+    this.acc.onstatechange=e=>{if(e.port.type==='input'){this.bind();if(e.port.state==='connected')toast(`Controladora conectada: <b>${esc(e.port.name)}</b>`,'ok',3500);else toast(`Controladora desconectada: <b>${esc(e.port.name)}</b>`,'warn',5000)}this.renderUi()};
+    this.bind();
+    if(!this.inputs.length&&!silencioso)toast('Nenhuma controladora encontrada. Ligue o cabo USB e aguarde alguns segundos.','warn',6000);
+    return true;
+  },
+  bind(){
+    for(const i of this.inputs)i.onmidimessage=e=>this.msg(e,i);
+    /* aplica o preset automaticamente na primeira vez que reconhecer o modelo */
+    if(!this.maps.length)for(const i of this.inputs){const p=Object.entries(MIDI_PRESETS).find(([,p])=>p.match.test(i.name));if(p){this.aplicarPreset(p[0]);toast(`<b>${esc(i.name)}</b> reconhecida — mapeamento <b>${esc(p[1].nome)}</b> aplicado.`,'ok',6000);break}}
+    this.index();this.chip();this.ledLoop();
+  },
+  aplicarPreset(id){const p=MIDI_PRESETS[id];if(!p)return;this.maps=p.map();this.preset=id;this.st={};this.ledSt={};this.save();this.renderUi()},
+  chip(on){const c=$('#djMidi');if(!c)return;const n=this.inputs.length;c.classList.toggle('ok',n>0);$('span',c).textContent=n?(this.inputs[0].name.replace(/^\d+-\s*/,'').replace(/\s+(MIDI\s*)?\d*$/i,'').slice(0,22)||'CONTROLADORA'):'CONTROLADORA';if(on){c.classList.add('blink');clearTimeout(this._bt);this._bt=setTimeout(()=>c.classList.remove('blink'),120)}},
+  keyTxt(k){const[t,ch,n]=k.split(':');return t==='n'?`Nota ${n} · canal ${+ch+1}`:t==='c'?`CC ${n} · canal ${+ch+1}`:`Pitch bend · canal ${+ch+1}`},
+  msg(e,inp){
+    const[s,d1=0,d2=0]=e.data,t=s&0xF0,ch=s&0x0F;let k,raw,kind;
+    if(t===0x90||t===0x80){k=`n:${ch}:${d1}`;raw=(t===0x90&&d2>0)?127:0;kind='n'}
+    else if(t===0xB0){k=`c:${ch}:${d1}`;raw=d2;kind='c'}
+    else if(t===0xE0){k=`p:${ch}`;raw=(d2<<7)|d1;kind='p'}
+    else return;
+    this.log.unshift(`${inp.name.slice(0,18)} · ${this.keyTxt(k)} = ${kind==='p'?raw:d2}`);this.log.length=Math.min(this.log.length,10);
+    this.chip(true);
+    if(this.learn){this.aprender(k,kind,raw,ch,d1);this.renderLog();return}
+    this.renderLog();
+    let m=this.byKey?.get(k);
+    if(kind==='c'){
+      /* CC de 14 bits: MSB no CC n e LSB no CC n+32 */
+      if(!m&&d1>=32&&d1<64){const mm=this.byKey?.get(`c:${ch}:${d1-32}`);if(mm&&MIDI_TIPO[mm.cmd]==='abs'){if(!mm.hr){mm.hr=true;this.save()}const msb=this.msb[`c:${ch}:${d1-32}`]??0;return this.exec(mm,((msb<<7)|d2)/16383)}}
+      if(m&&MIDI_TIPO[m.cmd]==='abs'&&m.hr){this.msb[k]=d2;return}
+    }
+    if(!m)return;
+    const tp=MIDI_TIPO[m.cmd];
+    if(tp==='abs')return this.exec(m,kind==='p'?raw/16383:raw/127);
+    if(tp==='rel'){if(kind!=='c')return;const dl=m.enc==='64'?d2-64:(d2<64?d2:d2-128);if(dl)this.exec(m,dl);return}
+    this.exec(m,raw>=64?1:0);
+  },
+  aprender(k,kind,raw,ch,d1){
+    const cmd=this.learn,tp=MIDI_TIPO[cmd];
+    if((tp==='btn'||tp==='hold')&&!(raw>0&&kind!=='p'))return;
+    if(tp==='abs'&&kind==='n')return;
+    if(tp==='rel'&&kind!=='c')return;
+    if(kind==='c'&&d1>=32&&d1<64&&this._lastCC&&this._lastCC.k===`c:${ch}:${d1-32}`&&performance.now()-this._lastCC.t<60)return;
+    if(kind==='c')this._lastCC={k,t:performance.now()};
+    const m={k,cmd};if(tp==='rel')m.enc=raw>=56&&raw<=72?'64':'2c';
+    this.maps=this.maps.filter(x=>x.k!==k&&x.cmd!==cmd);this.maps.push(m);this.preset='';this.learn=null;this.save();
+    toast(`<b>${esc(MIDI_CMDS.find(c=>c.id===cmd).label)}</b> → ${esc(this.keyTxt(k))}`,'ok',2500);this.renderUi();
+  },
+  /* valores atuais (0..1) e como aplicar cada controle absoluto */
+  absIO(cmd){
+    const[D,a]=cmd.split('.'),sec=D==='g'?null:$(`#dj [data-deck=${D}]`);
+    const el=D==='g'?$(a==='xf'?'#djXf':'#djVol'):a==='vol'?$('[data-fader]',sec):a==='gain'?$('[data-trim]',sec):a==='pitch'?$('[data-pitch]',sec):a==='flt'?$('[data-flt]',sec):$(`[data-eq=${a}]`,sec);
+    if(!el)return null;const x=+el.value,dz=(v,z)=>Math.abs(v-.5)<z?.5:v;
+    const io={
+      vol:[x,v=>v],master:[x,v=>v],xf:[x,v=>v],
+      gain:[(x+12)/24,v=>Math.round((dz(v,.02)*24-12)*2)/2],
+      pitch:[(x/8+1)/2,v=>Math.round((dz(v,.01)*2-1)*80)/10],
+      flt:[(x+1)/2,v=>Math.round((dz(v,.03)*2-1)*100)/100],
+      eq:[x<=0?(x+24)/48:.5+x/12,v=>{v=dz(v,.02);return Math.round(v<=.5?v*48-24:(v-.5)*12)}]
+    }[['hi','mid','lo'].includes(a)?'eq':a];
+    return{el,cur:io[0],conv:io[1]};
+  },
+  setInput(el,val){if(+el.value===+val)return;el.value=val;el.dispatchEvent(new Event('input',{bubbles:true}))},
+  exec(m,v){
+    const cmd=m.cmd,[D,a]=cmd.split('.'),tp=MIDI_TIPO[cmd];
+    if(cmd==='g.dj'){if(v)DJ.aberto?DJ.fechar():DJ.abrir();return}
+    if(!$('#dj')?.dataset.ok){if(v&&tp!=='abs')DJ.abrir();return}
+    const d=D==='A'?DJ.A:D==='B'?DJ.B:null;
+    if(tp==='abs'){
+      if(m.inv)v=1-v;const io=this.absIO(cmd);if(!io)return;
+      /* soft takeover: só “pega” o controle quando ele passa pelo valor atual da tela */
+      const s=this.st[m.k]||(this.st[m.k]={});
+      if(this.soft&&a!=='xf'){
+        if(s.set!=null&&Math.abs(io.cur-s.set)>.03)s.ok=false;
+        if(!s.ok){const perto=Math.abs(v-io.cur)<=.04,cruzou=s.last!=null&&(s.last-io.cur)*(v-io.cur)<=0;s.last=v;if(!(perto||cruzou||s.set==null&&Math.abs(v-io.cur)<=.08))return;s.ok=true}
+      }
+      this.setInput(io.el,io.conv(v));s.set=this.absIO(cmd).cur;s.last=v;return;
+    }
+    if(tp==='rel'){
+      if(a==='browse')return Browse.move(clamp(v,-3,3));
+      if(!d?.m)return;
+      if(a==='jogSeek')return d.seekTo(d.t+v*.6);
+      if(d.playing&&!d.ext){d.bend=clamp(v*.012,-.25,.25);d.applyRate();clearTimeout(d._bt);d._bt=setTimeout(()=>{d.bend=0;d.applyRate()},90)}
+      else d.seekTo(d.t+v*(d.playing?.08:.03));
+      DJ.drawWave(d,true);return;
+    }
+    if(tp==='hold'){if(!d)return;d.bend=v?(a==='bendUp'?.04:-.04):0;d.applyRate();return}
+    if(!v)return;
+    if(d){
+      if(a==='play')d.toggle();else if(a==='cue')d.cue();else if(a==='stop'){d.unload();DJ.render()}
+      else if(a==='load')Browse.carregar(d);
+      else if(a==='next'){const n=DJ.proxima(DJ.outro(d).m?.id||d.m?.id);if(n)d.load(n);else toast('Não há próxima música.','warn')}
+      else if(a==='mixTo'){if(!d.playing||DJ.xfGain(d)<.5)DJ.mix(DJ.outro(d))}
+      else if(a==='back')d.seekTo(Math.max(d.ini,d.t-5));else if(a==='fwd')d.seekTo(Math.min(d.end-.5,d.t+5));
+      else if(a==='pfl')togglePfl(d);
+      else if(/^hc\d$/.test(a))HotCue.press(d,+a.slice(2)-1);else if(/^hcx\d$/.test(a))HotCue.del(d,+a.slice(3)-1);
+      return;
+    }
+    if(a==='mix')DJ.mix();
+    else if(a==='len'){const B=$$('#djLen button'),i=B.findIndex(b=>b.classList.contains('on'));B[(i+1)%B.length]?.click();toast(`Mixagem: <b>${DJ.mixLen} s</b>`,'info',1200)}
+    else if(a==='auto')$('#djAuto').click();else if(a==='niv')$('#djNiv').click();
+    else if(a==='up')Browse.move(-1);else if(a==='down')Browse.move(1);
+    else if(a==='xfc')$('#djXfC').click();else if(a==='tv')Telao.toggle();
+  },
+  /* LEDs da controladora (play, cue, fone, hot cues, auto…) */
+  ledLoop(){
+    clearInterval(this.ledIv);if(!this.acc||!this.leds||!this.maps.length)return;
+    this.ledIv=setInterval(()=>{
+      const outs=this.saidas();if(!outs.length)return;
+      for(const m of this.maps){
+        const tp=MIDI_TIPO[m.cmd];if(tp!=='btn'&&tp!=='hold')continue;
+        const[D,a]=m.cmd.split('.'),d=D==='A'?DJ.A:D==='B'?DJ.B:null;let on=false;
+        if(d){if(a==='play')on=d.playing;else if(a==='cue')on=!!d.m&&!d.playing;else if(a==='pfl')on=!!d.pfl;else if(/^hc\d$/.test(a))on=HotCue.of(d)[+a.slice(2)-1]!=null;else if(a==='mixTo')on=!!DJ.mixing&&DJ.mixing.para===d}
+        else on=a==='auto'?DJ.auto:a==='niv'?DJ.nivelar:a==='mix'?!!DJ.mixing:false;
+        if(this.ledSt[m.k]===on)continue;this.ledSt[m.k]=on;
+        const[t,ch,n]=m.k.split(':');if(t==='p')continue;
+        for(const o of outs)try{o.send([(t==='n'?0x90:0xB0)|+ch,+n,on?127:0])}catch{}
+      }
+    },120);
+  },
+  saidas(){
+    if(!this.acc)return[];const nm=s=>s.toLowerCase().replace(/\b(midi|in|out|input|output|port)\b|\d+|[^a-z]/g,'');
+    const ins=new Set(this.inputs.map(i=>nm(i.name))),O=[...this.acc.outputs.values()];
+    const r=O.filter(o=>ins.has(nm(o.name)));return r.length?r:(O.length===1?O:[]);
+  },
+  exportar(){const b=new Blob([JSON.stringify({app:'palco-midi',v:1,maps:this.maps},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='mapeamento-controladora.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)},
+  async importar(f){try{const j=JSON.parse(await f.text());if(!Array.isArray(j.maps))throw 0;this.maps=j.maps.filter(m=>m.k&&MIDI_TIPO[m.cmd]);this.preset='';this.save();this.renderUi();toast('Mapeamento importado.','ok')}catch{toast('Arquivo de mapeamento inválido.','err')}},
+  /* ---------- tela de configuração ---------- */
+  abrir(){
+    openModal(`${modalHead('Controladora DJ','Conecte por USB, escolha o modelo ou ensine cada botão (MIDI Learn)')}<div id="midiUi"></div>`,{wide:true,onMount:(md,close)=>{this.ui=md;this.renderUi()},onClose:()=>{this.ui=null;this.learn=null}});
+    if(this.suporta&&!this.acc)this.conectar(true).then(()=>this.renderUi());
+  },
+  renderLog(){const l=this.ui&&$('#midiLog',this.ui);if(l)l.textContent=this.log.join('\n')||'Mexa em qualquer botão da controladora…'},
+  async renderUi(){
+    const md=this.ui;if(!md)return;const box=$('#midiUi',md);if(!box)return;
+    const ins=this.inputs,outs=await AudioOut.lista(),semNome=outs.some(o=>!o.label);
+    const opt=(sel)=>`<option value="">Padrão do sistema</option>`+outs.filter(o=>o.deviceId!=='default').map((o,i)=>`<option value="${esc(o.deviceId)}" ${o.deviceId===sel?'selected':''}>${esc(o.label||'Saída de áudio '+(i+1))}</option>`).join('');
+    const linha=c=>{const ms=this.maps.filter(m=>m.cmd===c.id);const on=this.learn===c.id;
+      return`<div class="mrow ${on?'learn':''}"><span class="ml">${esc(c.label)}${c.tipo==='abs'?' <em>knob/fader</em>':c.tipo==='rel'?' <em>encoder</em>':''}</span><span class="mk">${on?'Mexa no controle…':ms.length?ms.map(m=>esc(this.keyTxt(m.k))+(m.inv?' ⇅':'')).join('<br>'):'—'}</span><span class="mb">${c.tipo==='abs'&&ms.length?`<button type="button" class="btn sm ghost" data-inv="${c.id}" title="Inverter direção">⇅</button>`:''}<button type="button" class="btn sm ${on?'primary':''}" data-learn="${c.id}">${on?'Cancelar':'Aprender'}</button>${ms.length?`<button type="button" class="btn sm ghost" data-unmap="${c.id}" title="Remover">${icon('x')}</button>`:''}</span></div>`};
+    const grupo=(t,f)=>`<details class="mgrp" ${t==='Mixer'?'open':''}><summary>${t} <small>${MIDI_CMDS.filter(f).filter(c=>this.maps.some(m=>m.cmd===c.id)).length}/${MIDI_CMDS.filter(f).length} mapeados</small></summary>${MIDI_CMDS.filter(f).map(linha).join('')}</details>`;
+    box.innerHTML=`
+      ${this.suporta?'':`<div class="note warn">${icon('alert')}<div>Este navegador não tem Web MIDI. Use o <b>Google Chrome</b> ou o <b>Microsoft Edge</b> no computador (Windows ou Mac).</div></div>`}
+      <div class="mstat">
+        <div><b>${ins.length?ins.map(i=>esc(i.name)).join(', '):(this.acc?'Nenhuma controladora conectada':'Não conectado')}</b><small>${ins.length?'Conectada e pronta':'Ligue a controladora no USB e clique em Conectar'}</small></div>
+        <button type="button" class="btn sm primary" id="mCon">${icon('midi')}${this.acc?'Atualizar':'Conectar controladora'}</button>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Modelo (mapeamento pronto)</span><select id="mPre"><option value="">Personalizado (MIDI Learn)</option>${Object.entries(MIDI_PRESETS).map(([k,p])=>`<option value="${k}" ${this.preset===k?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+        <div class="field"><span>Opções</span><label class="chk"><input type="checkbox" id="mLed" ${this.leds?'checked':''}>Acender os LEDs da controladora</label><label class="chk"><input type="checkbox" id="mSoft" ${this.soft?'checked':''}>Soft takeover (evita saltos de volume/EQ)</label></div>
+      </div>
+      ${this.preset&&MIDI_PRESETS[this.preset]?`<p class="hint" style="margin:8px 0 0">${esc(MIDI_PRESETS[this.preset].desc)} Se algum controle não responder, use “Aprender” nele.</p>`:''}
+      <h3 class="mh">Saídas de áudio</h3>
+      ${AudioOut.suporta()?`<div class="grid2">
+        <label class="field"><span>Master (caixas / mesa de som)</span><select id="mOutM">${opt(AudioOut.master)}</select></label>
+        <label class="field"><span>Fone (pré-escuta dos botões ${icon('phones')})</span><select id="mOutC"><option value="">Desligado</option>${outs.filter(o=>o.deviceId!=='default').map((o,i)=>`<option value="${esc(o.deviceId)}" ${o.deviceId===AudioOut.cue?'selected':''}>${esc(o.label||'Saída de áudio '+(i+1))}</option>`).join('')}</select></label>
+      </div>
+      <label class="field" style="margin-top:8px"><span>Volume do fone</span><input type="range" id="mCueV" min="0" max="1.5" step="0.01" value="${AudioOut.cueVol}"></label>
+      ${semNome?`<p class="hint">Os nomes das saídas estão ocultos pelo navegador. <button type="button" class="btn sm ghost" id="mNomes">Mostrar nomes</button> (pede permissão de microfone só para listar os aparelhos; nada é gravado).</p>`:''}
+      <p class="hint">Dica: controladoras com placa de som (ex.: DDJ-400) aparecem como uma saída — escolha-a no master. Para o fone, use outra saída (ex.: fone do notebook). Vídeos do YouTube tocam sempre na saída padrão do sistema.</p>`
+      :`<p class="hint">Este navegador não permite escolher a saída de áudio. Use o Chrome/Edge atualizado.</p>`}
+      <h3 class="mh">Mapeamento</h3>
+      ${grupo('Mixer',c=>!c.deck)}${grupo('Deck A',c=>c.deck==='A')}${grupo('Deck B',c=>c.deck==='B')}
+      <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="mExp">${icon('download')}Exportar</button><label class="btn sm">${icon('upload')}Importar<input type="file" id="mImp" accept=".json,application/json" hidden></label><button type="button" class="btn sm ghost" id="mClr">${icon('trash')}Limpar tudo</button></div>
+      <h3 class="mh">Monitor MIDI</h3><pre id="midiLog" class="mlog"></pre>`;
+    this.renderLog();
+    $('#mCon',box).onclick=async()=>{await this.conectar();this.renderUi()};
+    $('#mPre',box).onchange=e=>{if(e.target.value){this.aplicarPreset(e.target.value);toast('Mapeamento aplicado.','ok')}else{this.preset='';this.save();this.renderUi()}};
+    $('#mLed',box).onchange=e=>{this.leds=e.target.checked;lsSet('palco_midi_leds',this.leds);this.ledSt={};this.ledLoop()};
+    $('#mSoft',box).onchange=e=>{this.soft=e.target.checked;lsSet('palco_midi_soft',this.soft)};
+    $('#mOutM',box)?.addEventListener('change',e=>AudioOut.set('master',e.target.value));
+    $('#mOutC',box)?.addEventListener('change',e=>AudioOut.set('cue',e.target.value));
+    $('#mCueV',box)?.addEventListener('input',e=>{AudioOut.cueVol=+e.target.value;lsSet('palco_cue_vol',AudioOut.cueVol);AudioOut.aplicar()});
+    $('#mNomes',box)?.addEventListener('click',async()=>{if(await AudioOut.liberarNomes())this.renderUi();else toast('Permissão negada.','warn')});
+    $('#mExp',box).onclick=()=>this.exportar();
+    $('#mImp',box).onchange=e=>{const f=e.target.files[0];if(f)this.importar(f)};
+    $('#mClr',box).onclick=async()=>{if(await confirmDialog('Apagar todo o mapeamento da controladora?',{title:'Limpar mapeamento',ok:'Apagar',danger:true})){this.maps=[];this.preset='';this.save();this.renderUi()}};
+    box.onclick=e=>{
+      const l=e.target.closest('[data-learn]');if(l){if(!this.acc)this.conectar();this.learn=this.learn===l.dataset.learn?null:l.dataset.learn;this.renderUi();return}
+      const u=e.target.closest('[data-unmap]');if(u){this.maps=this.maps.filter(m=>m.cmd!==u.dataset.unmap);this.preset='';this.save();this.renderUi();return}
+      const iv=e.target.closest('[data-inv]');if(iv){this.maps.filter(m=>m.cmd===iv.dataset.inv).forEach(m=>m.inv=!m.inv);this.save();this.renderUi()}
+    };
+  }
+};
+MIDI.index();
+
+/* =========================================================
+   OFFLINE — app instalado no aparelho + músicas salvas localmente
+   ========================================================= */
+const AUDIO_EXT=/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|mp4|m4v|webm|mov|aif|aiff|wma)$/i;
+const Offline={
+  sw(){
+    if('serviceWorker' in navigator&&(location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)))
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    try{navigator.storage?.persist?.()}catch{}
+  },
+  init(){
+    const up=()=>{this.chip();DJ.render()};window.addEventListener('online',up);window.addEventListener('offline',up);
+    if(lsGet('palco_midi_on',false))MIDI.conectar(true);
+  },
+  chip(){const c=$('#djNet');if(!c)return;const on=navigator.onLine;c.className='dj-chip '+(on?'':'off');c.innerHTML=`${icon(on?'wifi':'wifi-off')}<span>${on?'ONLINE':'OFFLINE'}</span>`;c.title=on?'Com internet: links do YouTube e Deezer disponíveis':'Sem internet: tocam só as músicas salvas no aparelho'},
+  async espaco(){try{const e=await navigator.storage.estimate();return e}catch{return null}},
+  /* baixa um link direto (Drive, Dropbox, MP3, prévia do Deezer) para tocar sem internet */
+  async baixar(m){
+    if(!m?.link?.src)return toast('Este link não pode ser baixado direto (YouTube, Spotify, SoundCloud e Vimeo não permitem). Baixe o arquivo e use <b>Importar</b>.','warn',8000);
+    if(!navigator.onLine)return toast('Sem internet.','warn');
+    toast(`Baixando <b>${esc(m.titulo)}</b>…`,'info',2500);
+    try{
+      const r=await fetch(m.link.src,{mode:'cors'});if(!r.ok)throw 0;const b=await r.blob();
+      if(b.size<20000||!/^(audio|video)\//.test(b.type)&&!/octet/.test(b.type))throw 0;
+      await DB.put('audios',b,m.id);m.off=true;m.mime=b.type;m.tamanho=b.size;Avulsas.salvar();
+      toast(`<b>${esc(m.titulo)}</b> salva no aparelho — toca offline.`,'ok',4000);
+    }catch{toast('O site não permite baixar direto pelo navegador. Baixe o arquivo e use <b>Importar</b> (ou <b>Pasta</b>).','warn',8000)}
+  },
+  /* importação com vínculo automático às faixas do Deezer */
+  async importar(files){
+    files=files.filter(f=>AUDIO_EXT.test(f.name)||/^(audio|video)\//.test(f.type));
+    if(!files.length)return toast('Nenhum arquivo de música encontrado.','warn');
+    const resto=await Deezer.vincular(files,true);
+    if(resto.length)await Avulsas.addArquivos(resto);
+  }
+};
+
+/* =========================================================
+   DEEZER — importa e sincroniza playlists, álbuns e faixas
+   (API pública via JSONP; músicas completas tocam a partir dos arquivos locais)
+   ========================================================= */
+const normTxt=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/&/g,' e ');
+const tokens=s=>normTxt(s).split(/[^a-z0-9]+/).filter(w=>w&&(w.length>1||/\d/.test(w))&&!['the','de','da','do','e','a','o','feat','ft','mp3','official','oficial','audio','video','clipe','lyric','lyrics','hd','remastered','remaster'].includes(w));
+const tituloBase=t=>String(t||'').replace(/\s*[\(\[][^\)\]]*[\)\]]/g,'').replace(/\s+-\s+.*(remaster|ao vivo|live|version|vers[aã]o|edit|mix).*$/i,'').trim();
+const Deezer={
+  fontes:lsGet('palco_dz_fontes',[]),auto:lsGet('palco_dz_auto',true),busy:false,
+  api(path,params={}){
+    return new Promise((res,rej)=>{
+      const cb='__dz'+uid().replace(/\W/g,''),s=document.createElement('script');
+      const q=new URLSearchParams({...params,output:'jsonp',callback:cb});
+      const fim=()=>{clearTimeout(to);try{delete window[cb]}catch{window[cb]=undefined}s.remove()};
+      const to=setTimeout(()=>{fim();rej(new Error('O Deezer não respondeu. Verifique a internet.'))},15000);
+      window[cb]=d=>{fim();if(d&&d.error)rej(new Error(d.error.code===800?'Não encontrado no Deezer (a playlist precisa ser pública).':(d.error.message||'Erro do Deezer')));else res(d)};
+      s.onerror=()=>{fim();rej(new Error('Sem conexão com o Deezer.'))};
+      s.src=`https://api.deezer.com/${path}${path.includes('?')?'&':'?'}${q}`;document.head.appendChild(s);
+    });
+  },
+  parse(raw){
+    raw=String(raw||'').trim();if(!raw)return null;
+    if(/^\d{3,}$/.test(raw))return{tipo:'user',id:raw};
+    if(/deezer\.page\.link|link\.deezer\.com|dzr\.page\.link/i.test(raw))return{tipo:'curto'};
+    const m=raw.match(/deezer\.com\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?(track|playlist|album|profile|artist|user)\/(\d+)/i);
+    if(!m)return null;const t=m[1].toLowerCase();return{tipo:t==='profile'?'user':t,id:m[2]};
+  },
+  async todas(path){
+    const out=[];let idx=0;
+    for(let i=0;i<40;i++){const r=await this.api(path,{limit:100,index:idx});const d=r.data||[];out.push(...d);if(!r.next||!d.length)break;idx+=d.length}
+    return out;
+  },
+  async faixas(f){
+    if(f.tipo==='track'){const t=await this.api('track/'+f.id);return{titulo:t.title,faixas:[t]}}
+    if(f.tipo==='album'){const a=await this.api('album/'+f.id);return{titulo:a.title+' — '+(a.artist?.name||''),faixas:(await this.todas(`album/${f.id}/tracks`)).map(t=>({...t,album:t.album||{title:a.title,cover_small:a.cover_small}}))}}
+    if(f.tipo==='artist'){const a=await this.api('artist/'+f.id);return{titulo:'Top de '+a.name,faixas:(await this.api(`artist/${f.id}/top`,{limit:50})).data||[]}}
+    if(f.tipo==='playlist'){const p=await this.api('playlist/'+f.id);return{titulo:p.title,faixas:await this.todas(`playlist/${f.id}/tracks`)}}
+    throw new Error('Tipo de link não suportado.');
+  },
+  doDeezer(){return Avulsas.lista.filter(m=>m.dz)},
+  novo(t){
+    return{id:'av:'+uid(),titulo:t.title||t.title_short||'Faixa',artista:t.artist?.name||'',
+      link:t.preview?{tipo:'stream',src:t.preview,url:t.link||`https://www.deezer.com/track/${t.id}`,nome:'Deezer · prévia 30 s'}:null,
+      dz:{id:t.id,dur:t.duration||0,cover:t.album?.cover_small||'',album:t.album?.title||'',curto:t.title_short||''},
+      previa:true,video:false,avulsa:true,status:'pronta',inicio:0,fim:0};
+  },
+  async importar(f,{silencioso=false}={}){
+    if(!state.evento){toast('Selecione um evento primeiro.','warn');return 0}
+    await Avulsas.carregar();
+    const{titulo,faixas}=await this.faixas(f);
+    const tem=new Set(this.doDeezer().map(m=>String(m.dz.id)));let n=0;
+    for(const t of faixas){if(!t||!t.id||tem.has(String(t.id))||t.readable===false&&!t.preview)continue;Avulsas.lista.push(this.novo(t));tem.add(String(t.id));n++}
+    if(f.tipo!=='track'){const i=this.fontes.findIndex(x=>x.tipo===f.tipo&&x.id===f.id);const reg={tipo:f.tipo,id:f.id,titulo,n:faixas.length,at:new Date().toISOString()};if(i<0)this.fontes.push(reg);else this.fontes[i]=reg;lsSet('palco_dz_fontes',this.fontes)}
+    Avulsas.salvar();
+    if(!silencioso||n)toast(n?`<b>${n}</b> faixa${n>1?'s':''} de <b>${esc(titulo)}</b> adicionada${n>1?'s':''} às Avulsas.`:`<b>${esc(titulo)}</b> já está sincronizada.`,n?'ok':'info',4500);
+    return n;
+  },
+  async sincronizar(silencioso){
+    if(this.busy||!this.fontes.length)return;if(!navigator.onLine){if(!silencioso)toast('Sem internet para sincronizar com o Deezer.','warn');return}
+    this.busy=true;let tot=0;
+    try{for(const f of this.fontes){try{tot+=await this.importar(f,{silencioso:true})}catch(e){if(!silencioso)toast(esc(f.titulo)+': '+esc(e.message),'err',6000)}}}
+    finally{this.busy=false}
+    if(!silencioso||tot)toast(tot?`Deezer sincronizado: <b>${tot}</b> faixa(s) nova(s).`:'Deezer sincronizado: nada novo.',tot?'ok':'info',4000);
+    this.renderUi();
+  },
+  /* liga faixas do Deezer a arquivos de música locais (por artista + título no nome do arquivo) */
+  pontua(m,nome){
+    const f=new Set(tokens(nome.replace(/\.[^.]+$/,''))),tt=tokens(tituloBase(m.dz?.curto||m.titulo));if(!tt.length)return 0;
+    const th=tt.filter(w=>f.has(w)).length/tt.length,at=tokens(m.artista),ah=at.length?at.filter(w=>f.has(w)).length/at.length:0;
+    if(th<.8)return 0;return th*.7+ah*.3-(f.size>tt.length+at.length+3?.05:0);
+  },
+  async vincular(files,silencioso){
+    const pend=this.doDeezer().filter(m=>!m.off||m.previa);let ok=0;const usados=new Set();
+    if(pend.length)for(const m of pend){
+      let best=null,bs=0;for(const f of files){if(usados.has(f))continue;const s=this.pontua(m,f.name);if(s>bs){bs=s;best=f}}
+      if(best&&bs>=.75){
+        const er=checkFile(best,MAX_LOCAL_MB);if(er)continue;
+        usados.add(best);const blob=new Blob([best],{type:mimeOf(best)});await DB.put('audios',blob,m.id);
+        Object.assign(m,{off:true,previa:false,mime:blob.type,nomeArquivo:best.name,tamanho:best.size});ok++;
+        DJ.decks.forEach(d=>{if(d.m?.id===m.id&&!d.playing)d.load(m)});
+      }
+    }
+    if(ok){Avulsas.salvar();toast(`<b>${ok}</b> faixa${ok>1?'s':''} do Deezer ligada${ok>1?'s':''} a arquivos do aparelho (tocam inteiras e offline).`,'ok',5000)}
+    else if(!silencioso)toast('Nenhum arquivo correspondeu às faixas do Deezer. O nome do arquivo precisa ter o título da música (ex.: “Artista - Título.mp3”).','warn',8000);
+    this.renderUi();
+    return files.filter(f=>!usados.has(f));
+  },
+  async vincularUm(m,f){const er=checkFile(f,MAX_LOCAL_MB);if(er)return toast(esc(er),'err');const blob=new Blob([f],{type:mimeOf(f)});await DB.put('audios',blob,m.id);Object.assign(m,{off:true,previa:false,mime:blob.type,nomeArquivo:f.name,tamanho:f.size});Avulsas.salvar();this.renderUi();toast(`<b>${esc(m.titulo)}</b> ligada a ${esc(f.name)}.`,'ok')},
+  /* ---------- tela ---------- */
+  ui:null,res:[],
+  abrir(){
+    if(!state.evento)return toast('Selecione um evento primeiro.','warn');
+    Avulsas.carregar().then(()=>openModal(`${modalHead('Deezer','Importe e sincronize suas playlists com os decks')}<div id="dzUi"></div>`,{wide:true,onMount:md=>{this.ui=md;this.renderUi()},onClose:()=>{this.ui=null}}));
+  },
+  renderUi(){
+    const md=this.ui;if(!md)return;const box=$('#dzUi',md);if(!box)return;
+    const L=this.doDeezer(),full=L.filter(m=>m.off&&!m.previa).length,prev=L.filter(m=>!(m.off&&!m.previa)&&m.link).length,sem=L.length-full-prev;
+    box.innerHTML=`
+      <div class="note">${icon('info')}<div>O Deezer não libera a música completa para outros aplicativos. Aqui o sistema importa suas <b>playlists</b> (nome, artista e ordem) e <b>liga cada faixa ao arquivo de música do seu computador</b> — assim ela toca inteira, com EQ, filtro e <b>sem internet</b>. Faixa sem arquivo toca só a prévia de 30 s (com internet). A playlist precisa estar <b>pública</b>.</div></div>
+      <form class="copyrow" id="dzF" style="margin-top:14px"><input type="text" id="dzIn" placeholder="Link do Deezer: playlist, álbum, faixa ou perfil" aria-label="Link do Deezer"><button class="btn sm primary" type="submit">${icon('download')}Importar</button></form>
+      <form class="copyrow" id="dzS" style="margin-top:8px"><input type="search" id="dzQ" placeholder="Buscar música no Deezer…" aria-label="Buscar no Deezer"><button class="btn sm" type="submit">${icon('search')}Buscar</button></form>
+      <ol class="dz-res" id="dzRes">${this.res.map(t=>this.itemRes(t)).join('')}</ol>
+      <h3 class="mh">Playlists sincronizadas</h3>
+      ${this.fontes.length?`<ul class="dz-src">${this.fontes.map((f,i)=>`<li><div><b>${esc(f.titulo)}</b><small>${{playlist:'Playlist',album:'Álbum',artist:'Artista'}[f.tipo]||f.tipo} · ${f.n} faixas · ${esc(fmtHora(f.at))}</small></div><button type="button" class="btn sm" data-dzsync="${i}">${icon('refresh')}</button><button type="button" class="btn sm ghost" data-dzrm="${i}" title="Parar de sincronizar">${icon('x')}</button></li>`).join('')}</ul>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn sm primary" id="dzAll">${icon('refresh')}Sincronizar tudo agora</button><label class="chk"><input type="checkbox" id="dzAuto" ${this.auto?'checked':''}>Sincronizar sozinho ao abrir os decks (com internet)</label></div>`
+      :'<p class="hint">Nenhuma ainda. Importe o link de uma playlist acima.</p>'}
+      <h3 class="mh">Faixas do Deezer neste evento <small>${full} completas · ${prev} só prévia · ${sem} sem áudio</small></h3>
+      <div class="row"><label class="btn sm primary">${icon('folder')}Ligar a uma pasta de músicas<input type="file" id="dzDir" webkitdirectory directory multiple hidden></label><label class="btn sm">${icon('upload')}Ligar a arquivos<input type="file" id="dzFiles" multiple accept="audio/*,video/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" hidden></label></div>
+      <ol class="dz-trk">${L.map(m=>{const ok=m.off&&!m.previa;return`<li class="${ok?'ok':''}"><span class="st" title="${ok?'Arquivo local — completa e offline':m.link?'Só prévia de 30 s (precisa de internet)':'Sem áudio'}">${ok?'✓':m.link?'30s':'—'}</span><div class="i"><b>${esc(m.titulo)}</b><small>${esc(m.artista)}${ok&&m.nomeArquivo?' · '+esc(m.nomeArquivo):''}</small></div><label class="btn sm ghost" title="Escolher o arquivo desta música">${icon('link')}<input type="file" data-dzone="${m.id}" accept="audio/*,video/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" hidden></label></li>`}).join('')||'<li class="vazio">Nenhuma faixa importada.</li>'}</ol>`;
+    $('#dzF',box).onsubmit=async e=>{e.preventDefault();const v=$('#dzIn',box).value;const f=this.parse(v);
+      if(!f)return toast('Cole um link do Deezer (playlist, álbum, faixa ou perfil).','warn');
+      if(f.tipo==='curto')return toast('Links curtos (deezer.page.link) não podem ser lidos. Abra o link no navegador e copie o endereço completo (deezer.com/…/playlist/…).','warn',9000);
+      if(!navigator.onLine)return toast('Sem internet.','warn');
+      try{if(f.tipo==='user')return this.perfil(f.id);await this.importar(f);$('#dzIn',box).value='';this.renderUi()}catch(er){toast(esc(er.message),'err',7000)}};
+    $('#dzS',box).onsubmit=async e=>{e.preventDefault();const q=$('#dzQ',box).value.trim();if(!q)return;try{this.res=((await this.api('search',{q,limit:25})).data||[]);this.renderUi();setTimeout(()=>{const i=$('#dzQ',this.ui);if(i){i.value=q}},0)}catch(er){toast(esc(er.message),'err')}};
+    $('#dzAll',box)?.addEventListener('click',()=>this.sincronizar());
+    $('#dzAuto',box)?.addEventListener('change',e=>{this.auto=e.target.checked;lsSet('palco_dz_auto',this.auto)});
+    const lig=async e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)await this.vincular(fs.filter(f=>AUDIO_EXT.test(f.name)||/^(audio|video)\//.test(f.type)))};
+    $('#dzDir',box).onchange=lig;$('#dzFiles',box).onchange=lig;
+    box.onchange=e=>{const one=e.target.closest('[data-dzone]');if(one&&one.files[0]){const m=Avulsas.get(one.dataset.dzone);if(m)this.vincularUm(m,one.files[0])}};
+    box.onclick=async e=>{
+      const s=e.target.closest('[data-dzsync]');if(s){try{await this.importar(this.fontes[+s.dataset.dzsync]);this.renderUi()}catch(er){toast(esc(er.message),'err')}return}
+      const r=e.target.closest('[data-dzrm]');if(r){this.fontes.splice(+r.dataset.dzrm,1);lsSet('palco_dz_fontes',this.fontes);this.renderUi();return}
+      const a=e.target.closest('[data-dzadd]');if(a){const t=this.res.find(x=>String(x.id)===a.dataset.dzadd);if(t){await this.importar({tipo:'track',id:t.id});a.disabled=true;a.innerHTML=icon('check');this.renderUi()}return}
+      const pl=e.target.closest('[data-dzpl]');if(pl){try{await this.importar({tipo:'playlist',id:pl.dataset.dzpl});this.res=[];this.renderUi()}catch(er){toast(esc(er.message),'err')}}
+    };
+  },
+  itemRes(t){if(t._pl)return`<li><div class="i"><b>${esc(t.title)}</b><small>Playlist · ${t.nb_tracks} faixas${t.is_loved_track?' · Favoritas':''}</small></div><button type="button" class="btn sm primary" data-dzpl="${t.id}">${icon('download')}Importar</button></li>`;
+    return`<li><div class="i"><b>${esc(t.title)}</b><small>${esc(t.artist?.name||'')} · ${fmt(t.duration)}</small></div><button type="button" class="btn sm" data-dzadd="${t.id}" title="Adicionar às Avulsas">${icon('plus')}</button></li>`},
+  async perfil(id){
+    try{const u=await this.api('user/'+id);const pl=await this.todas(`user/${id}/playlists`);this.res=pl.map(p=>({...p,_pl:true}));this.renderUi();
+      toast(pl.length?`Playlists públicas de <b>${esc(u.name)}</b>: escolha qual importar.`:`<b>${esc(u.name)}</b> não tem playlists públicas.`,'info',5000)}
+    catch(er){toast(esc(er.message),'err',7000)}
+  }
+};
+/* atualiza o link da prévia (expira) antes de carregar no deck */
+{const _ld=Deck.prototype.load;Deck.prototype.load=async function(m){
+  if(m?.dz&&!(m.off&&!m.previa)&&navigator.onLine){try{const t=await Deezer.api('track/'+m.dz.id);if(t.preview)m.link={tipo:'stream',src:t.preview,url:t.link,nome:'Deezer · prévia 30 s'}}catch{}}
+  return _ld.call(this,m);
+}}
+
+/* =========================================================
+   LIGAÇÃO COM O MODO DJ
+   ========================================================= */
+{const _mt=DJ.montar;DJ.montar=function(){
+  const novo=!$('#dj').dataset.ok;_mt.call(this);if(!novo)return;
+  const el=$('#dj');
+  $('#djMidi').onclick=()=>MIDI.abrir();
+  $('#djDz').onclick=()=>Deezer.abrir();
+  $('#djFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)await Offline.importar(fs)};
+  $('#djDir').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)await Offline.importar(fs)};
+  el.addEventListener('click',e=>{
+    const p=e.target.closest('[data-act=pfl]');if(p){const d=DJ.decks.find(x=>x.id===p.closest('[data-deck]').dataset.deck);if(d)togglePfl(d);return}
+    const o=e.target.closest('[data-avoff]');if(o){const m=Avulsas.get(o.dataset.avoff);if(m)Offline.baixar(m);return}
+    const li=e.target.closest('.dj-ol li');if(li&&!e.target.closest('button')){const b=li.querySelector('[data-load]');if(b){Browse.id=b.dataset.id;Browse.aplicar()}}
+  },true);
+  el.addEventListener('input',e=>{const t=e.target;if(!t.hasAttribute('data-flt'))return;const d=DJ.decks.find(x=>x.id===t.closest('[data-deck]').dataset.deck);if(d){d.flt=+t.value;d.applyFx()}});
+  el.addEventListener('dblclick',e=>{const t=e.target;if(!t.hasAttribute('data-flt'))return;t.value=0;t.dispatchEvent(new Event('input',{bubbles:true}))});
+  Offline.chip();MIDI.chip();
+}}
+{const _rd=DJ.render;DJ.render=function(){
+  _rd.call(this);
+  if(!this.aberto||!$('#dj')?.dataset.ok)return;
+  for(const d of this.decks){const s=$(`#dj [data-deck=${d.id}]`);if(!s)continue;$('[data-act=pfl]',s)?.classList.toggle('on',!!d.pfl);const f=$('[data-flt]',s);if(f)f.disabled=!!d.ext}
+  const on=navigator.onLine;
+  $$('#djAv li').forEach(li=>{
+    const b=li.querySelector('[data-load]');const m=b&&Avulsas.get(b.dataset.id);if(!m)return;
+    const local=m.off&&!m.previa;
+    if(m.dz){const sm=$('.i small',li);if(sm)sm.textContent=`${m.artista||''} · Deezer · ${local?'arquivo local':m.link?'prévia 30 s':'sem áudio'}`}
+    li.classList.toggle('net',!on&&!!m.link&&!m.off);
+    if(m.link&&m.link.tipo==='stream'&&!m.off&&!li.querySelector('[data-avoff]')){const bx=$('.b',li);bx?.insertAdjacentHTML('afterbegin',`<button data-avoff="${m.id}" title="Baixar para tocar offline">${icon('download')}</button>`)}
+  });
+  $$('#djList li').forEach(li=>{const b=li.querySelector('[data-load]');const m=b&&state.musicas.find(x=>x.id===b.dataset.id);if(m)li.classList.toggle('net',!on&&!hasAudio(m))});
+  Browse.aplicar();Offline.chip();
+}}
+{const _ab=DJ.abrir;DJ.abrir=function(){_ab.call(this);if(Deezer.auto&&Deezer.fontes.length&&navigator.onLine&&state.evento)Avulsas.carregar().then(()=>Deezer.sincronizar(true))}}
+
+/* =========================================================
    BOOT
    ========================================================= */
 (async()=>{
   try{await DB.open()}catch{toast('Não foi possível abrir o banco local (IndexedDB). Saia do modo anônimo ou libere o armazenamento.','err',9000)}
   Tema.init();
+  Offline.sw();
   const h=location.hash;
   if(h==='#telao'){initTelao();return}
   if(h.startsWith('#enviar=')){const fb=document.createElement('button');fb.className='tema-fab';fb.type='button';fb.title='Tema claro / escuro';fb.setAttribute('aria-label','Trocar tema');fb.innerHTML='<svg class="ic" data-tema-ic><use href="#i-contrast"/></svg>';fb.onclick=()=>Tema.proximo();document.body.appendChild(fb);Tema.aplicar()}
@@ -6184,6 +6771,7 @@ function invalidLink(){
     else invalidLink();
   }else{
     initAdmin();
+    Offline.init();
   }
 })();
 window.addEventListener('hashchange',()=>location.reload());
