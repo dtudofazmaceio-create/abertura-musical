@@ -1110,6 +1110,11 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 .deck.is-live .dk-id{box-shadow:0 0 0 3px rgba(255,84,112,.55)}
 .deck.is-live [data-f=rem]{color:var(--danger);font-size:1.2rem}
 .dz-trk .st.yt{color:#ff4e45}
+
+.som-lib{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:130;display:flex;align-items:center;gap:14px;max-width:min(560px,92vw);padding:16px 22px;border-radius:18px;border:2px solid var(--ok);background:var(--surface);color:var(--text);box-shadow:0 18px 50px rgba(0,0,0,.45);cursor:pointer;text-align:left;font:inherit;animation:somPulse 1.4s ease-in-out infinite}
+.som-lib .ic{width:34px;height:34px;color:var(--ok);flex:none}
+.som-lib b{display:block;font-size:1.05rem}.som-lib small{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
+@keyframes somPulse{50%{box-shadow:0 0 0 8px rgba(47,209,139,.25),0 18px 50px rgba(0,0,0,.45)}}
 </style>
 </head>
 <body>
@@ -7005,6 +7010,59 @@ const YTBusca={
     if(d.g){const b=new Uint8Array(d.g.an.frequencyBinCount);d.g.an.getByteFrequencyData(b);const n=64,bw=W/n;for(let i=0;i<n;i++){const v=b[Math.floor(i*b.length/n/1.6)]/255,h=Math.max(2*dpr,v*H*.92);x.fillStyle=col;x.globalAlpha=d.liveMute?.35:.9;x.fillRect(i*bw+1,(H-h)/2,Math.max(1,bw-2*dpr),h)}x.globalAlpha=1}
     x.fillStyle='#fff';x.font=`800 ${12*dpr}px system-ui`;x.fillText(d.liveMute?'❚❚ AO VIVO (pausado no Palco)':'● AO VIVO',10*dpr,18*dpr);
   };
+}
+
+/* =========================================================
+   DIAGNÓSTICO DE SOM: libera o áudio do navegador e avisa quando
+   o deck toca mas o som está cortado (crossfader, fader, master, saída)
+   ========================================================= */
+const SomCheck={
+  aviso:{},saidaAvisada:false,
+  ctxOk(){const c=DJ.ctx;return!c||c.state==='running'},
+  async liberar(){
+    try{const c=DJ.ensureCtx();if(c&&c.state!=='running')await c.resume()}catch{}
+    try{const pc=Player.ctx;if(pc?.state==='suspended')await pc.resume()}catch{}
+    for(const d of DJ.decks){
+      if(d.ext?.p?.unMute)try{d.ext.p.unMute()}catch{}
+      if(d._quer&&!d.playing){d._quer=false;try{await d.play()}catch{}}
+    }
+    this.esconder();
+  },
+  mostrar(){
+    if($('#somLib'))return;
+    document.body.insertAdjacentHTML('beforeend',`<button type="button" id="somLib" class="som-lib">${icon('vol')}<span><b>Clique aqui para liberar o som</b><small>O navegador só libera o áudio depois de um clique ou tecla na página — botões da controladora não contam.</small></span></button>`);
+    $('#somLib').onclick=()=>this.liberar();
+  },
+  esconder(){$('#somLib')?.remove()},
+  avisar(k,msg){const t=performance.now();if(this.aviso[k]&&t-this.aviso[k]<15000)return;this.aviso[k]=t;toast(msg,'warn',7000)},
+  verificar(d){
+    if(!d?.m||!d.playing&&!d._quer)return;
+    if(!this.ctxOk()&&!d.ext){this.mostrar();return}
+    if(d._quer&&!d.playing){this.mostrar();return}
+    const outro=DJ.outro(d);
+    if(d.fader<.05)this.avisar('f'+d.id,`Deck ${d.id} tocando, mas o <b>fader do canal ${d.id}</b> está abaixado.`);
+    else if(DJ.xfGain(d)<.08)this.avisar('x'+d.id,`Deck ${d.id} tocando, mas o <b>crossfader está todo no lado ${outro.id}</b>. Arraste para o ${d.id} (ou use MIX).`);
+    else if(DJ.vol<.05)this.avisar('m','O <b>volume MASTER</b> está no zero.');
+    else if(d.ext&&d.ext.p?.isMuted?.())this.mostrar();
+    if(AudioOut.master&&!this.saidaAvisada){this.saidaAvisada=true;
+      AudioOut.lista().then(L=>{const o=L.find(x=>x.deviceId===AudioOut.master);toast(`O som do master está saindo por <b>${esc(o?.label||'outra saída de áudio')}</b> (escolhida em CONTROLADORA). Se não ouvir nada, volte para “Padrão do sistema”.${d.ext?' Vídeos do YouTube saem sempre pela saída padrão do Windows.':''}`,'info',9000)})}
+  }
+};
+{
+  const pl=Deck.prototype.play;Deck.prototype.play=async function(...a){
+    this._quer=true;
+    /* confere 0,9 s depois (o navegador pode segurar o áudio esperando um clique) */
+    setTimeout(()=>{if(this.playing&&SomCheck.ctxOk())this._quer=false;SomCheck.verificar(this)},900);
+    const r=await pl.apply(this,a);
+    if(this.playing)this._quer=false;
+    return r;
+  };
+  const pa=Deck.prototype.pause;Deck.prototype.pause=function(...a){this._quer=false;return pa.apply(this,a)};
+  /* qualquer clique ou tecla na página já libera o áudio */
+  const lib=()=>{if(DJ.ctx&&DJ.ctx.state==='suspended')DJ.ctx.resume().then(()=>{if(SomCheck.ctxOk())SomCheck.esconder()}).catch(()=>{})};
+  window.addEventListener('pointerdown',lib,true);window.addEventListener('keydown',lib,true);
+  /* o YouTube ficou mudo ou bloqueado: oferece o botão de liberar */
+  const as=DJ.alertaSom;DJ.alertaSom=function(d,tipo){as.call(this,d,tipo);if(tipo==='mudo'||tipo==='bloqueado')SomCheck.mostrar();else if(tipo===null&&SomCheck.ctxOk())SomCheck.esconder()};
 }
 
 /* =========================================================
