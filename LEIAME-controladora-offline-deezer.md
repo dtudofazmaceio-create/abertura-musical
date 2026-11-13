@@ -113,10 +113,11 @@ A ordem de busca é esta:
 Abaixo do botão MIX PRO aparece **"Próxima: …"**. Se não houver nenhuma, aparece **"Sem próxima música!"** em laranja.
 
 ### YouTube e anúncios
-- **Próxima música do YouTube:** quando ela é carregada enquanto o outro deck toca, o vídeo já começa **em silêncio**. Se houver anúncio, ele roda com o volume fechado. Quando a música começa, o vídeo pausa no início e fica pronto. O deck mostra "YouTube preparando em silêncio".
-- **Na hora da passagem:** se o anúncio ainda estiver rodando, o sistema **espera ele acabar** (até 60 s) e só então faz a passagem. O volume abre sozinho.
-- **Play direto num deck do YouTube:** o anúncio também toca com o volume fechado, e o volume abre sozinho, em 1 s, quando a música começa.
-- **Anúncio que não termina:** se o anúncio exigir clique (ex.: "Pular anúncio"), clique direto no vídeo do deck.
+- **Ao carregar** qualquer vídeo do YouTube num deck, ele já começa a rodar **em silêncio** para "gastar" o anúncio antes da hora. Quando a música começa, o vídeo pausa no início e fica pronto. O deck mostra "Anúncio rodando em silêncio".
+- **Anúncio no deck que está no ar:** o volume fica fechado e o deck mostra **"Anúncio do YouTube"**. Se aparecer **Pular**, clique nele no vídeo: a música entra e o volume abre sozinho, em cerca de 1 s.
+- **Para a pista não ficar em silêncio:** com o AUTO MIX ligado, se o anúncio passar de 6 s e o outro deck tiver uma música pronta, o sistema toca o outro deck. O vídeo continua rodando o anúncio em silêncio e entra como próxima música quando ficar pronto. Com o AUTO MIX desligado, aparece o botão **"Tocar o deck X enquanto isso"**.
+- **Passagem com anúncio:** se a próxima música do YouTube ainda estiver no anúncio na hora da passagem, o sistema espera ele acabar (até 60 s).
+- **"Clique aqui para liberar o som":** esse aviso agora só aparece quando o navegador realmente bloqueou o áudio, ou seja, antes de qualquer clique na página. Anúncio não é bloqueio.
 
 ## 4. Modo offline
 

@@ -1154,6 +1154,8 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 
 .deck.yt-ad .dk-ext{outline:3px dashed var(--warn);outline-offset:-3px}
 .deck.yt-ad [data-f=st]{color:var(--warn);font-weight:700}
+
+.deck.yt-ad .dk-ext,.deck.yt-ad .ext-media{box-shadow:0 0 0 3px var(--warn);border-radius:12px;animation:somPulse 1.6s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -7652,7 +7654,7 @@ const MixPro={
     return r;
   };
   const pl=P.play;P.play=async function(...a){
-    if(this._warm){this._warm=false;DJ.aplicarGanhos();DJ.render();return}   /* já está rodando: só “assume” */
+    if(this._warm){this._warm=false;this._quer=true;DJ.aplicarGanhos();DJ.render();return}   /* já está rodando: só “assume” */
     return pl.apply(this,a);
   };
   const pa=P.pause;P.pause=function(...a){if(this._warm){this._warm=false;try{this.ext?.pause()}catch{}DJ.render();return}return pa.apply(this,a)};
@@ -7714,6 +7716,82 @@ setInterval(()=>YTAds.tick(),250);
       if(esperando){$('[data-f=st]',s).textContent=d._warm?'▶ YouTube preparando em silêncio (anúncio) — entra na passagem quando a música começar':'⏳ Anúncio do YouTube — volume fechado; abre sozinho quando a música começar'}
     }
     const n=$('#djNext');if(n&&this._esperaYT){n.hidden=false;n.textContent='Esperando o anúncio do YouTube…';n.classList.add('warn')}
+  };
+}
+
+/* =========================================================
+   YOUTUBE: fluxo de anúncios revisado
+   • todo vídeo do YouTube carregado já roda o anúncio em silêncio
+   • anúncio ≠ bloqueio: mensagem certa, sem o botão "liberar som"
+   • anúncio no deck que está no ar: o AUTO MIX toca o outro deck
+     enquanto isso e o vídeo volta como próxima música quando ficar pronto
+   ========================================================= */
+{
+  const isYT=d=>d?.ext?.info?.tipo==='youtube';
+  const ativo=()=>!!navigator.userActivation?.hasBeenActive;
+  /* 1) aquece todo YouTube carregado (não só quando o outro deck toca) */
+  const ld=Deck.prototype.load;Deck.prototype.load=async function(m,...a){
+    const r=await ld.call(this,m,...a);
+    if(this.m===m&&isYT(this)&&!this._ytOk&&!this._warm&&!gpPlaying(this))YTAds.aquecer(this);
+    return r;
+  };
+  /* 2) "liberar som" só quando o problema é mesmo o bloqueio de áudio do navegador */
+  const sm=SomCheck.mostrar.bind(SomCheck);SomCheck.mostrar=function(){
+    if(ativo()&&SomCheck.ctxOk()){const yt=DJ.decks.find(d=>isYT(d)&&!d._ytOk&&(d._quer||d._warm));if(yt||DJ.decks.every(d=>!d.m||isYT(d)))return}
+    return sm();
+  };
+  const as=DJ.alertaSom;DJ.alertaSom=function(d,tipo){
+    if(tipo==='bloqueado'&&isYT(d)&&ativo()){d._anuncio=true;YTAds.alerta(d);return}
+    if(!tipo&&d._anuncio&&!d._ytOk)return;
+    return as.call(this,d,tipo);
+  };
+  YTAds.alerta=function(d){
+    const s=$(`#dj [data-deck=${d.id}]`);const a=s&&$('[data-f=al]',s);if(!a)return;
+    if(d._ytOk||!d._anuncio){if(a.dataset.ad){a.hidden=true;delete a.dataset.ad}return}
+    const o=DJ.outro(d),podeOutro=!d._warm&&o.m&&!o.playing&&(!isYT(o)||o._ytOk);
+    a.hidden=false;a.dataset.ad='1';
+    a.innerHTML=`${icon('tv')}<span><b>Anúncio do YouTube</b> rodando com o volume fechado. Se aparecer <b>Pular</b>, clique nele no vídeo — a música entra e o volume abre sozinho.</span>${podeOutro?`<button type="button" class="btn sm primary" data-adout>Tocar o deck ${o.id} enquanto isso</button>`:''}`;
+    $('[data-adout]',a)?.addEventListener('click',()=>YTAds.desviar(d,true));
+  };
+  /* 3) toca o outro deck enquanto o anúncio roda; o vídeo continua aquecendo e vira a próxima */
+  YTAds.desviar=async function(d,manual){
+    const o=DJ.outro(d);
+    if(!o.m){const n=DJ.proxima(d.m?.id,true);if(n&&!n.link&&!Fila.ids.includes(d.m?.id))await o.load(n)}
+    if(!o.m||(isYT(o)&&!o._ytOk)){if(manual)toast('O outro deck não tem uma música pronta.','warn');return false}
+    d._warm=true;d._quer=false;
+    DJ.xf=o===DJ.B?1:0;DJ.syncXf();DJ.aplicarGanhos();
+    await o.play();
+    toast(`Anúncio longo no deck ${d.id}: tocando o deck ${o.id} enquanto isso. <b>${esc(d.m.titulo)}</b> fica pronta como próxima música.`,'info',8000);
+    DJ.render();return true;
+  };
+  /* detecção do anúncio: pediu para tocar e o tempo do vídeo não anda */
+  setInterval(()=>{
+    const now=performance.now();
+    for(const d of DJ.decks){
+      if(!isYT(d)||d._ytOk){d._adDesde=0;continue}
+      const pedindo=d._warm||d._quer;
+      if(!pedindo){d._adDesde=0;continue}
+      if(!d._adDesde)d._adDesde=now;
+      if(now-d._adDesde>2500&&!d._anuncio){d._anuncio=true;DJ.render()}
+      /* no ar, com AUTO MIX: não deixa a pista em silêncio */
+      if(d._anuncio&&!d._warm&&DJ.auto&&!d._desviado&&now-d._adDesde>6000&&DJ.xfGain(d)>.5&&!DJ.decks.some(x=>x!==d&&x.playing)){
+        d._desviado=true;YTAds.desviar(d,false).then(ok=>{if(!ok){d._desviado=false;d._adDesde=now}});
+      }
+    }
+  },300);
+  /* limpa estados ao carregar */
+  const ld2=Deck.prototype.load;Deck.prototype.load=async function(m,...a){this._anuncio=false;this._adDesde=0;this._desviado=false;return ld2.call(this,m,...a)};
+  /* quando a música começa: some o aviso */
+  const tk=YTAds.tick.bind(YTAds);YTAds.tick=function(){const antes=DJ.decks.map(d=>d._ytOk);tk();DJ.decks.forEach((d,i)=>{if(d._ytOk&&!antes[i]){d._anuncio=false;if(!d._warm)d._quer=false;YTAds.alerta(d);if(!d._warm){DJ.loop();for(let k=1;k<=6;k++)setTimeout(()=>DJ.aplicarGanhos(),k*200)}}})};
+  /* visual: botão PLAY e status durante o anúncio */
+  const rd=DJ.render;DJ.render=function(){rd.call(this);if(!this.aberto)return;
+    for(const d of this.decks){const s=$(`#dj [data-deck=${d.id}]`);if(!s)continue;
+      const ad=isYT(d)&&!d._ytOk&&d._anuncio&&(d._warm||d._quer);
+      s.classList.toggle('yt-ad',!!(isYT(d)&&!d._ytOk&&(d._warm||d._quer)));
+      if(ad){$('[data-f=st]',s).textContent=d._warm?'📺 Anúncio rodando em silêncio — a música fica pronta como próxima':'📺 Anúncio do YouTube — volume fechado, abre sozinho quando a música começar';
+        if(!d._warm)$('[data-act=play]',s).innerHTML=icon('pause');}
+      YTAds.alerta(d);
+    }
   };
 }
 
