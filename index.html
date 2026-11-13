@@ -1148,6 +1148,12 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 .mp-cfg{width:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);display:grid;place-items:center;cursor:pointer}
 .mp-cfg .ic{width:18px;height:18px}
 .mp-ops{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+
+.dj-next{display:block;font-size:.7rem;line-height:1.25;color:var(--muted);text-align:center;padding:2px 4px;max-height:2.6em;overflow:hidden;word-break:break-word}
+.dj-next.warn{color:var(--warn);font-weight:800}
+
+.deck.yt-ad .dk-ext{outline:3px dashed var(--warn);outline-offset:-3px}
+.deck.yt-ad [data-f=st]{color:var(--warn);font-weight:700}
 </style>
 </head>
 <body>
@@ -7573,6 +7579,142 @@ const MixPro={
   for(const D of['A','B']){MIDI_CMDS.push({id:D+'.sync',deck:D,label:'SYNC (casar BPM e batidas)',tipo:'btn'});MIDI_TIPO[D+'.sync']='btn'}
   MIDI_CMDS.push({id:'g.pro',deck:null,label:'Mix PRO liga/desliga',tipo:'btn'});MIDI_TIPO['g.pro']='btn';
   const ex=MIDI.exec;MIDI.exec=function(m,v){const[D,a]=m.cmd.split('.');if(a==='sync'){if(v)MixPro.sync(D==='A'?DJ.A:DJ.B);return}if(m.cmd==='g.pro'){if(v)$('#djPro')?.click();return}return ex.call(this,m,v)};
+}
+
+/* =========================================================
+   AUTO MIX: próxima música também das Avulsas + aviso da próxima
+   ========================================================= */
+{
+  const tocavelAv=m=>!!m&&(m.link?linkTocavel(m.link):true);
+  const proxAvulsa=(apos,soNovas)=>{
+    const L=Avulsas.lista.filter(tocavelAv),nos=new Set(DJ.decks.map(d=>d.m?.id).filter(Boolean));
+    const i=apos?L.findIndex(x=>x.id===apos):-1;const ordem=[...L.slice(i+1),...L.slice(0,Math.max(0,i))];
+    return ordem.find(m=>!nos.has(m.id)&&m.status!=='tocada')||(soNovas?null:ordem.find(m=>!nos.has(m.id)))||null;
+  };
+  const inner=DJ.proxima;DJ.proxima=function(apos,soNovas){
+    const f=Fila.proxima();if(f)return f;
+    if(Fila.usada&&Fila.depois==='parar')return null;
+    const naAvulsa=!!(apos&&Avulsas.get(apos));
+    const av=proxAvulsa(apos,soNovas);
+    if(naAvulsa&&av)return av;                       /* tocando avulsas: segue nas avulsas */
+    return inner.call(this,apos,soNovas)||av;         /* senão cronograma; se acabar, avulsas */
+  };
+  /* uma música carregada à mão no outro deck sempre entra, mesmo que já tenha tocado antes */
+  DJ.jaTocou=function(d){return!!d.m&&!!d.played};
+  /* padrão: quando a fila acaba, segue as listas */
+  if(localStorage.getItem('palco_fila_depois')==null)Fila.depois='cronograma';
+  const ft=Fila.render.bind(Fila);Fila.render=function(){ft();const s=$('#djFilaDep');if(s){const o=s.querySelector('option[value=cronograma]');if(o)o.textContent='seguir as listas (avulsas e cronograma)'}};
+  /* mostra qual será a próxima no AUTO MIX */
+  DJ.proximaAuto=function(){
+    const p=this.decks.find(d=>d.playing&&this.xfGain(d)>.5)||this.decks.find(d=>d.playing);if(!p)return null;
+    const o=this.outro(p);if(o.m&&!this.jaTocou(o))return{m:o.m,deck:o.id};
+    const n=this.proxima(p.m?.id,true);return n?{m:n,deck:o.id,carregar:true}:null;
+  };
+  const mt=DJ.montar;DJ.montar=function(){const novo=!$('#dj').dataset.ok;mt.call(this);if(!novo)return;
+    ($('.mp-row')||$('#djAuto'))?.insertAdjacentHTML('afterend','<small class="dj-next" id="djNext" hidden></small>');
+    const a=$('#djAuto');a.addEventListener('click',()=>setTimeout(()=>{if(DJ.auto&&DJ.decks.some(d=>d.playing)&&!DJ.proximaAuto())toast('AUTO MIX ligado, mas <b>não há próxima música</b>. Carregue uma no outro deck ou adicione músicas à fila / Avulsas.','warn',8000)},50));
+  };
+  let ult='';
+  const rd=DJ.render;DJ.render=function(){rd.call(this);const el=$('#djNext');if(!el)return;
+    if(!this.auto){el.hidden=true;return}
+    const n=this.proximaAuto();el.hidden=false;
+    const txt=n?`Próxima: ${n.m.titulo}${n.carregar?'':' (deck '+n.deck+')'}`:(this.decks.some(d=>d.playing)?'Sem próxima música!':'');
+    el.textContent=txt;el.classList.toggle('warn',!n&&this.decks.some(d=>d.playing));el.title=txt;
+  };
+  /* atualiza o aviso enquanto toca */
+  setInterval(()=>{if(DJ.aberto&&DJ.auto){const el=$('#djNext');if(el){const n=DJ.proximaAuto();const k=n?n.m.id+n.deck:'x';if(k!==ult){ult=k;DJ.render()}}}},1500);
+}
+
+/* =========================================================
+   YOUTUBE: anúncios com volume fechado, passagem só depois do anúncio
+   e volume abrindo sozinho quando a música começa
+   ========================================================= */
+{
+  const isYT=d=>d.ext?.info?.tipo==='youtube';
+  const P=Deck.prototype;
+  /* enquanto “aquece” (anúncio rodando em silêncio) o deck não conta como tocando */
+  const gp=Object.getOwnPropertyDescriptor(P,'playing').get;
+  Object.defineProperty(P,'playing',{get(){return this._warm?false:gp.call(this)},configurable:true});
+  /* volume: fechado durante o anúncio; abre em ~1 s quando a música começa */
+  const sg=P.setGain;P.setGain=function(v){
+    if(isYT(this)){
+      if(!this._ytOk||this._warm)v=0;
+      else if(this._ytOkAt){const q=Math.min(1,(performance.now()-this._ytOkAt)/1000);v*=q*q}
+    }
+    return sg.call(this,v);
+  };
+  const ld=P.load;P.load=async function(m,...a){
+    this._ytOk=false;this._ytOkAt=0;this._ytLast=null;this._ytSobe=0;this._warm=false;
+    const r=await ld.call(this,m,...a);
+    if(this.m===m&&this.ext&&!isYT(this))this._ytOk=true;
+    /* próxima música do YouTube: já toca o anúncio em silêncio, antes da passagem */
+    if(this.m===m&&isYT(this)&&!this._ytOk&&DJ.outro(this).playing)YTAds.aquecer(this);
+    return r;
+  };
+  const pl=P.play;P.play=async function(...a){
+    if(this._warm){this._warm=false;DJ.aplicarGanhos();DJ.render();return}   /* já está rodando: só “assume” */
+    return pl.apply(this,a);
+  };
+  const pa=P.pause;P.pause=function(...a){if(this._warm){this._warm=false;try{this.ext?.pause()}catch{}DJ.render();return}return pa.apply(this,a)};
+}
+const YTAds={
+  aquecer(d){
+    if(!d.ext||d._ytOk||d._warm)return;
+    d._warm=true;DJ.aplicarGanhos();
+    try{d.ext.play()}catch{}
+    DJ.render();
+  },
+  pronto(d){return!d.ext||d.ext.info?.tipo!=='youtube'||!!d._ytOk},
+  /* espera o anúncio acabar (até ~60 s) */
+  esperar(d,max=60000){return new Promise(res=>{const t0=performance.now();const f=()=>{if(this.pronto(d)||!d.m)return res(true);if(performance.now()-t0>max)return res(false);setTimeout(f,200)};f()})},
+  tick(){
+    for(const d of DJ.decks){
+      const p=d.ext?.p;if(!p||d.ext.info?.tipo!=='youtube'||d._ytOk)continue;
+      let ct,st;try{ct=p.getCurrentTime?.();st=p.getPlayerState?.()}catch{continue}
+      if(typeof ct!=='number')continue;
+      /* conteúdo de verdade: tempo do vídeo avançando com o player em PLAY (durante anúncio ele fica parado) */
+      const dif=d._ytLast==null?0:ct-d._ytLast;d._ytLast=ct;
+      if(st===1&&dif>.04&&dif<1.2){d._ytSobe=(d._ytSobe||0)+1}else if(st!==1||dif<=.01)d._ytSobe=0;
+      if(d._ytSobe>=2){
+        d._ytOk=true;
+        if(d._warm){d._warm=false;try{d.ext.pause();d.ext.currentTime=d.ini}catch{}d._ytOkAt=0;toast(`Deck ${d.id}: YouTube pronto — anúncio já passou.`,'ok',3000)}
+        else{d._ytOkAt=performance.now();if(d._anuncio)toast(`Deck ${d.id}: anúncio acabou — volume aberto.`,'ok',2500)}
+        d._anuncio=false;DJ.aplicarGanhos();DJ.render();
+      }else if((st===1||st===3||st===-1)&&(d._warm||gpPlaying(d))&&dif<=.01&&!d._anuncio&&d._ytLast!=null){
+        /* tocando mas o tempo não anda: anúncio */
+        d._anuncioN=(d._anuncioN||0)+1;if(d._anuncioN>=6){d._anuncio=true;DJ.render()}
+      }
+    }
+  }
+};
+function gpPlaying(d){try{return!d.ext.paused}catch{return false}}
+setInterval(()=>YTAds.tick(),250);
+{const as=DJ.alertaSom;DJ.alertaSom=function(d,tipo){if(d._warm&&(tipo==='bloqueado'||tipo==='mudo'))return;return as.call(this,d,tipo)}}
+{
+  /* MIX: se a próxima for YouTube, espera o anúncio acabar antes de começar a passagem */
+  const mx=DJ.mix;DJ.mix=async function(origem){
+    if(this.mixing||this._esperaYT)return;
+    const de=origem||(this.A.playing&&!this.B.playing?this.A:this.B.playing&&!this.A.playing?this.B:(this.xf<.5?this.A:this.B));
+    const para=this.outro(de);
+    if(para.m&&!YTAds.pronto(para)){
+      this._esperaYT=true;this.render();
+      if(!para._warm&&!gpPlaying(para))YTAds.aquecer(para);
+      toast(`Deck ${para.id}: esperando o anúncio do YouTube acabar para começar a passagem (volume fechado).`,'info',5000);
+      const ok=await YTAds.esperar(para);
+      this._esperaYT=false;
+      if(!ok){toast(`Deck ${para.id}: o YouTube não começou a música (anúncio longo ou bloqueio). Toque no vídeo para pular.`,'warn',8000);this.render();return}
+    }
+    return mx.call(this,origem);
+  };
+  /* indicação no deck */
+  const rd=DJ.render;DJ.render=function(){rd.call(this);if(!this.aberto)return;
+    for(const d of this.decks){const s=$(`#dj [data-deck=${d.id}]`);if(!s)continue;const yt=d.ext?.info?.tipo==='youtube';
+      const esperando=yt&&!d._ytOk&&(d._warm||gpPlaying(d));
+      s.classList.toggle('yt-ad',!!esperando);
+      if(esperando){$('[data-f=st]',s).textContent=d._warm?'▶ YouTube preparando em silêncio (anúncio) — entra na passagem quando a música começar':'⏳ Anúncio do YouTube — volume fechado; abre sozinho quando a música começar'}
+    }
+    const n=$('#djNext');if(n&&this._esperaYT){n.hidden=false;n.textContent='Esperando o anúncio do YouTube…';n.classList.add('warn')}
+  };
 }
 
 /* =========================================================

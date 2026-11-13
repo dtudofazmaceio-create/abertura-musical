@@ -103,6 +103,21 @@ O tamanho da passagem segue os botões 4 / 8 / 12 / 16 s, arredondado para frase
 
 **Limites:** YouTube, Deezer ao vivo e músicas sem batida clara (só voz e violão, por exemplo) usam a passagem clássica por volume. O navegador não deixa analisar o áudio do YouTube.
 
+### AUTO MIX: de onde vem a próxima música
+A ordem de busca é esta:
+1. A **Fila do AUTO MIX**.
+2. A música que já está carregada no outro deck. Ela entra mesmo que já tenha tocado antes.
+3. A próxima música da mesma lista que está tocando: se for uma Avulsa, a próxima Avulsa; se for do cronograma, a próxima do cronograma.
+4. A outra lista.
+
+Abaixo do botão MIX PRO aparece **"Próxima: …"**. Se não houver nenhuma, aparece **"Sem próxima música!"** em laranja.
+
+### YouTube e anúncios
+- **Próxima música do YouTube:** quando ela é carregada enquanto o outro deck toca, o vídeo já começa **em silêncio**. Se houver anúncio, ele roda com o volume fechado. Quando a música começa, o vídeo pausa no início e fica pronto. O deck mostra "YouTube preparando em silêncio".
+- **Na hora da passagem:** se o anúncio ainda estiver rodando, o sistema **espera ele acabar** (até 60 s) e só então faz a passagem. O volume abre sozinho.
+- **Play direto num deck do YouTube:** o anúncio também toca com o volume fechado, e o volume abre sozinho, em 1 s, quando a música começa.
+- **Anúncio que não termina:** se o anúncio exigir clique (ex.: "Pular anúncio"), clique direto no vídeo do deck.
+
 ## 4. Modo offline
 
 - O app abre sem internet depois do primeiro acesso online.
