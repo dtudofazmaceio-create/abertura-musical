@@ -1,6 +1,6 @@
 /* Palco Musical — service worker: deixa o app abrir e funcionar sem internet.
    Coloque este arquivo na mesma pasta do index.html. */
-const VERSAO='palco-v2';
+const VERSAO='palco-v3';
 const APP=['./','./index.html'];
 const LIBS=[
   'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',

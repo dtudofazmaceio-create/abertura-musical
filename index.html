@@ -1920,7 +1920,7 @@ class ExtMedia extends EventTarget{
     await new Promise((res,rej)=>{
       const to=setTimeout(()=>rej(new Error('O YouTube demorou para responder. Verifique a internet.')),20000);
       this.p=new YT.Player(this.inner,{videoId:i.id,width:'100%',height:'100%',
-        playerVars:{controls:this.controls?1:0,disablekb:this.controls?0:1,modestbranding:1,rel:0,playsinline:1,iv_load_policy:3,fs:0,start:Math.floor(this._pend??0)},
+        playerVars:{controls:this.controls?1:0,disablekb:this.controls?0:1,modestbranding:1,rel:0,playsinline:1,iv_load_policy:3,fs:0,start:Math.floor(this._pend??0),...(/^https?:$/.test(location.protocol)?{origin:location.origin,widget_referrer:location.href}:{})},
         events:{
           onReady:()=>{clearTimeout(to);if(this.mutedInit)this.p.mute();else{try{this.p.unMute()}catch{}}this._meta(this.p.getDuration());try{this.titulo=this.p.getVideoData?.().title||''}catch{}this._aplVol();res()},
           onStateChange:e=>{
@@ -1930,7 +1930,7 @@ class ExtMedia extends EventTarget{
             if(s===1)this._pos(t,true);else if(s===2||s===5)this._pos(t,false);else if(s===0)this._fim();else this._pos(t);
             if(this._seeking&&s!==3){this._seeking=false;this._emit('seeked')}
           },
-          onError:e=>{clearTimeout(to);const c=e.data;this.erro=[101,150,153].includes(c)?'O dono deste vídeo não permite que ele toque fora do YouTube. Peça o arquivo ou outro link.':(c===100?'Vídeo do YouTube não encontrado (removido ou privado).':'Erro do YouTube ('+c+').');this._emit('error');rej(new Error(this.erro))}
+          onError:e=>{clearTimeout(to);const c=e.data;this.erroCod=c;this.erro=[101,150,152,153].includes(c)?'O dono deste vídeo não permite que ele toque fora do YouTube. Peça o arquivo ou outro link.':(c===100?'Vídeo do YouTube não encontrado (removido ou privado).':'Erro do YouTube ('+c+').');this._emit('error');rej(new Error(this.erro))}
         }});
     });
     this._sync=setInterval(()=>{
@@ -3236,7 +3236,7 @@ class Deck{
         this.ext.addEventListener('mudo',()=>this.dj.alertaSom(this,'mudo'));
         this.ext.addEventListener('bloqueado',()=>this.dj.alertaSom(this,'bloqueado'));
         this.ext.addEventListener('liberado',()=>this.dj.alertaSom(this,null));
-        await new Promise((r,j)=>{let ok=false;this.ext.addEventListener('loadedmetadata',()=>{ok=true;r()});this.ext.addEventListener('error',()=>j(new Error(this.ext.erro||'Não foi possível abrir o link.')));setTimeout(()=>ok||r(),20000)});
+        await new Promise((r,j)=>{let ok=false;this.ext.addEventListener('loadedmetadata',()=>{ok=true;r()});this.ext.addEventListener('error',()=>j(new Error(this.ext?.erro||'Não foi possível abrir o link.')));setTimeout(()=>ok||r(),20000)});
         if(m.avulsa&&this.ext.titulo&&m.semTitulo){m.titulo=this.ext.titulo;m.semTitulo=false;Avulsas.salvar()}
       }else throw new Error('O arquivo desta música ainda não está disponível.');
       this.media.currentTime=this.ini;this.k=1;
@@ -6875,7 +6875,7 @@ const Live={
 };
 
 /* ---------- YouTube: achar a versão completa de cada faixa do Deezer ---------- */
-const YT={
+const YTBusca={
   key:lsGet('palco_yt_key',''),
   dur(iso){const m=String(iso||'').match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);return m?(+m[1]||0)*3600+(+m[2]||0)*60+(+m[3]||0):0},
   async get(path,q){
@@ -6889,21 +6889,40 @@ const YT={
     const s=await this.get('search',{part:'snippet',type:'video',maxResults:8,q,videoEmbeddable:'true',regionCode:'BR'});
     const ids=(s.items||[]).map(i=>i.id.videoId).filter(Boolean);if(!ids.length)return null;
     const v=await this.get('videos',{part:'contentDetails,snippet,status',id:ids.join(',')});
-    const orig=normTxt(m.titulo),alvo=m.dz?.dur||0;let best=null,bs=-9;
+    const orig=normTxt(m.titulo),alvo=m.dz?.dur||0;let best=null,bs=-9;const cand=[];
     for(const it of v.items||[]){
       if(it.status&&it.status.embeddable===false)continue;
       const tt=normTxt(it.snippet.title),ch=normTxt(it.snippet.channelTitle);let sc=this.pontos(m,it.snippet.title+' '+it.snippet.channelTitle);
       const d=this.dur(it.contentDetails.duration);
       if(alvo){const df=Math.abs(d-alvo);sc+=df<=6?.35:df<=15?.2:df<=40?0:-.6}
-      if(/ - topic$|- tema$|vevo/.test(ch)||/(official|oficial) (audio|áudio|audio)|audio oficial|áudio oficial/.test(tt))sc+=.2;
+      if(/ - topic$|- tema$/.test(ch))sc-=.1;
+      if(/(clipe|video|vídeo|audio|áudio|lyric|visualizer)\s*(oficial|official)|(official|oficial)\s*(video|vídeo|audio|áudio|music video)/.test(tt))sc+=.15;
+      if(tokens(m.artista).some(w=>ch.includes(w)))sc+=.1;
       for(const w of['ao vivo','live','cover','karaoke','remix','instrumental','playback','8d','slowed','sped up','acustico'])if(tt.includes(w)&&!orig.includes(w))sc-=.35;
-      if(sc>bs){bs=sc;best={id:it.id,titulo:it.snippet.title,canal:it.snippet.channelTitle,dur:d,sc}}
+      if((m.yt?.ruins||[]).includes(it.id))continue;
+      cand.push({id:it.id,titulo:it.snippet.title,canal:it.snippet.channelTitle,dur:d,sc});
+      if(sc>bs){bs=sc;best=cand[cand.length-1]}
     }
-    return best&&bs>=.45?best:null;
+    if(!best||bs<.45)return null;
+    best.alt=cand.filter(c=>c!==best&&c.sc>=.3).sort((a,b)=>b.sc-a.sc).slice(0,4).map(({id,titulo,canal})=>({id,titulo,canal}));
+    return best;
   },
   pontos(m,txt){const f=new Set(tokens(txt)),tt=tokens(tituloBase(m.dz?.curto||m.titulo)),at=tokens(m.artista);if(!tt.length)return 0;
     const th=tt.filter(w=>f.has(w)).length/tt.length,ah=at.length?at.filter(w=>f.has(w)).length/at.length:.5;return th*.6+ah*.3},
-  aplicar(m,v){m.yt={id:v.id,titulo:v.titulo,canal:v.canal};m.link=parseLink('https://www.youtube.com/watch?v='+v.id);m.video=true;m.previa=false;Avulsas.salvar()},
+  async aplicar(m,v){
+    m.yt={id:v.id,titulo:v.titulo,canal:v.canal,alt:v.alt||m.yt?.alt||[],ruins:m.yt?.ruins||[]};m.link=parseLink('https://www.youtube.com/watch?v='+v.id);m.video=true;
+    /* se só havia a prévia de 30 s salva, apaga — senão o deck tocaria a prévia no lugar do vídeo */
+    if(m.off&&m.previa){try{await DB.del('audios',m.id)}catch{}m.off=false}
+    m.previa=false;Avulsas.salvar();
+  },
+  /* vídeo bloqueado fora do YouTube: tenta a próxima versão automaticamente */
+  async proximo(m){
+    const y=m.yt;if(!y)return false;y.ruins=[...new Set([...(y.ruins||[]),y.id])];
+    let nx=(y.alt||[]).find(a=>!y.ruins.includes(a.id));
+    if(nx){y.alt=y.alt.filter(a=>a!==nx);await this.aplicar(m,{...nx,alt:y.alt});return true}
+    if(this.key&&navigator.onLine){try{const v=await this.achar(m);if(v){await this.aplicar(m,v);return true}}catch{}}
+    Avulsas.salvar();return false;
+  },
   async acharTodos(){
     if(!this.key)return toast('Cole primeiro a sua chave da YouTube Data API.','warn');
     if(!navigator.onLine)return toast('Sem internet.','warn');
@@ -6917,9 +6936,31 @@ const YT={
 /* ---------- integra com a tela do Deezer, a lista e os decks ---------- */
 {
   /* não troca o link do YouTube pela prévia ao carregar */
-  const ld=Deck.prototype.load;Deck.prototype.load=async function(m){
-    if(m?.yt&&!(m.off&&!m.previa))m.link=parseLink('https://www.youtube.com/watch?v='+m.yt.id);
-    return ld.call(this,m);
+  const ld=Deck.prototype.load;Deck.prototype.load=async function(m,_tent=0){
+    if(m?.yt&&!(m.off&&!m.previa)){
+      if(m.off&&m.previa){try{await DB.del('audios',m.id)}catch{}m.off=false;m.previa=false;Avulsas.salvar()}
+      m.link=parseLink('https://www.youtube.com/watch?v='+m.yt.id);
+    }
+    const ok=await ld.call(this,m);
+    const falhou=async(msg)=>{
+      if(m?.yt&&_tent<4&&await YTBusca.proximo(m)){
+        toast(`<b>${esc(m.titulo)}</b>: esse vídeo não toca fora do YouTube — trocando para outra versão (${esc(m.yt.titulo)}).`,'warn',7000);
+        if(this.m===m){this.unload();this.dj.render()}
+        return this.load(m,_tent+1);
+      }
+      toast(`Deck ${this.id}: ${esc(msg)}${m?.link?.tipo==='youtube'?` <a href="https://www.youtube.com/watch?v=${esc(m.link.id)}" target="_blank" rel="noopener">Abrir no YouTube</a>`:''}`,'err',12000);
+      if(this.m===m){this.unload();this.dj.render()}
+      return false;
+    };
+    /* o link falhou ao carregar */
+    if(!this.m&&m?.yt&&_tent<4&&navigator.onLine)return falhou('não foi possível abrir o vídeo.');
+    if(this.m!==m||!this.ext)return ok;
+    const ext=this.ext;
+    /* o player do YouTube nunca ficou pronto (bloqueio, verificação ou internet lenta) */
+    if(!ext._ok)return falhou('o YouTube não abriu este vídeo (pode estar bloqueado para tocar fora do YouTube ou pedindo verificação).');
+    /* bloqueio que só aparece na hora do play (comum em vídeos de gravadora) */
+    ext.addEventListener('error',()=>{if(this.ext===ext)falhou(ext.erro||'erro ao tocar o vídeo.').then(r=>{if(r&&this.m===m)this.play()})});
+    return ok;
   };
   const ru=Deezer.renderUi.bind(Deezer);Deezer.renderUi=function(){
     ru();const box=this.ui&&$('#dzUi',this.ui);if(!box)return;
@@ -6933,15 +6974,15 @@ const YT={
     h?.insertAdjacentHTML('beforebegin',`<h3 class="mh">Tocar a música completa</h3>
       <div class="lv-op"><div><b>${icon('tv')} Deck ao vivo (Deezer Premium)</b><small>Captura o som da aba do Deezer Web ou do app e coloca num deck, com EQ, fader e crossfader. Música inteira, com a sua assinatura.</small></div><button type="button" class="btn sm primary" id="dzLive">${icon('vol')}Ligar deck ao vivo</button></div>
       <div class="lv-op"><div><b>${icon('video')} Achar no YouTube</b><small>Liga cada faixa ao vídeo oficial no YouTube (toca inteira, com internet). Precisa de uma chave grátis da <b>YouTube Data API v3</b> — cerca de 100 buscas por dia.</small></div>
-        <div class="row" style="flex-wrap:nowrap"><input type="password" id="dzYtKey" placeholder="Chave da API do YouTube" value="${esc(YT.key)}" autocomplete="off"><button type="button" class="btn sm" id="dzYtAll">${icon('search')}Achar todas</button></div></div>`);
+        <div class="row" style="flex-wrap:nowrap"><input type="password" id="dzYtKey" placeholder="Chave da API do YouTube" value="${esc(YTBusca.key)}" autocomplete="off"><button type="button" class="btn sm" id="dzYtAll">${icon('search')}Achar todas</button></div></div>`);
     $('#dzLive',box)?.addEventListener('click',()=>Live.abrir());
-    $('#dzYtKey',box)?.addEventListener('change',e=>{YT.key=e.target.value.trim();lsSet('palco_yt_key',YT.key);toast(YT.key?'Chave do YouTube salva neste aparelho.':'Chave removida.','ok')});
-    $('#dzYtAll',box)?.addEventListener('click',()=>{const k=$('#dzYtKey',box).value.trim();if(k!==YT.key){YT.key=k;lsSet('palco_yt_key',k)}YT.acharTodos()});
+    $('#dzYtKey',box)?.addEventListener('change',e=>{YTBusca.key=e.target.value.trim();lsSet('palco_yt_key',YTBusca.key);toast(YTBusca.key?'Chave do YouTube salva neste aparelho.':'Chave removida.','ok')});
+    $('#dzYtAll',box)?.addEventListener('click',()=>{const k=$('#dzYtKey',box).value.trim();if(k!==YTBusca.key){YTBusca.key=k;lsSet('palco_yt_key',k)}YTBusca.acharTodos()});
     if(!box._lv){box._lv=1;box.addEventListener('click',async e=>{
       const lv=e.target.closest('[data-dzlive]');if(lv){const m=Avulsas.get(lv.dataset.dzlive);if(!DJ.decks.some(d=>d.live))toast('Dica: ligue antes um <b>deck ao vivo</b> capturando esta aba do Deezer.','info',6000);Live.abrirNoDeezer(m);return}
       const y=e.target.closest('[data-dzyt]');if(y){const m=Avulsas.get(y.dataset.dzyt);if(!m)return;
-        if(!YT.key){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(m.artista+' '+m.titulo),'_blank');return toast('Sem chave da API: abri a busca no YouTube. Copie o link do vídeo e cole em <b>Adicionar</b>.','info',8000)}
-        try{y.disabled=true;const v=await YT.achar(m);if(v){YT.aplicar(m,v);toast(`<b>${esc(m.titulo)}</b> → ${esc(v.titulo)}`,'ok',5000)}else toast('Nenhum vídeo confiável encontrado.','warn')}catch(er){toast(esc(er.message),'err',7000)}Deezer.renderUi()}
+        if(!YTBusca.key){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(m.artista+' '+m.titulo),'_blank');return toast('Sem chave da API: abri a busca no YouTube. Copie o link do vídeo e cole em <b>Adicionar</b>.','info',8000)}
+        try{y.disabled=true;const v=await YTBusca.achar(m);if(v){YTBusca.aplicar(m,v);toast(`<b>${esc(m.titulo)}</b> → ${esc(v.titulo)}`,'ok',5000)}else toast('Nenhum vídeo confiável encontrado.','warn')}catch(er){toast(esc(er.message),'err',7000)}Deezer.renderUi()}
     })}
   };
   /* botão "Ao vivo" na lista dos decks + visual do deck ao vivo */
