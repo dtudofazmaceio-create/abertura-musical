@@ -78,7 +78,32 @@ No Modo DJ, acima das Avulsas, fica a **Fila do AUTO MIX**. Ela tem prioridade s
 - A música sai da fila quando entra num deck. A fila fica salva por evento.
 - Na controladora, dá para mapear o comando "Adicionar a música selecionada à fila" num botão (em CONTROLADORA → Mixer → Aprender).
 
-## 3. Modo offline
+## 3. Mix PRO (transições como um DJ profissional)
+
+O botão **MIX PRO** fica no centro, abaixo do AUTO MIX, e vem ligado. A engrenagem ao lado abre as opções. Ele funciona no botão MIX, no AUTO MIX e na fila.
+
+**O que ele analisa em cada música** (na primeira vez que ela entra num deck, em poucos segundos):
+- **BPM**, a grade de batidas e o **1º tempo de cada compasso**. As batidas aparecem na forma de onda, com uma linha mais forte a cada 32 tempos.
+- **Tonalidade**, em notação Camelot (ex.: 8B = Dó maior).
+- **Início e fim reais**, sem o silêncio. Essas partes ficam escurecidas na forma de onda.
+
+**O que ele faz na passagem:**
+1. **Casa o BPM** da música que entra com a que está tocando (até ±8%, ajustável), sem mudar o tom da voz.
+2. **Alinha as batidas e os compassos**: o 1º tempo de uma cai junto com o 1º tempo da outra. Durante a passagem, ele corrige a diferença continuamente, mantendo as batidas a poucos milissegundos.
+3. **Escolhe o ponto certo**: no AUTO MIX, a passagem começa no início de uma frase musical (blocos de 8 ou 16 tempos), perto do fim real da música.
+4. **Escolhe a técnica**:
+   - **BPMs próximos e tons que combinam**: mixagem longa com **troca de graves**. A nova entra sem grave e com o agudo mais baixo. No meio da passagem, os graves trocam de lado num único tempo. Depois, a que sai some.
+   - **BPMs muito diferentes**: a que sai vai sumindo num **filtro** e termina com **eco**. A nova entra no 1º tempo do compasso seguinte.
+   - **Tons que não combinam**: a passagem fica mais curta.
+5. **Volta devagar ao andamento original** da nova música depois da passagem (opcional).
+
+O tamanho da passagem segue os botões 4 / 8 / 12 / 16 s, arredondado para frases (8, 16 ou 32 tempos). Se a música que sai acabar antes, a passagem encurta sozinha.
+
+**SYNC** (em cada deck): casa o BPM e as batidas com o outro deck na hora. Também pode ser mapeado na controladora, assim como o liga/desliga do Mix PRO.
+
+**Limites:** YouTube, Deezer ao vivo e músicas sem batida clara (só voz e violão, por exemplo) usam a passagem clássica por volume. O navegador não deixa analisar o áudio do YouTube.
+
+## 4. Modo offline
 
 - O app abre sem internet depois do primeiro acesso online.
 - No topo do Modo DJ aparece **ONLINE / OFFLINE**. Quando está offline, o que precisa de internet fica apagado na lista.
@@ -89,7 +114,7 @@ No Modo DJ, acima das Avulsas, fica a **Fila do AUTO MIX**. Ela tem prioridade s
 
 ---
 
-## 4. Deezer
+## 5. Deezer
 
 **Modo DJ → botão `Deezer`**
 

@@ -1137,6 +1137,17 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 .dj-ol li.fsel{box-shadow:inset 0 0 0 2px var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--surface2))}
 .dj-ol li.fsel .fck{background:var(--ok);border-color:var(--ok)}.dj-ol li.fsel .fck::after{content:"✓";color:#fff;font-size:.8rem;font-weight:900}
 .fila-wrap.sel-on~div .dj-ol li,.fila-wrap.sel-on~.dj-ol li{cursor:pointer}
+
+/* Mix PRO */
+.dk-bpm{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-bpm b{color:var(--text);font-variant-numeric:tabular-nums}
+.dk-bpm.busy{color:var(--warn)}.dk-bpm.off{opacity:.6}.dk-bpm.low b{color:var(--warn)}
+.dk-sync{height:40px;padding:0 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font-weight:900;font-size:.72rem;letter-spacing:.08em;cursor:pointer;flex:none}
+.dk-sync:hover{color:var(--text);border-color:var(--dk)}
+.mp-row{display:flex;gap:6px;align-items:stretch}.mp-row .auto-btn{flex:1}
+.mp-cfg{width:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.mp-cfg .ic{width:18px;height:18px}
+.mp-ops{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 </style>
 </head>
 <body>
@@ -7215,6 +7226,353 @@ const Fila={
   /* controladora: botão para adicionar a música selecionada na lista */
   MIDI_CMDS.push({id:'g.fila',deck:null,label:'Adicionar a música selecionada à fila do AUTO MIX',tipo:'btn'});MIDI_TIPO['g.fila']='btn';
   const ex=MIDI.exec;MIDI.exec=function(m,v){if(m.cmd==='g.fila'){if(v){if(!Browse.id)Browse.move(1);if(Browse.id)Fila.add([Browse.id])}return}return ex.call(this,m,v)};
+}
+
+/* =========================================================
+   MIX PRO — transições como um DJ profissional
+   • Analisa cada música: BPM, grade de batidas, 1º tempo do compasso,
+     tonalidade (Camelot), início e fim reais (sem silêncio).
+   • Sincroniza o BPM (sem mudar o tom), alinha as batidas e os compassos,
+     escolhe o ponto de saída na frase musical (blocos de 8/16 compassos),
+     faz troca de graves (bass swap), filtro ou eco conforme o caso
+     e corrige a fase em tempo real enquanto as duas tocam.
+   ========================================================= */
+const ANALISE_WORKER=`
+const PI2=Math.PI*2;
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t}}
+ for(let len=2;len<=n;len<<=1){const a=-PI2/len,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let j=0;j<len/2;j++){const ur=re[i+j],ui=im[i+j],k=i+j+len/2,vr=re[k]*cr-im[k]*ci,vi=re[k]*ci+im[k]*cr;re[i+j]=ur+vr;im[i+j]=ui+vi;re[k]=ur-vr;im[k]=ui-vi;const nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr}}}}
+function analisar(x,sr){
+  const N=x.length,dur=N/sr;
+  /* energia a cada 50 ms → início e fim reais */
+  const w=Math.round(sr*.05),nW=Math.max(1,Math.floor(N/w)),en=new Float32Array(nW);
+  for(let i=0;i<nW;i++){let s=0;for(let j=i*w,e=j+w;j<e;j++)s+=x[j]*x[j];en[i]=Math.sqrt(s/w)}
+  const ord=Array.from(en).sort((a,b)=>a-b),p95=ord[Math.floor(ord.length*.95)]||0,thr=p95*.045;
+  let a=0;while(a<nW&&en[a]<thr)a++;let z=nW-1;while(z>0&&en[z]<thr)z--;
+  const intro=a*w/sr,outro=Math.min(dur,(z+1)*w/sr);
+  /* envelope de ataques (banda cheia e graves) */
+  const hop=128,fps=sr/hop,nF=Math.floor(N/hop);
+  const E=new Float32Array(nF),EL=new Float32Array(nF);let lp=0,lp2=0;const al=1-Math.exp(-PI2*150/sr);
+  for(let f=0;f<nF;f++){let s=0,sl=0;for(let j=f*hop,e=j+hop;j<e;j++){const v=x[j];lp+=al*(v-lp);lp2+=al*(lp-lp2);s+=v*v;sl+=lp2*lp2}E[f]=Math.log(1+1000*s);EL[f]=Math.log(1+4000*sl)}
+  const on=new Float32Array(nF),onL=new Float32Array(nF);
+  for(let f=1;f<nF;f++){on[f]=Math.max(0,E[f]-E[f-1]);onL[f]=Math.max(0,EL[f]-EL[f-1])}
+  const tira=(o)=>{const r=Math.round(fps*.5),out=new Float32Array(o.length);let s=0;for(let f=0;f<o.length;f++){s+=o[f];if(f>2*r)s-=o[f-2*r-1];const m=s/Math.min(f+1,2*r+1);out[f]=Math.max(0,o[f]-m)}return out};
+  const O=tira(on),OL=tira(onL);
+  for(let f=0;f<nF;f++)O[f]+=.6*OL[f];
+  /* BPM por autocorrelação + preferência musical (~120) */
+  const f0=Math.max(0,Math.floor(intro*fps)),f1=Math.min(nF,Math.floor(outro*fps));
+  const acf=(lag)=>{let s=0;for(let f=f0+lag;f<f1;f++)s+=O[f]*O[f-lag];return s};
+  let best=0,bb=120;
+  for(let bpm=60;bpm<=200;bpm+=.5){const lag=fps*60/bpm,l0=Math.floor(lag),fr=lag-l0;const v=(acf(l0)*(1-fr)+acf(l0+1)*fr);
+    const pr=Math.exp(-.5*Math.pow(Math.log2(bpm/120)/.9,2));const sc=v*pr;if(sc>best){best=sc;bb=bpm}}
+  /* refino fino + fase pelo pente de batidas */
+  const comb=(bpm)=>{const P=fps*60/bpm;let bs=-1,bp=0;for(let ph=0;ph<P;ph+=.5){let s=0,c=0;for(let t=f0+ph;t<f1;t+=P){const i=Math.round(t);s+=O[i]+.5*(O[i-1]||0)+.5*(O[i+1]||0);c++}s/=c||1;if(s>bs){bs=s;bp=ph}}return[bs,bp]};
+  let fb=bb,fs=-1,fph=0;
+  for(let b=bb-1.5;b<=bb+1.5;b+=.05){const[s,ph]=comb(b);if(s>fs){fs=s;fb=b;fph=ph}}
+  let bpm=fb,per=60/bpm,off=(f0+fph)/fps;
+  /* evita metade/dobro errado em músicas lentas/rápidas */
+  if(bpm<68){bpm*=2;per/=2}if(bpm>185){bpm/=2;per*=2}
+  while(off-per>=0)off-=per;
+  /* 1º tempo do compasso: onde o bumbo (graves) cai mais forte */
+  let dj=0,dbest=-1;for(let j=0;j<4;j++){let s=0;for(let t=off+j*per;t<dur;t+=4*per){const i=Math.round(t*fps);s+=OL[i]||0}if(s>dbest){dbest=s;dj=j}}
+  const down=off+dj*per;
+  /* confiança: força do pente vs média */
+  let mo=0;for(let f=f0;f<f1;f++)mo+=O[f];mo/=Math.max(1,f1-f0);const conf=Math.max(0,Math.min(1,(fs/(mo||1e-9)-1)/2.5));
+  /* tonalidade (cromagrama + perfis Krumhansl) */
+  const nfft=4096,re=new Float64Array(nfft),im=new Float64Array(nfft),chroma=new Float64Array(12);
+  const ini=Math.floor(Math.max(intro,dur*.1)*sr),fimK=Math.floor(Math.min(outro,dur*.9)*sr),passos=Math.max(1,Math.floor((fimK-ini)/nfft/90));
+  for(let s=ini;s+nfft<fimK;s+=nfft*passos){
+    for(let i=0;i<nfft;i++){re[i]=x[s+i]*(.5-.5*Math.cos(PI2*i/(nfft-1)));im[i]=0}fft(re,im);
+    for(let k=Math.ceil(55*nfft/sr);k<Math.min(nfft/2,2100*nfft/sr);k++){const fq=k*sr/nfft,m=Math.sqrt(re[k]*re[k]+im[k]*im[k]);const pc=((Math.round(12*Math.log2(fq/440))+9)%12+12)%12;chroma[pc]+=Math.log(1+m)}
+  }
+  const MAJ=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88],MIN=[6.33,2.68,3.52,5.38,2.6,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+  const corr=(p,r)=>{let mx=0,mp=0;for(let i=0;i<12;i++){mx+=chroma[i];mp+=p[i]}mx/=12;mp/=12;let n=0,dx=0,dp=0;for(let i=0;i<12;i++){const a=chroma[(i+r)%12]-mx,b=p[i]-mp;n+=a*b;dx+=a*a;dp+=b*b}return n/Math.sqrt(dx*dp||1)};
+  let kb=-2,key=0,modo='maj';for(let r=0;r<12;r++){const a=corr(MAJ,r),b=corr(MIN,r);if(a>kb){kb=a;key=r;modo='maj'}if(b>kb){kb=b;key=r;modo='min'}}
+  return{v:2,bpm:+bpm.toFixed(2),off:+off.toFixed(4),down:+down.toFixed(4),conf:+conf.toFixed(2),intro:+intro.toFixed(2),outro:+outro.toFixed(2),dur:+dur.toFixed(2),key,modo};
+}
+onmessage=e=>{try{postMessage({id:e.data.id,r:analisar(e.data.x,e.data.sr)})}catch(er){postMessage({id:e.data.id,erro:String(er)})}};
+`;
+const NOTAS=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const CAM_MAJ=[8,3,10,5,12,7,2,9,4,11,6,1],CAM_MIN=[5,12,7,2,9,4,11,6,1,8,3,10];
+const camelot=a=>a&&a.key!=null?(a.modo==='maj'?CAM_MAJ[a.key]+'B':CAM_MIN[a.key]+'A'):'';
+const tomTxt=a=>a&&a.key!=null?NOTAS[a.key]+(a.modo==='min'?'m':''):'';
+function tonsCombinam(a,b){const x=camelot(a),y=camelot(b);if(!x||!y)return true;const n1=+x.slice(0,-1),l1=x.slice(-1),n2=+y.slice(0,-1),l2=y.slice(-1);
+  if(n1===n2)return true;const d=Math.min((n1-n2+12)%12,(n2-n1+12)%12);return l1===l2&&d===1}
+
+const Analise={
+  cache:lsGet('palco_analise',{}),fila:[],rodando:false,worker:null,esperas:{},
+  get(id){const a=this.cache[id];return a&&a.v===2?a:null},
+  salvar(){try{const k=Object.keys(this.cache);if(k.length>1500)for(const x of k.slice(0,300))delete this.cache[x];lsSet('palco_analise',this.cache)}catch{}},
+  w(){if(!this.worker){const u=URL.createObjectURL(new Blob([ANALISE_WORKER],{type:'text/javascript'}));this.worker=new Worker(u);this.worker.onmessage=e=>{const{id,r}=e.data;const cb=this.esperas[id];delete this.esperas[id];cb&&cb(r||null)}}return this.worker},
+  pedir(id,blob){
+    if(this.get(id))return Promise.resolve(this.get(id));
+    if(this.esperas['p'+id])return this.esperas['p'+id];
+    const p=new Promise(res=>{this.fila.push({id,blob,res});this.proximo()});this.esperas['p'+id]=p;p.then(()=>delete this.esperas['p'+id]);return p;
+  },
+  async proximo(){
+    if(this.rodando)return;const it=this.fila.shift();if(!it)return;this.rodando=true;let r=null;
+    try{
+      let blob=it.blob||await DB.get('audios',it.id);
+      if(blob&&blob.size<80*1048576){
+        const buf=await blob.arrayBuffer(),C=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+        const oc=new C(1,2,11025);const ab=await oc.decodeAudioData(buf);
+        const n=ab.length,x=new Float32Array(n);for(let c=0;c<ab.numberOfChannels;c++){const d=ab.getChannelData(c);for(let i=0;i<n;i++)x[i]+=d[i]/ab.numberOfChannels}
+        r=await new Promise(res=>{this.esperas[it.id]=res;this.w().postMessage({id:it.id,x,sr:ab.sampleRate},[x.buffer]);setTimeout(()=>{if(this.esperas[it.id]){delete this.esperas[it.id];res(null)}},60000)});
+        if(r){this.cache[it.id]=r;this.salvar()}
+      }
+    }catch{}
+    it.res(r);this.rodando=false;DJ.render();setTimeout(()=>this.proximo(),30);
+  }
+};
+
+const MixPro={
+  on:lsGet('palco_mixpro',true),
+  cfg:Object.assign({estilo:'auto',sync:true,voltar:true,limite:8,silencio:true,tom:true},lsGet('palco_mixpro_cfg',{})),
+  salvarCfg(){lsSet('palco_mixpro_cfg',this.cfg);lsSet('palco_mixpro',this.on)},
+  an(d){return d?.m&&!d.ext&&!d.live?Analise.get(d.m.id):null},
+  rate(d){return 1+(d.pitch||0)+(d.bend||0)},
+  per(a){return 60/a.bpm},
+  /* posição na grade (em batidas) */
+  beat(a,t){return(t-a.down)/this.per(a)},
+  /* próximo 1º tempo de compasso (em segundos da música) a partir de t */
+  proxCompasso(a,t,grupo=4){const p=this.per(a)*grupo,k=Math.ceil((t-a.down)/p-1e-6);return a.down+k*p},
+  /* ponto de início da música que entra: 1º compasso depois do silêncio inicial */
+  entrada(d,a){const base=Math.max(d.ini,this.cfg.silencio?a.intro-.05:0);return this.proxCompasso(a,Math.max(0,base-.02))},
+  /* tempo a ajustar para casar o BPM (considera metade/dobro) */
+  razao(aDe,dDe,aPara){
+    const alvo=aDe.bpm*this.rate(dDe);let best=null;
+    for(const m of[1,2,.5]){const r=alvo/(aPara.bpm*m);if(!best||Math.abs(r-1)<Math.abs(best.r-1))best={r,m}}
+    return best;
+  },
+  plano(de,para){
+    const aDe=this.an(de),aPa=this.an(para),c=this.cfg;
+    const p={beats:16,estilo:'corte',sync:false,r:1,mult:1,aDe,aPa};
+    const len=DJ.mixLen;
+    if(aDe&&aPa){
+      const z=this.razao(aDe,de,aPa);p.r=z.r;p.mult=z.m;
+      const dentro=Math.abs(z.r-1)*100<=c.limite;p.sync=c.sync&&dentro&&aDe.conf>=.08&&aPa.conf>=.08;
+      const tons=!c.tom||tonsCombinam(aDe,aPa);
+      const bpmDe=aDe.bpm*this.rate(de),bpS=bpmDe/60;
+      if(c.estilo==='suave'||(c.estilo==='auto'&&p.sync&&tons)){p.estilo=p.sync?'bass':'suave';p.beats=Math.max(8,Math.min(64,Math.round(len*bpS/8)*8||16))}
+      else if(c.estilo==='eco'||(c.estilo==='auto'&&!p.sync)){p.estilo='eco';p.beats=Math.max(4,Math.min(16,Math.round(len*bpS/2/4)*4||8))}
+      else{p.estilo='filtro';p.beats=Math.max(8,Math.min(32,Math.round(len*bpS/8)*8||8))}
+      if(c.estilo==='filtro')p.estilo='filtro';
+      if(!tons&&p.estilo==='bass')p.beats=Math.min(p.beats,16);
+    }else{p.estilo=de.ext||para.ext?'suave':'suave';p.beats=0}
+    return p;
+  },
+  /* em que segundo da música que sai a passagem deve começar (frase musical) */
+  pontoSaida(d,beats){
+    const a=this.an(d);if(!a)return null;
+    const fim=Math.min(d.end,this.cfg.silencio?a.outro+.3:d.end),dur=beats*this.per(a);
+    let alvo=fim-dur;if(alvo<=d.t+1)return null;
+    /* procura o início de frase (16 tempos) mais próximo antes do alvo; se cair longe, usa compasso de 8 */
+    const f16=a.down+Math.floor((alvo-a.down)/(16*this.per(a)))*16*this.per(a);
+    const f8=a.down+Math.floor((alvo-a.down)/(8*this.per(a)))*8*this.per(a);
+    const pt=(alvo-f16)<=8*this.per(a)?f16:f8;
+    return pt>d.t+.8?pt:null;
+  },
+  setEq(d,k,v){d.eq[k]=v;d.applyEq();const el=$(`#dj [data-deck=${d.id}] [data-eq=${k}]`);if(el)el.value=Math.round(v)},
+  setFlt(d,v){d.flt=v;d.applyFx?.();const el=$(`#dj [data-deck=${d.id}] [data-flt]`);if(el)el.value=v.toFixed(2)},
+  setPitch(d,p){d.pitch=Math.max(-.16,Math.min(.16,p));d.applyRate();const s=$(`#dj [data-deck=${d.id}]`);if(!s)return;const v=d.pitch*100;const el=$('[data-pitch]',s);if(el)el.value=v.toFixed(1);const l=$('[data-f=pt]',s);if(l)l.textContent=(v>0?'+':'')+v.toFixed(1)+'%'},
+  eco(d,on,beatReal){
+    if(!d.g)return;const ctx=DJ.ctx;
+    if(!d._eco){const s=ctx.createGain(),dl=ctx.createDelay(2.5),fb=ctx.createGain(),hp=ctx.createBiquadFilter(),wet=ctx.createGain();s.gain.value=0;fb.gain.value=.5;hp.type='highpass';hp.frequency.value=350;wet.gain.value=.85;
+      d.g.flt.connect(s);s.connect(dl);dl.connect(hp);hp.connect(fb);fb.connect(dl);hp.connect(wet);wet.connect(DJ.master);d._eco={s,dl,fb,wet}}
+    const e=d._eco,t=ctx.currentTime;if(beatReal)e.dl.delayTime.setValueAtTime(Math.min(2.4,beatReal*.75),t);
+    e.s.gain.setTargetAtTime(on?.8:0,t,.01);
+  },
+  ramp(a,b,p){return a+(b-a)*Math.max(0,Math.min(1,p))},
+  /* ======== a passagem ======== */
+  async mix(de,para,orig){
+    const DJx=DJ;DJx.mixing={de,para,pro:true};DJx.render();
+    try{
+      if(!para.m){const n=DJx.proxima(de.m?.id);if(!n){DJx.mixing=null;DJx.render();return toast('Não há próxima música para mixar.','warn')}if(!(await para.load(n))){DJx.mixing=null;DJx.render();return}}
+      /* espera a análise (alguns segundos na 1ª vez) */
+      if(!para.ext&&para.m&&!Analise.get(para.m.id))await Promise.race([Analise.pedir(para.m.id),new Promise(r=>setTimeout(r,6000))]);
+      if(!de.ext&&de.m&&!Analise.get(de.m.id))await Promise.race([Analise.pedir(de.m.id),new Promise(r=>setTimeout(r,3000))]);
+      const P=this.plano(de,para);
+      if(!P.aDe||!P.aPa||!de.playing||P.aDe.conf<.08||P.aPa.conf<.08){DJx.mixing=null;return orig.call(DJx,de)} /* YouTube, ao vivo ou sem análise: passagem clássica */
+      const aDe=P.aDe,aPa=P.aPa,ctx=DJx.ensureCtx();
+      const eqDe={...de.eq},eqPa={...para.eq},fltDe=de.flt||0,fltPa=para.flt||0,pitchPa0=para.pitch||0;
+      /* 1) BPM */
+      if(P.sync)this.setPitch(para,P.r-1);
+      const perDe=this.per(aDe),perPa=this.per(aPa)/P.mult; /* período em batidas "equivalentes" */
+      /* 2) ponto de entrada no compasso */
+      const rDe=this.rate(de);
+      let D=this.proxCompasso(aDe,de.t+.35*rDe);              /* próximo 1º tempo da música que sai */
+      if(de._mixAt!=null&&de._mixAt>de.t+.12*rDe&&de._mixAt-de.t<4*rDe)D=de._mixAt; /* começa exatamente no início da frase */
+      const P0=this.entrada(para,aPa);                          /* 1º tempo da música que entra */
+      const lead=(D-de.t)/rDe;                                  /* segundos reais até D */
+      const rPa=this.rate(para);
+      /* se a música que sai acaba antes, encurta a passagem (sempre em blocos de compasso) */
+      const resta=(Math.min(de.end,this.cfg.silencio?aDe.outro+.3:de.end)-de.t)/rDe;
+      const precisa=b=>lead+b*perDe/rDe*((P.estilo==='bass'||P.estilo==='suave')?1:1)+.25;
+      while(P.beats>4&&precisa(P.beats)>resta)P.beats-=4;
+      if(precisa(P.beats)>resta){DJx.mixing=null;return orig.call(DJx,de)}
+      const blendBeats=P.beats,blendReal=blendBeats*perDe/rDe;
+      const xf0=DJx.xf,xf1=para===DJx.B?1:0;
+      MixPro.ultimo={estilo:P.estilo,beats:blendBeats,sync:P.sync,r:P.r,D,lead,P0,deT:de.t};
+      /* corte/eco: a nova entra no FIM da passagem; suave/bass: entra no início */
+      const entraNoInicio=P.estilo==='bass'||P.estilo==='suave';
+      const quandoEntra=entraNoInicio?lead:lead+blendReal;     /* segundos reais a partir de agora */
+      const posStart=P0-quandoEntra*rPa;
+      if(entraNoInicio){this.setEq(para,'lo',-24);this.setEq(para,'hi',Math.min(eqPa.hi,-6))}
+      if(P.estilo==='eco'||P.estilo==='filtro')this.setFlt(para,-.55);
+      if(para.playing){/* já estava tocando: só faz a automação */}
+      else if(posStart>=0){para.media.currentTime=posStart;await para.play()}
+      else{para.media.currentTime=0;para.k=1;para._pend=true;setTimeout(()=>{para._pend=false;if(DJx.mixing?.para===para&&!para.playing)para.play()},(-posStart/rPa)*1000)}
+      toast(`<b>Mix PRO</b> · ${aDe.bpm.toFixed(0)} → ${aPa.bpm.toFixed(0)} BPM${P.sync?` (ajuste ${((P.r-1)*100).toFixed(1)}%)`:''} · ${camelot(aDe)||'?'} → ${camelot(aPa)||'?'} · ${({bass:'troca de graves',suave:'mixagem longa',filtro:'filtro',eco:'eco + corte no compasso'})[P.estilo]} · ${blendBeats} tempos`,'info',6000);
+      /* 3) automação guiada pela batida da música que sai + correção de fase */
+      await new Promise(res=>{
+        let ultimo=performance.now(),b=-lead*rDe/perDe;
+        const step=()=>{
+          if(!DJx.mixing){res();return}
+          const now=performance.now();
+          /* progresso medido em batidas da música que sai (ou pelo relógio, se ela já acabou) */
+          if(de.playing)b=(de.t-D)/perDe;else b+=((now-ultimo)/1000)*rDe/perDe;
+          ultimo=now;
+          const p=Math.max(0,b/blendBeats);
+          /* PLL: mantém as batidas da que entra coladas nas da que sai */
+          if(P.sync&&para.playing&&de.playing){
+            const fDe=this.beat(aDe,de.t),fPa=(para.t-aPa.down)/perPa;let err=((fPa-fDe)%1+1.5)%1-.5; /* em batidas */
+            para.bend=Math.max(-.04,Math.min(.04,-err*.35));para.applyRate();
+          }
+          if(P.estilo==='bass'||P.estilo==='suave'){
+            /* volume: entra até o meio, sai na segunda metade */
+            DJx.xf=p<.5?this.ramp(xf0,.5,p*2):this.ramp(.5,xf1,(p-.5)*2);
+            this.setEq(para,'hi',this.ramp(Math.min(eqPa.hi,-6),eqPa.hi,p*2));
+            if(P.estilo==='bass'){
+              const sw=.5,bt=1/blendBeats; /* troca de graves no 1º tempo do meio da passagem, em 1 batida */
+              this.setEq(para,'lo',p<sw?-24:this.ramp(-24,eqPa.lo,(p-sw)/bt));
+              this.setEq(de,'lo',p<sw?eqDe.lo:this.ramp(eqDe.lo,-24,(p-sw)/bt));
+            }else{this.setEq(para,'lo',this.ramp(-24,eqPa.lo,p*1.4));this.setEq(de,'lo',this.ramp(eqDe.lo,-18,(p-.4)/.6))}
+            this.setEq(de,'hi',this.ramp(eqDe.hi,-10,(p-.5)*2));
+          }else{
+            /* filtro/eco: a que sai vai “sumindo” no filtro e a nova entra seca no compasso */
+            const fimSaida=blendBeats;
+            this.setFlt(de,this.ramp(fltDe,P.estilo==='eco'?.55:.85,b/fimSaida));
+            if(P.estilo==='eco'&&b>=fimSaida-1&&!de._ecoOn){de._ecoOn=true;this.eco(de,true,perDe/rDe)}
+            if(b>=fimSaida&&!de._cortou){de._cortou=true;DJx.xf=xf1;if(de._ecoOn)setTimeout(()=>this.eco(de,false),perDe/rDe*1000*.9)}
+            if(b<fimSaida)DJx.xf=this.ramp(xf0,xf0+(xf1-xf0)*.15,b/fimSaida);
+            if(b>=fimSaida)this.setFlt(para,this.ramp(-.55,fltPa,(b-fimSaida)/4));
+          }
+          DJx.aplicarGanhos();DJx.syncXf();
+          const fim=P.estilo==='bass'||P.estilo==='suave'?p>=1:b>=blendBeats+4;
+          if(fim||(!de.playing&&!para.playing&&!para._pend)){res();return}
+          requestAnimationFrame(step);
+        };
+        step();
+      });
+      const cancelado=!DJx.mixing;
+      DJx.mixing=null;de._ecoOn=false;de._cortou=false;
+      /* restaura EQ/filtro de quem saiu (fica pronto para a próxima) e de quem entrou */
+      para.bend=0;para.applyRate();this.setEq(para,'lo',eqPa.lo);this.setEq(para,'hi',eqPa.hi);this.setFlt(para,fltPa);
+      if(cancelado){DJx.render();return}
+      DJx.xf=xf1;DJx.aplicarGanhos();DJx.syncXf();
+      if(!para.playing&&para.m){para._pend=false;await para.play()}
+      if(de.playing){de.marcar();de.pause()}
+      setTimeout(()=>{this.setEq(de,'lo',eqDe.lo);this.setEq(de,'hi',eqDe.hi);this.setFlt(de,fltDe);try{de.media.currentTime=de.ini}catch{}},600);
+      /* 4) volta devagar ao andamento original da nova música */
+      if(P.sync&&this.cfg.voltar&&Math.abs(para.pitch-pitchPa0)>.001){
+        const from=para.pitch,t0=performance.now(),T=Math.min(30000,Math.max(8000,Math.abs(from-pitchPa0)*400000));
+        const g=()=>{if(DJx.mixing||!para.playing)return;const q=Math.min(1,(performance.now()-t0)/T);this.setPitch(para,from+(pitchPa0-from)*q);if(q<1)setTimeout(g,120)};setTimeout(g,1500);
+      }
+      if(DJx.auto){const n=DJx.proxima(para.m?.id,true);if(n)await de.load(n);else{de.unload();toast('Fim da lista: esta é a última música.','info',5000)}}
+      DJx.render();
+    }catch(e){DJx.mixing=null;DJx.render();console.error(e)}
+  },
+  /* SYNC manual: casa BPM e fase deste deck com o outro que está tocando */
+  async sync(d){
+    const o=DJ.outro(d);const a=this.an(d),b=this.an(o);
+    if(!a||!b)return toast('SYNC precisa das duas músicas analisadas (arquivos do aparelho).','warn');
+    const z=this.razao(b,o,a);if(Math.abs(z.r-1)*100>16)return toast('BPMs muito diferentes para sincronizar.','warn');
+    this.setPitch(d,z.r-1);
+    if(!d.playing||!o.playing){toast(`Deck ${d.id}: BPM ajustado para ${(b.bpm*this.rate(o)).toFixed(1)}.`,'ok',2500);return}
+    const perPa=this.per(a)/z.m,perDe=this.per(b),t0=performance.now();
+    const f=()=>{const fDe=this.beat(b,o.t),fPa=(d.t-a.down)/perPa;const err=((fPa-fDe)%1+1.5)%1-.5;d.bend=Math.max(-.05,Math.min(.05,-err*.4));d.applyRate();if(performance.now()-t0<5000&&d.playing&&o.playing)setTimeout(f,60);else{d.bend=0;d.applyRate()}};f();
+    toast(`Deck ${d.id} sincronizado: ${(b.bpm*this.rate(o)).toFixed(1)} BPM.`,'ok',2500);
+  },
+  /* ---------- tela de opções ---------- */
+  abrir(){
+    const c=this.cfg;
+    openModal(`${modalHead('Mix PRO','Transições automáticas como um DJ profissional')}
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="mpOn" ${this.on?'checked':''}><b>Usar o Mix PRO no MIX e no AUTO MIX</b></label>
+      <div class="grid2" style="margin-top:12px">
+        <label class="field"><span>Estilo da passagem</span><select id="mpEst">
+          <option value="auto" ${c.estilo==='auto'?'selected':''}>Automático (decide por BPM e tom)</option>
+          <option value="suave" ${c.estilo==='suave'?'selected':''}>Sempre longa, com troca de graves</option>
+          <option value="filtro" ${c.estilo==='filtro'?'selected':''}>Filtro (a que sai vai abafando)</option>
+          <option value="eco" ${c.estilo==='eco'?'selected':''}>Eco + corte no compasso</option></select></label>
+        <label class="field"><span>Ajuste máximo de BPM</span><select id="mpLim">${[4,6,8,10,12].map(v=>`<option value="${v}" ${c.limite===v?'selected':''}>±${v}%</option>`).join('')}</select></label>
+      </div>
+      <div class="mp-ops">
+        <label class="chk"><input type="checkbox" id="mpSync" ${c.sync?'checked':''}>Sincronizar BPM e batidas (sem mudar o tom da voz)</label>
+        <label class="chk"><input type="checkbox" id="mpVolta" ${c.voltar?'checked':''}>Depois da passagem, voltar devagar ao andamento original</label>
+        <label class="chk"><input type="checkbox" id="mpSil" ${c.silencio?'checked':''}>Pular o silêncio do início e do fim das músicas</label>
+        <label class="chk"><input type="checkbox" id="mpTom" ${c.tom?'checked':''}>Respeitar a tonalidade (tons que não combinam → passagem mais curta)</label>
+      </div>
+      <p class="hint">O tamanho da passagem segue o botão 4 / 8 / 12 / 16 s, arredondado para frases musicais (8, 16 ou 32 tempos). No AUTO MIX, a passagem começa no início de uma frase, perto do fim real da música.</p>
+      <p class="hint">Funciona com músicas do aparelho (analisadas na 1ª vez que entram num deck — leva alguns segundos). Com YouTube ou deck ao vivo a passagem é a clássica, só por volume, porque o navegador não deixa analisar esse áudio.</p>`,
+    {onMount:md=>{
+      const s=()=>{this.on=$('#mpOn',md).checked;Object.assign(this.cfg,{estilo:$('#mpEst',md).value,limite:+$('#mpLim',md).value,sync:$('#mpSync',md).checked,voltar:$('#mpVolta',md).checked,silencio:$('#mpSil',md).checked,tom:$('#mpTom',md).checked});this.salvarCfg();DJ.render()};
+      md.addEventListener('change',s);
+    }});
+  }
+};
+{
+  /* análise automática quando um arquivo entra no deck ou na fila */
+  const ld=Deck.prototype.load;Deck.prototype.load=async function(m,...a){
+    const r=await ld.call(this,m,...a);
+    if(this.m===m&&!this.ext&&!this.live&&!Analise.get(m.id))Analise.pedir(m.id).then(()=>{if(this.m===m)DJ.render()});
+    return r;
+  };
+  const fa=Fila.add.bind(Fila);Fila.add=function(ids,o){const n=fa(ids,o);for(const id of ids){const m=Fila.get(id);if(m&&!m.link&&!Analise.get(id))Analise.pedir(id)}return n};
+  /* o MIX passa pelo Mix PRO */
+  const mx=DJ.mix;DJ.mix=async function(origem){
+    if(this.mixing)return;
+    if(!MixPro.on)return mx.call(this,origem);
+    const de=origem||(this.A.playing&&!this.B.playing?this.A:this.B.playing&&!this.A.playing?this.B:(this.xf<.5?this.A:this.B));
+    return MixPro.mix(de,this.outro(de),mx);
+  };
+  /* AUTO MIX: começa a passagem no início de uma frase musical */
+  setInterval(()=>{
+    if(!MixPro.on||!DJ.auto||DJ.mixing)return;
+    const p=DJ.decks.find(d=>d.playing&&DJ.xfGain(d)>.5);if(!p)return;const o=DJ.outro(p);
+    if(!o.m||o.playing||o.loading||DJ.jaTocou(o))return;
+    if(!MixPro.an(p)||!MixPro.an(o))return;
+    const P=MixPro.plano(p,o);if(p._mixKey!==p.m.id+':'+P.beats){p._mixKey=p.m.id+':'+P.beats;p._mixAt=MixPro.pontoSaida(p,P.estilo==='bass'||P.estilo==='suave'?P.beats:P.beats+2)}
+    if(p._mixAt!=null&&p.t>=p._mixAt-1.2*MixPro.rate(p)&&p.t<p._mixAt-.15)DJ.mix(p);
+  },60);
+  /* BPM e tom no deck + botão SYNC + botão Mix PRO */
+  const mt=DJ.montar;DJ.montar=function(){const novo=!$('#dj').dataset.ok;mt.call(this);if(!novo)return;
+    for(const d of DJ.decks){const tt=$(`#dj [data-deck=${d.id}] .dk-tt`);tt?.insertAdjacentHTML('beforeend',`<span class="dk-bpm" data-f="bpm"></span>`);
+      $(`#dj [data-deck=${d.id}] [data-act=pfl]`)?.insertAdjacentHTML('beforebegin',`<button type="button" class="dk-sync" data-act="sync" title="SYNC: casa o BPM e as batidas com o outro deck">SYNC</button>`)}
+    $('#djAuto')?.insertAdjacentHTML('afterend',`<div class="mp-row"><button type="button" class="auto-btn ${MixPro.on?'on':''}" id="djPro" title="Transições inteligentes: BPM, batidas, frases, troca de graves">${icon('sparkle')}MIX PRO</button><button type="button" class="mp-cfg" id="djProCfg" title="Opções do Mix PRO">${icon('gear')}</button></div>`);
+    $('#djPro').onclick=()=>{MixPro.on=!MixPro.on;MixPro.salvarCfg();DJ.render();toast(MixPro.on?'<b>Mix PRO ligado:</b> BPM sincronizado, batidas alinhadas, passagem na frase musical.':'Mix PRO desligado (passagem clássica por volume).','info',4000)};
+    $('#djProCfg').onclick=()=>MixPro.abrir();
+    $('#dj').addEventListener('click',e=>{const s=e.target.closest('[data-act=sync]');if(s){const d=DJ.decks.find(x=>x.id===s.closest('[data-deck]').dataset.deck);if(d)MixPro.sync(d)}});
+  };
+  const rd=DJ.render;DJ.render=function(){rd.call(this);if(!this.aberto||!$('#dj')?.dataset.ok)return;
+    $('#djPro')?.classList.toggle('on',MixPro.on);
+    for(const d of this.decks){const el=$(`#dj [data-deck=${d.id}] [data-f=bpm]`);if(!el)continue;
+      if(!d.m||d.live){el.textContent='';continue}
+      if(d.ext){el.textContent='BPM — (YouTube)';el.className='dk-bpm off';continue}
+      const a=Analise.get(d.m.id);
+      if(!a){el.textContent='analisando BPM…';el.className='dk-bpm busy';continue}
+      el.className='dk-bpm'+(a.conf<.08?' low':'');el.innerHTML=`<b>${(a.bpm*MixPro.rate(d)).toFixed(1)}</b> BPM · <b>${camelot(a)}</b> ${tomTxt(a)}`;el.title=`BPM original ${a.bpm.toFixed(2)} · confiança ${Math.round(a.conf*100)}% · início ${fmt(a.intro)} · fim ${fmt(a.outro)}`;
+    }
+  };
+  /* mostra o BPM ao vivo quando o pitch muda */
+  const ds=DJ.desenhar;DJ.desenhar=function(){ds.call(this);if(!this.aberto)return;for(const d of this.decks){const a=MixPro.an(d);const b=$(`#dj [data-deck=${d.id}] [data-f=bpm] b`);if(a&&b){const v=(a.bpm*MixPro.rate(d)).toFixed(1);if(b.textContent!==v)b.textContent=v}}};
+  /* batidas desenhadas na forma de onda */
+  const dw=DJ.drawWave;DJ.drawWave=function(d,f){dw.call(this,d,f);const a=MixPro.an(d);if(!a||!d.dur||d.live)return;
+    const cv=$(`#dj [data-deck=${d.id}] canvas`);if(!cv)return;const x=cv.getContext('2d'),W=cv.width,H=cv.height,per=60/a.bpm;
+    x.save();for(let t=a.down,k=0;t<d.dur;t+=per,k++){const px=t/d.dur*W;const bar=k%4===0,fr=k%32===0;x.fillStyle=fr?'rgba(255,255,255,.55)':bar?'rgba(255,255,255,.22)':'rgba(255,255,255,.07)';x.fillRect(px,fr?0:H*.82,fr?2:1,fr?H:H*.18)}
+    x.fillStyle='rgba(0,0,0,.28)';x.fillRect(0,0,a.intro/d.dur*W,H);x.fillRect(a.outro/d.dur*W,0,W,H);x.restore()};
+  /* controladora */
+  for(const D of['A','B']){MIDI_CMDS.push({id:D+'.sync',deck:D,label:'SYNC (casar BPM e batidas)',tipo:'btn'});MIDI_TIPO[D+'.sync']='btn'}
+  MIDI_CMDS.push({id:'g.pro',deck:null,label:'Mix PRO liga/desliga',tipo:'btn'});MIDI_TIPO['g.pro']='btn';
+  const ex=MIDI.exec;MIDI.exec=function(m,v){const[D,a]=m.cmd.split('.');if(a==='sync'){if(v)MixPro.sync(D==='A'?DJ.A:DJ.B);return}if(m.cmd==='g.pro'){if(v)$('#djPro')?.click();return}return ex.call(this,m,v)};
 }
 
 /* =========================================================
