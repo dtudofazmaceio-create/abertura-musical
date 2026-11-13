@@ -1115,6 +1115,28 @@ html.has-bg .search input,html.has-bg .toolbar .search input{background-color:rg
 .som-lib .ic{width:34px;height:34px;color:var(--ok);flex:none}
 .som-lib b{display:block;font-size:1.05rem}.som-lib small{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
 @keyframes somPulse{50%{box-shadow:0 0 0 8px rgba(47,209,139,.25),0 18px 50px rgba(0,0,0,.45)}}
+
+/* fila do AUTO MIX */
+.fila-wrap{margin-bottom:14px;padding:12px;border-radius:16px;border:1px dashed var(--line);background:color-mix(in srgb,var(--surface2) 55%,transparent)}
+.fila-h{flex-wrap:wrap;align-items:center}
+.fila-h strong{display:inline-flex;align-items:center;gap:6px}.fila-h strong .ic{width:18px;height:18px}
+.fila-acts{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.fila-acts .btn.on{background:var(--ok);color:#fff;border-color:transparent}
+.fila-opts{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:0 4px 10px;color:var(--muted);font-size:.84rem}
+.fila-opts select{min-height:32px;padding:4px 8px;font-size:.84rem;width:auto}
+.fila-bar{position:sticky;top:0;z-index:2;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;margin:0 0 10px;border-radius:12px;background:var(--ok);color:#fff;font-weight:700}
+.fila-bar span{margin-right:auto}.fila-bar .btn{background:#fff;color:#111;border-color:transparent}.fila-bar .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.dj-ol.fila{max-height:26vh}
+.dj-ol.fila li{cursor:grab}.dj-ol.fila li.arr{opacity:.4}.dj-ol.fila li.drop{box-shadow:inset 0 3px 0 var(--ok)}
+.fila-n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--surface);font-weight:800;font-size:.78rem;flex:none}
+.dj-ol.fila li.fila-vazia{grid-column:1/-1;justify-content:center;color:var(--muted);cursor:default;font-size:.88rem;text-align:center}
+.dj-ol .b button[data-fadd]{font-size:1.1rem}
+.dj-ol .b button[data-fadd].on{background:var(--ok);color:#fff;border-color:transparent}
+.dj-ol li.na-fila .i small::after{content:" · na fila";color:var(--ok);font-weight:700}
+.fck{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);flex:none;display:grid;place-items:center}
+.dj-ol li.fsel{box-shadow:inset 0 0 0 2px var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--surface2))}
+.dj-ol li.fsel .fck{background:var(--ok);border-color:var(--ok)}.dj-ol li.fsel .fck::after{content:"✓";color:#fff;font-size:.8rem;font-weight:900}
+.fila-wrap.sel-on~div .dj-ol li,.fila-wrap.sel-on~.dj-ol li{cursor:pointer}
 </style>
 </head>
 <body>
@@ -7063,6 +7085,136 @@ const SomCheck={
   window.addEventListener('pointerdown',lib,true);window.addEventListener('keydown',lib,true);
   /* o YouTube ficou mudo ou bloqueado: oferece o botão de liberar */
   const as=DJ.alertaSom;DJ.alertaSom=function(d,tipo){as.call(this,d,tipo);if(tipo==='mudo'||tipo==='bloqueado')SomCheck.mostrar();else if(tipo===null&&SomCheck.ctxOk())SomCheck.esconder()};
+}
+
+/* =========================================================
+   FILA DO AUTO MIX — várias músicas de uma vez, em qualquer ordem
+   ========================================================= */
+const Fila={
+  ids:[],ev:null,sel:new Set(),modoSel:false,usada:false,
+  depois:lsGet('palco_fila_depois','parar'),importar:lsGet('palco_fila_import',false),
+  key(){return'palco_fila_'+(state.evento?.id||'')},
+  sync(){if(this.ev!==(state.evento?.id||null)){this.ev=state.evento?.id||null;this.ids=lsGet(this.key(),[]);this.sel.clear();this.modoSel=false;this.usada=this.ids.length>0}},
+  salvar(){lsSet(this.key(),this.ids)},
+  get(id){return Avulsas.get(id)||state.musicas.find(m=>m.id===id)||null},
+  tocavel(m){return!!m&&(!!(m.link&&linkTocavel(m.link))||m.avulsa||hasAudio(m))},
+  lista(){this.sync();return this.ids.map(id=>this.get(id)).filter(m=>this.tocavel(m))},
+  add(ids,{silencioso=false}={}){
+    this.sync();const tem=new Set(this.ids);let n=0;
+    for(const id of ids){if(!id||tem.has(id)||!this.tocavel(this.get(id)))continue;this.ids.push(id);tem.add(id);n++}
+    if(n)this.usada=true;this.salvar();DJ.render();
+    if(!silencioso)toast(n?`<b>${n}</b> música${n>1?'s':''} na fila do AUTO MIX (total: ${this.ids.length}).${DJ.auto?'':' Toque em <b>▶ Tocar a fila</b> ou ligue o AUTO MIX.'}`:'Essas músicas já estão na fila.',n?'ok':'info',5000);
+    return n;
+  },
+  rm(id){this.ids=this.ids.filter(x=>x!==id);this.salvar();DJ.render()},
+  mover(id,d){const i=this.ids.indexOf(id),j=i+d;if(i<0||j<0||j>=this.ids.length)return;[this.ids[i],this.ids[j]]=[this.ids[j],this.ids[i]];this.salvar();DJ.render()},
+  embaralhar(){for(let i=this.ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[this.ids[i],this.ids[j]]=[this.ids[j],this.ids[i]]}this.salvar();DJ.render()},
+  async limpar(){if(!this.ids.length)return;if(await confirmDialog(`Tirar as ${this.ids.length} músicas da fila? (Elas continuam nas listas.)`,{title:'Limpar a fila',ok:'Limpar'})){this.ids=[];this.usada=false;this.salvar();DJ.render()}},
+  proxima(){const nos=new Set(DJ.decks.map(d=>d.m?.id).filter(Boolean));return this.lista().find(m=>!nos.has(m.id))||null},
+  async tocar(){
+    if(!this.lista().length)return toast('A fila está vazia. Adicione músicas com “Selecionar várias”, “+ Todas” ou o botão + de cada música.','warn',6000);
+    if(!DJ.auto){DJ.auto=true;DJ.render()}
+    const tocando=DJ.decks.find(d=>d.playing);
+    if(tocando){const o=DJ.outro(tocando);if(!o.playing){const n=this.proxima();if(n&&o.m?.id!==n.id)await o.load(n)}toast('<b>AUTO MIX ligado</b> — a fila entra depois da música que está tocando.','ok',5000);return}
+    const d=DJ.A.m&&!this.ids.includes(DJ.A.m.id)&&DJ.B.m?DJ.A:(DJ.A.playing?DJ.B:DJ.A);
+    const n=this.proxima();if(!n)return;
+    if(await d.load(n)){DJ.xf=d===DJ.A?0:1;const xf=$('#djXf');if(xf)xf.value=DJ.xf;DJ.aplicarGanhos();await d.play();
+      const o=DJ.outro(d),n2=this.proxima();if(n2&&!o.playing)o.load(n2)}
+    toast('<b>Tocando a fila</b> com AUTO MIX.','ok',4000);
+  },
+  /* ---------- tela ---------- */
+  render(){
+    this.sync();const w=$('#djFilaWrap');if(!w)return;const L=this.lista(),ol=$('#djFila');
+    $('#djFilaN').textContent=L.length?`${L.length} música${L.length>1?'s':''}`:'vazia';
+    ol.innerHTML=L.map((m,i)=>`<li draggable="true" data-fid="${m.id}" class="${DJ.A.m?.id===m.id?'in-a':DJ.B.m?.id===m.id?'in-b':''}"><span class="fila-n">${i+1}</span><div class="i"><b>${esc(m.titulo)}</b><small>${esc([m.artista,m.link?'🔗 '+m.link.nome:'',m.avulsa?'Avulsa':'Cronograma'].filter(Boolean).join(' · '))}</small></div><div class="b"><button type="button" data-fmv="-1" title="Subir">↑</button><button type="button" data-fmv="1" title="Descer">↓</button><button type="button" data-frm title="Tirar da fila">${icon('x')}</button></div></li>`).join('')||'<li class="fila-vazia">Adicione várias músicas de uma vez: <b>Selecionar várias</b>, <b>+ Todas</b> ou o <b>+</b> ao lado de cada música.</li>';
+    $('#djFilaDep').value=this.depois;$('#djFilaImp').checked=this.importar;
+    /* modo seleção nas listas */
+    w.classList.toggle('sel-on',this.modoSel);$('#djSelBar').hidden=!this.modoSel;$('#djSelN').textContent=`${this.sel.size} selecionada${this.sel.size===1?'':'s'}`;
+    $('#djSel').classList.toggle('on',this.modoSel);
+    const naFila=new Set(this.ids);
+    $$('#djAv li, #djList li').forEach(li=>{
+      const b=li.querySelector('[data-load]');if(!b)return;const id=b.dataset.id;
+      li.classList.toggle('fsel',this.modoSel&&this.sel.has(id));li.classList.toggle('na-fila',naFila.has(id));
+      let ck=li.querySelector('.fck');if(this.modoSel&&!ck){li.insertAdjacentHTML('afterbegin','<span class="fck"></span>')}else if(!this.modoSel&&ck)ck.remove();
+      const bx=$('.b',li);if(bx&&!bx.querySelector('[data-fadd]'))bx.insertAdjacentHTML('afterbegin',`<button type="button" data-fadd="${id}" title="Adicionar à fila do AUTO MIX">+</button>`);
+      const fa=bx?.querySelector('[data-fadd]');if(fa){fa.classList.toggle('on',naFila.has(id));fa.title=naFila.has(id)?'Já está na fila':'Adicionar à fila do AUTO MIX'}
+    });
+  },
+  idsDe(sel){return $$(sel).map(li=>li.querySelector('[data-load]')?.dataset.id).filter(Boolean)},
+  montar(){
+    const av=$('#djAvWrap');if(!av||$('#djFilaWrap'))return;
+    av.insertAdjacentHTML('beforebegin',`<div id="djFilaWrap" class="fila-wrap">
+      <div class="dj-lh fila-h"><strong>${icon('auto')}Fila do AUTO MIX</strong><small id="djFilaN"></small>
+        <div class="fila-acts">
+          <button type="button" class="btn sm" id="djSel">${icon('check')}Selecionar várias</button>
+          <button type="button" class="btn sm" id="djAddAv" title="Todas as avulsas">+ Todas as avulsas</button>
+          <button type="button" class="btn sm" id="djAddCr" title="Todas do cronograma que ainda não tocaram">+ Cronograma</button>
+          <button type="button" class="btn sm ghost" id="djShuf" title="Embaralhar">${icon('refresh')}Embaralhar</button>
+          <button type="button" class="btn sm ghost" id="djFClr" title="Limpar a fila">${icon('trash')}</button>
+          <button type="button" class="btn sm primary" id="djFPlay">${icon('play')}Tocar a fila</button>
+        </div></div>
+      <div class="fila-opts"><label>Quando a fila acabar: <select id="djFilaDep"><option value="parar">parar</option><option value="cronograma">seguir o cronograma</option><option value="repetir">repetir a fila</option></select></label>
+        <label class="chk"><input type="checkbox" id="djFilaImp">Músicas importadas entram direto na fila</label></div>
+      <div class="fila-bar" id="djSelBar" hidden><span id="djSelN"></span><button type="button" class="btn sm" id="djSelAll">Marcar todas</button><button type="button" class="btn sm primary" id="djSelOk">${icon('plus')}Adicionar à fila</button><button type="button" class="btn sm ghost" id="djSelX">Cancelar</button></div>
+      <ol id="djFila" class="dj-ol fila"></ol></div>`);
+    $('#djSel').onclick=()=>{this.modoSel=!this.modoSel;this.sel.clear();this.render()};
+    $('#djSelX').onclick=()=>{this.modoSel=false;this.sel.clear();this.render()};
+    $('#djSelAll').onclick=()=>{const all=this.idsDe('#djAv li, #djList li');if(all.every(id=>this.sel.has(id)))this.sel.clear();else all.forEach(id=>this.sel.add(id));this.render()};
+    $('#djSelOk').onclick=()=>{if(!this.sel.size)return toast('Toque nas músicas para marcar.','warn');
+      this.add([...this.sel]);this.sel.clear();this.modoSel=false;this.render()};
+    $('#djAddAv').onclick=()=>{const ids=Avulsas.lista.map(m=>m.id);if(!ids.length)return toast('Não há avulsas neste evento.','warn');this.add(ids)};
+    $('#djAddCr').onclick=()=>{const ids=DJ.lista().filter(m=>m.status!=='tocada').map(m=>m.id);if(!ids.length)return toast('Não há músicas do cronograma para adicionar.','warn');this.add(ids)};
+    $('#djShuf').onclick=()=>this.embaralhar();
+    $('#djFClr').onclick=()=>this.limpar();
+    $('#djFPlay').onclick=()=>this.tocar();
+    $('#djFilaDep').onchange=e=>{this.depois=e.target.value;lsSet('palco_fila_depois',this.depois)};
+    $('#djFilaImp').onchange=e=>{this.importar=e.target.checked;lsSet('palco_fila_import',this.importar)};
+    const fila=$('#djFila');
+    fila.addEventListener('click',e=>{const li=e.target.closest('[data-fid]');if(!li)return;const id=li.dataset.fid;
+      if(e.target.closest('[data-frm]'))this.rm(id);else{const mv=e.target.closest('[data-fmv]');if(mv)this.mover(id,+mv.dataset.fmv)}});
+    /* arrastar para reordenar */
+    let arr=null;
+    fila.addEventListener('dragstart',e=>{const li=e.target.closest('[data-fid]');if(!li)return;arr=li.dataset.fid;li.classList.add('arr');e.dataTransfer.effectAllowed='move'});
+    fila.addEventListener('dragover',e=>{if(!arr)return;e.preventDefault();const li=e.target.closest('[data-fid]');$$('#djFila li').forEach(x=>x.classList.toggle('drop',x===li&&li.dataset.fid!==arr))});
+    fila.addEventListener('drop',e=>{e.preventDefault();const li=e.target.closest('[data-fid]');if(arr&&li&&li.dataset.fid!==arr){const i=this.ids.indexOf(arr);this.ids.splice(i,1);const j=this.ids.indexOf(li.dataset.fid);this.ids.splice(j+(i<=j?1:0),0,arr);this.salvar()}arr=null;DJ.render()});
+    fila.addEventListener('dragend',()=>{arr=null;$$('#djFila li').forEach(x=>x.classList.remove('arr','drop'))});
+    /* listas: botão + e seleção por toque */
+    $('#dj').addEventListener('click',e=>{
+      const fa=e.target.closest('[data-fadd]');if(fa){e.stopPropagation();const id=fa.dataset.fadd;if(this.ids.includes(id))this.rm(id);else this.add([id],{silencioso:true}),toast('Adicionada à fila do AUTO MIX.','ok',1600);return}
+      if(!this.modoSel)return;const li=e.target.closest('#djAv li, #djList li');if(!li||e.target.closest('button'))return;
+      const id=li.querySelector('[data-load]')?.dataset.id;if(!id)return;this.sel.has(id)?this.sel.delete(id):this.sel.add(id);this.render();
+    },true);
+  }
+};
+{
+  /* AUTO MIX: a fila tem prioridade sobre o cronograma */
+  const px=DJ.proxima;DJ.proxima=function(apos,soNovas){
+    const f=Fila.proxima();if(f)return f;
+    if(Fila.usada&&Fila.depois==='parar')return null;
+    if(Fila.usada&&Fila.depois==='repetir'&&Fila._hist?.length){Fila.ids=[...Fila._hist];Fila._hist=[];Fila.salvar();const r=Fila.proxima();if(r)return r}
+    return px.call(this,apos,soNovas);
+  };
+  /* a música sai da fila quando entra num deck */
+  const ld=Deck.prototype.load;Deck.prototype.load=async function(m,...a){
+    const r=await ld.call(this,m,...a);
+    if(this.m===m&&Fila.ids.includes(m.id)){Fila._hist=[...(Fila._hist||[]),m.id];Fila.ids=Fila.ids.filter(x=>x!==m.id);Fila.salvar();DJ.render()}
+    return r;
+  };
+  const mt=DJ.montar;DJ.montar=function(){const novo=!$('#dj').dataset.ok;mt.call(this);if(novo)Fila.montar()};
+  const rd=DJ.render;DJ.render=function(){rd.call(this);if(this.aberto&&$('#dj')?.dataset.ok)Fila.render()};
+  /* importar direto para a fila */
+  const im=Offline.importar.bind(Offline);Offline.importar=async function(files){
+    const antes=new Set(Avulsas.lista.map(m=>m.id));await im(files);
+    if(Fila.importar){const novos=Avulsas.lista.filter(m=>!antes.has(m.id)).map(m=>m.id);if(novos.length)Fila.add(novos)}
+  };
+  /* Deezer: mandar as faixas que tocam inteiras para a fila */
+  const dr=Deezer.renderUi;Deezer.renderUi=function(){dr.call(this);const box=this.ui&&$('#dzUi',this.ui);if(!box)return;
+    const h=[...$$('h3.mh',box)].find(x=>/Faixas do Deezer/.test(x.textContent));const row=h?.nextElementSibling;
+    if(row&&!$('#dzFila',row)){row.insertAdjacentHTML('beforeend',`<button type="button" class="btn sm" id="dzFila">${icon('auto')}Mandar para a fila do AUTO MIX</button>`);
+      $('#dzFila',row).onclick=()=>{const ids=this.doDeezer().filter(m=>(m.off&&!m.previa)||m.yt).map(m=>m.id);if(!ids.length)return toast('Nenhuma faixa toca inteira ainda (ligue a arquivos ou ache no YouTube).','warn',6000);Fila.add(ids)}}};
+  /* controladora: botão para adicionar a música selecionada na lista */
+  MIDI_CMDS.push({id:'g.fila',deck:null,label:'Adicionar a música selecionada à fila do AUTO MIX',tipo:'btn'});MIDI_TIPO['g.fila']='btn';
+  const ex=MIDI.exec;MIDI.exec=function(m,v){if(m.cmd==='g.fila'){if(v){if(!Browse.id)Browse.move(1);if(Browse.id)Fila.add([Browse.id])}return}return ex.call(this,m,v)};
 }
 
 /* =========================================================

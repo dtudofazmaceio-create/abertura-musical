@@ -63,7 +63,22 @@ Em **Controladora → Saídas de áudio**:
 
 ---
 
-## 2. Modo offline
+## 2. Fila do AUTO MIX (várias músicas de uma vez)
+
+No Modo DJ, acima das Avulsas, fica a **Fila do AUTO MIX**. Ela tem prioridade sobre o cronograma.
+
+- **Selecionar várias**: toque nas músicas das listas, na ordem em que devem tocar, e depois em **Adicionar à fila**. **Marcar todas** seleciona tudo.
+- **+ Todas as avulsas** e **+ Cronograma** (só as que ainda não tocaram) colocam a lista inteira na fila.
+- O **+** ao lado de cada música adiciona ou tira só aquela música.
+- **Músicas importadas entram direto na fila**: com essa opção ligada, tudo o que vier por Importar ou Pasta já entra na fila.
+- No Deezer, **Mandar para a fila do AUTO MIX** coloca na fila todas as faixas que tocam inteiras.
+- Para mudar a ordem, arraste a música ou use ↑ ↓. Também dá para **Embaralhar**, tirar uma música (×) ou limpar a fila (lixeira).
+- **Tocar a fila** liga o AUTO MIX e começa pela primeira música. Se já houver música tocando, a fila entra logo depois dela.
+- **Quando a fila acabar**, você escolhe entre parar, seguir o cronograma ou repetir a fila.
+- A música sai da fila quando entra num deck. A fila fica salva por evento.
+- Na controladora, dá para mapear o comando "Adicionar a música selecionada à fila" num botão (em CONTROLADORA → Mixer → Aprender).
+
+## 3. Modo offline
 
 - O app abre sem internet depois do primeiro acesso online.
 - No topo do Modo DJ aparece **ONLINE / OFFLINE**. Quando está offline, o que precisa de internet fica apagado na lista.
@@ -74,7 +89,7 @@ Em **Controladora → Saídas de áudio**:
 
 ---
 
-## 3. Deezer
+## 4. Deezer
 
 **Modo DJ → botão `Deezer`**
 
