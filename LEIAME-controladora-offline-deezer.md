@@ -1,4 +1,4 @@
-# Palco Musical: controladora DJ, modo offline e Deezer
+# Palco Musical: console DJ para iPad, pads de efeitos, controladora, modo offline e Deezer
 
 ## Instalação
 
@@ -6,7 +6,61 @@
 2. Coloque o **`sw.js`** na mesma pasta do `index.html`. É ele que permite abrir o app sem internet.
 3. Publique (GitHub Pages ou o servidor que você já usa) e abra o app **uma vez com internet**. A partir daí ele abre offline também.
 
-> Use o **Google Chrome** ou o **Microsoft Edge** no computador. O Safari e o Firefox não têm suporte a controladoras MIDI.
+> **Computador:** use o **Google Chrome** ou o **Microsoft Edge**. O Safari e o Firefox não têm suporte a controladoras MIDI.
+> **iPad:** use o Safari (iPadOS 16.4 ou mais novo). Tudo funciona por toque: decks, mixer, pads de performance, efeitos e pads de efeitos. Veja a seção 0.
+
+---
+
+---
+
+## 0. iPad e telas de toque (console PRO)
+
+O Modo DJ virou um console profissional pensado para o dedo. Ele funciona no iPad (em pé ou deitado), em tablets e também no computador.
+
+**Como abrir no iPad**
+1. Abra o app no **Safari** com internet uma vez.
+2. Toque em **Compartilhar → Adicionar à Tela de Início**. O app abre em tela cheia, sem barra do navegador, e funciona offline.
+3. Entre no **Modo DJ** e toque em qualquer lugar do console uma vez. Esse primeiro toque libera o áudio do iPad. O som sai mesmo com a chave de silencioso ligada (iPadOS 16.4+).
+4. A tela do iPad não apaga enquanto o console está aberto.
+
+**Controles de toque**
+- **Knobs** (AGUDO, MÉDIO, GRAVE, GANHO e FILTRO): arraste para cima ou para baixo. Toque duas vezes para cortar a faixa do EQ (CORTADO) ou zerar o ganho e o filtro. O valor aparece em cima do knob enquanto você mexe.
+- **Faders** (pitch, volume do canal, master e crossfader): arraste de qualquer ponto do trilho. No toque, o fader nunca pula sozinho para onde o dedo encostou, para evitar sustos ao vivo. Com o mouse, clicar no trilho leva o fader até o ponto.
+- **Vários dedos ao mesmo tempo**: dá para mexer em dois faders ou knobs juntos, por exemplo para uma passagem manual.
+- **Forma de onda**: com a música tocando, é preciso **tocar duas vezes** para pular para outro ponto. Isso protege contra toques sem querer. Com a música parada, um toque leva ao ponto e dá para arrastar.
+- No topo: **PADS** mostra ou esconde os pads dos decks. **🌙** deixa o console sempre escuro (recomendado em eventos). **⤢** abre a tela cheia (quando o navegador permite).
+
+**O que o Safari do iPad não permite**
+- **Controladora MIDI**: o Safari não tem Web MIDI. Use os controles de toque (ou um computador com Chrome/Edge).
+- **Fone separado (pré-escuta)**: o Safari não deixa escolher a saída de áudio. O botão 🎧 fica escondido.
+- **Pasta**: o iPad não deixa escolher uma pasta inteira. Use **Importar do aparelho** e selecione vários arquivos de uma vez no app Arquivos.
+- **Links do YouTube**: tocam, mas sem EQ, filtro, efeitos e loops (o navegador não libera o áudio deles).
+
+## 0.1 Pads de performance (em cada deck)
+
+Abaixo dos botões CUE/PLAY de cada deck ficam **8 pads** com 4 modos:
+
+| Modo | O que os pads fazem |
+|---|---|
+| **HOT CUE** | O primeiro toque marca o ponto. Os seguintes pulam para ele (e dão play). **Segure** o pad para apagar. |
+| **LOOP** | Loops de 1/4, 1/2, 1, 2, 4, 8, 16 e 32 batidas, presos na batida da música. Toque de novo para sair. **½** e **×2** mudam o tamanho, **SAIR** encerra. |
+| **ROLL** | Repete um trecho curto (1/16 a 8 batidas) **enquanto o dedo estiver no pad**. Ao soltar, a música volta para onde estaria, sem perder o tempo. |
+| **FX** | Efeitos no deck: **ECO**, **REVERB**, **FLANGER**, **PHASER**, **FILTRO** (abre e fecha no ritmo), **CRUSH**, **GATE** (corta no ritmo) e **FREIO** (para como um toca-discos). Toque para ligar e desligar. **Segure** para usar só enquanto o dedo estiver no pad. O controle **NÍVEL** ajusta a intensidade. |
+
+- Eco, filtro e gate seguem o **BPM** medido pelo Mix PRO. Se a música ainda não foi analisada, usam 120 BPM até a análise terminar.
+- O loop aparece desenhado em verde na forma de onda (o roll, em azul).
+- Os pads também podem ir para a controladora: em **CONTROLADORA → Deck A/B → Aprender**, há comandos para Loop de 4 batidas, metade, dobro e cada efeito.
+
+## 0.2 Pads de efeitos (sampler)
+
+Abaixo do crossfader fica o painel **PADS DE EFEITOS**, com **16 sons prontos**: Buzina, Sirene, Impacto, Laser, Subida, Descida, Aplausos, Rewind, Scratch, Sino, Rufar, Fanfarra, Whoosh, Bumbo, Palmas e Bipe.
+
+- Os sons são **gerados pelo próprio app**. Não precisam de internet nem de arquivos.
+- Toque no pad para disparar. Tocar de novo recomeça o som. **Parar sons** silencia tudo.
+- O volume dos pads é o **VOLUME** do painel e também passa pelo **MASTER** e pelo limitador, então não distorce.
+- **Editar pads**: toque em um pad para trocar o **nome**, a **cor**, o **volume** e o **modo** (*Toque*: toca inteiro · *Segurar*: toca enquanto o dedo estiver no pad · *Loop*: liga e desliga). Em **Usar arquivo** você coloca um som seu (vinheta, nome dos noivos, grito da torcida…). Ele fica salvo no aparelho e funciona offline. **Restaurar padrão** volta ao som original.
+- **Teclado** (computador ou iPad com teclado): teclas **Z X C V B N , .** disparam os pads 1 a 8. Com **Shift**, os pads 9 a 16.
+- **Controladora**: em **CONTROLADORA → Mixer → Aprender**, mapeie “Pad de efeito 1…16” nos pads da sua controladora.
 
 ---
 
