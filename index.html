@@ -5637,7 +5637,7 @@ function openSettings(){
       <hr class="sep" style="margin:6px 0">
       <div>
         <strong style="display:block">Backup</strong>
-        <p class="muted" style="font-size:.88rem;margin:2px 0 8px">Se a sincronização falhar, leve tudo num arquivo <code>.palco</code> e importe no outro aparelho. O token não vai no backup.</p>
+        <p class="muted" style="font-size:.88rem;margin:2px 0 8px">Leva <b>tudo</b> para outro aparelho (computador → iPad, por exemplo) num arquivo <code>.palco</code>: eventos, músicas, avulsas do DJ, pads de efeitos (com seus sons), hot cues, fila, controladora e preferências. O token não vai no backup.</p>
         <div class="row"><button class="btn sm primary" id="bkAll" type="button">${icon('download')}Exportar tudo (com arquivos)</button><button class="btn sm" id="bkData" type="button">${icon('download')}Só os dados</button><button class="btn sm" id="bkImp" type="button">${icon('upload')}Importar backup</button></div>
       </div>
       <hr class="sep" style="margin:6px 0">
@@ -8756,6 +8756,8 @@ const Console={escuro:lsGet('palco_dj_escuro',true)};
     if(row)row.style.flexWrap='nowrap';
     /* iPad: sem pasta (Safari não permite) e sem fone separado */
     if(Toque.ios)$('#djDir')?.closest('label')?.setAttribute('hidden','');
+    /* iPad: o telão abre em outra janela/tela, o que o iPad não faz — esconde o botão */
+    if(Toque.ios)$('#djTv',el)?.setAttribute('hidden','');
     /* sampler e eventos dos pads */
     Sampler.montar(el);
     Pads.bind(el);
@@ -8809,6 +8811,155 @@ const Console={escuro:lsGet('palco_dj_escuro',true)};
   const alvo=e=>{if(!DJ.aberto||$$('.modal-back').length||e.ctrlKey||e.metaKey||e.altKey)return-1;if(e.target.closest&&e.target.closest('input:not([type=range]),textarea,select,[contenteditable]'))return-1;const i=SP_COD.indexOf(e.code);return i<0?-1:i+(e.shiftKey?8:0)};
   document.addEventListener('keydown',e=>{const i=alvo(e);if(i<0)return;e.preventDefault();if(!e.repeat)Sampler.down(i)});
   document.addEventListener('keyup',e=>{const i=SP_COD.indexOf(e.code);if(i<0)return;Sampler.up(i);Sampler.up(i+8)});
+}
+
+/* =========================================================
+   BACKUP GLOBAL (.palco v2): tudo o que existe no aparelho
+   eventos, músicas e arquivos · avulsas do DJ · fotos · pads de efeitos (sons próprios)
+   fila do AUTO MIX · hot cues · mapeamento da controladora · Mix PRO · Deezer · preferências
+   ========================================================= */
+const BK_CFG_FORA=['token','login'];                              /* nunca saem do aparelho */
+const BK_LS_FORA=['palco_out_master','palco_out_cue','palco_midi_on','palco_ipad_aviso']; /* específicos do aparelho */
+const dbEntradas=store=>new Promise((res,rej)=>{
+  const out=[],t=DB.db.transaction(store,'readonly'),r=t.objectStore(store).openCursor();
+  r.onsuccess=()=>{const c=r.result;if(c){out.push([c.key,c.value]);c.continue()}};
+  t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);
+});
+const ehArquivoPequeno=k=>/^(sampler:|foto:)/.test(String(k));
+exportarBackup=async function({eventoId=null,arquivos=true}={}){
+  try{
+    toast('Gerando o backup…','info',2500);
+    const evs=eventoId?state.eventos.filter(e=>e.id===eventoId):(await DB.all('eventos'));
+    const evIds=new Set(evs.map(e=>e.id));
+    const mus=[];for(const ev of evs)mus.push(...await DB.byIndex('musicas','eventoId',ev.id));
+    const limpa=o=>{const c={...o};delete c._h;return c};
+    /* configurações (IndexedDB) */
+    const cfg={},files=[];let off=0;
+    const addArq=(key,b)=>{files.push({key,type:b.type||'',size:b.size,offset:off,blob:b});off+=b.size};
+    for(const[k,v]of await dbEntradas('config')){
+      if(BK_CFG_FORA.includes(k))continue;
+      if(eventoId&&/^dj_av_/.test(k)&&k!=='dj_av_'+eventoId)continue;
+      if(eventoId&&!/^dj_av_/.test(k))continue;                     /* backup de um evento: só as avulsas dele */
+      if(v instanceof Blob){addArq('cfg:'+k,v);continue}
+      cfg[k]=v;
+    }
+    /* preferências e dados do console (localStorage) */
+    const ls={};
+    try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!k.startsWith('palco_')||BK_LS_FORA.includes(k))continue;
+      if(eventoId&&!(k==='palco_hotcues'||k==='palco_analise'||k==='palco_fila_'+eventoId))continue;
+      ls[k]=localStorage.getItem(k)}}catch{}
+    /* arquivos */
+    const avIds=new Set();for(const[k,v]of Object.entries(cfg))if(/^dj_av_/.test(k)&&Array.isArray(v))v.forEach(m=>m&&m.id&&avIds.add(m.id));
+    const musIds=new Set(mus.map(m=>m.id));
+    for(const[k,b]of await dbEntradas('audios')){
+      if(!(b instanceof Blob))continue;const ks=String(k);
+      const base=ks.split(':').slice(0,ks.startsWith('av:')?2:1).join(':');
+      let quer;
+      if(eventoId)quer=musIds.has(base)||avIds.has(ks)||evs.some(e=>ks===fotoKey(e.foto,e.id));
+      else quer=true;
+      if(!quer)continue;
+      if(!arquivos&&!ehArquivoPequeno(ks))continue;
+      addArq(ks,b);
+    }
+    const envios=eventoId?[]:await DB.all('envios').catch(()=>[]);
+    const header={app:'palco-musical',tipo:'backup',v:2,criadoEm:agoraISO(),escopo:eventoId?'evento':'tudo',comArquivos:arquivos,
+      marca:{...marca},config:{autoLimpeza:(await DB.cfg('autoLimpeza'))!==false,inboxGistId:(await DB.cfg('inboxGistId'))||'',workspaceGistId:(await DB.cfg('workspaceGistId'))||'',volume:state.volume,auto:state.auto},
+      eventos:evs.map(limpa),musicas:mus.map(limpa),envios,cfg,ls,arquivos:files.map(({blob,...r})=>r)};
+    const hj=new TextEncoder().encode(JSON.stringify(header));
+    const blob=new Blob(['PALCO1\n',String(hj.length).padStart(10,'0'),hj,...files.map(f=>f.blob)],{type:'application/octet-stream'});
+    const d=new Date(),dt=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const nome=(eventoId?`palco-${(evs[0]?.nome||'evento').replace(/[^\wÀ-ú -]/g,'').trim().replace(/\s+/g,'-')}`:'palco-backup-completo')+`-${dt}${arquivos?'':'-dados'}.palco`;
+    const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),120000);
+    const nAv=[...avIds].length,nSp=files.filter(f=>f.key.startsWith('sampler:')).length;
+    toast(`Backup gerado: <b>${esc(nome)}</b> (${fmtSize(blob.size)})<br>${evs.length} evento(s) · ${mus.length} música(s) · ${nAv} avulsa(s)${eventoId?'':` · pads de efeitos${nSp?` (${nSp} som(ns) próprio(s))`:''} · controladora · preferências`}. O token do GitHub não vai no backup.`,'ok',10000);
+  }catch(e){console.error(e);toast('Não foi possível gerar o backup: '+esc(e.message||e),'err',8000)}
+};
+{
+  const imp1=importarBackup;
+  importarBackup=async function(file){
+    let h;
+    try{
+      const head=await file.slice(0,17).text();
+      if(!head.startsWith('PALCO1\n'))throw new Error('Este arquivo não é um backup do Palco Musical (.palco).');
+      const len=parseInt(head.slice(7,17),10);
+      h=JSON.parse(await file.slice(17,17+len).text());h._base=17+len;
+      if(h.tipo!=='backup')throw new Error('Backup inválido.');
+    }catch(e){return toast(esc(e.message||'Não foi possível ler o backup.'),'err',7000)}
+    if(!(h.v>=2))return imp1(file);                                  /* backups antigos: importação de antes */
+    const global=h.escopo==='tudo';
+    const nAv=Object.entries(h.cfg||{}).filter(([k,v])=>/^dj_av_/.test(k)&&Array.isArray(v)).reduce((s,[,v])=>s+v.length,0);
+    const nSp=h.arquivos.filter(a=>a.key.startsWith('sampler:')).length;
+    const temSp=!!(h.ls&&h.ls.palco_sampler);
+    const r=await confirmDialog(`${global?'<b>Backup completo</b>':'Backup do evento'} de ${fmtHora(h.criadoEm)}:<br>
+      • <b>${h.eventos.length}</b> evento(s) e <b>${h.musicas.length}</b> música(s)${h.comArquivos?` com <b>${h.arquivos.length}</b> arquivo(s)`:' (sem arquivos de música — serão baixados da nuvem quando possível)'}<br>
+      • <b>${nAv}</b> música(s) avulsa(s) do Modo DJ<br>
+      ${global?`• Pads de efeitos${temSp?'':' (padrão)'}${nSp?` com ${nSp} som(ns) próprio(s)`:''}, hot cues, fila do AUTO MIX, controladora, Mix PRO, Deezer e preferências<br>`:'• Hot cues e fila do AUTO MIX do evento<br>'}
+      <br>Eventos que já existem aqui serão substituídos pela versão do backup.${global?' Depois de importar, o app recarrega para aplicar tudo.':''}`,
+      {title:'Importar backup',ok:'Importar tudo',check:!global&&h.marca&&(h.marca.nome||h.marca.logo)?{label:'Importar também a marca (logo, cor e contatos)',checked:!marca.nome&&!marca.logo}:null});
+    if(!(typeof r==='object'?r.ok:r))return;
+    if(DJ.tocando?.()&&!(await confirmDialog('Os decks estão tocando. A importação vai parar o Modo DJ.',{title:'Decks tocando',ok:'Continuar'})))return;
+    toast('Importando o backup… não feche o app.','info',6000);
+    try{
+      if(DJ.decks.length){DJ.mixing=null;DJ.decks.forEach(d=>d.unload());if(DJ.aberto)DJ.fechar()}
+      const idMap={};
+      for(const e of h.eventos){
+        const ex=state.eventos.find(x=>x.id===e.id||(e.gistId&&x.gistId===e.gistId));
+        const id=ex?ex.id:e.id;idMap[e.id]=id;
+        if(ex){for(const m of await DB.byIndex('musicas','eventoId',id)){await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p))}}
+        if(e.gistId){const exc=new Set((await DB.cfg('excluidos'))||[]);if(exc.delete(e.gistId))await DB.setCfg('excluidos',[...exc])}
+        await saveEvento({...e,id,atualizadoEm:agoraISO()});
+      }
+      /* arquivos (músicas, partes, avulsas, fotos, sons dos pads) */
+      const tem=new Set(h.arquivos.map(a=>a.key));
+      for(const a of h.arquivos){
+        const b=file.slice(h._base+a.offset,h._base+a.offset+a.size,a.type);
+        if(a.key.startsWith('cfg:'))await DB.setCfg(a.key.slice(4),b);else await DB.put('audios',b,a.key);
+      }
+      for(const m of h.musicas){
+        const x={...m,eventoId:idMap[m.eventoId]||m.eventoId};
+        if(tem.has(m.id)){if(x.status!=='tocada')x.status='pronta'}
+        else if(x.link&&linkTocavel(x.link))x.status=x.status==='tocada'?'tocada':'pronta';
+        else if(x.audioGistId)x.status=x.status==='tocada'?'tocada':'baixando';
+        else x.status='erro',x.erro='Arquivo não incluído no backup.';
+        await DB.put('musicas',x);
+      }
+      /* configurações: avulsas por evento (com o id novo) e, no completo, o resto */
+      for(const[k,v]of Object.entries(h.cfg||{})){
+        if(BK_CFG_FORA.includes(k))continue;
+        if(/^dj_av_/.test(k)){const ev=k.slice(6);const list=(Array.isArray(v)?v:[]).map(m=>m&&!m.link&&!tem.has(m.id)&&!m.off?{...m,status:'erro'}:m);await DB.setCfg('dj_av_'+(idMap[ev]||ev),list);continue}
+        if(!global)continue;
+        await DB.setCfg(k,v);
+      }
+      if(global&&Array.isArray(h.envios))for(const x of h.envios)try{await DB.put('envios',x)}catch{}
+      if(global||(typeof r==='object'&&r.checked)){if(h.marca){await DB.setCfg('marca',h.marca);await DB.setCfg('marcaAt',agoraISO())}}
+      if(h.config?.inboxGistId&&!(await DB.cfg('inboxGistId')))await DB.setCfg('inboxGistId',h.config.inboxGistId);
+      if(global&&h.config){await DB.setCfg('autoLimpeza',h.config.autoLimpeza!==false);if(typeof h.config.volume==='number')await DB.setCfg('volume',h.config.volume)}
+      /* localStorage: pads, hot cues, controladora, preferências */
+      const L=h.ls||{};
+      for(const[k,v]of Object.entries(L)){
+        if(BK_LS_FORA.includes(k))continue;
+        let val=v;
+        if(k.startsWith('palco_fila_')){const ev=k.slice(11);const nk='palco_fila_'+(idMap[ev]||ev);try{localStorage.setItem(nk,val)}catch{}continue}
+        if(k==='palco_hotcues'){try{const cur=JSON.parse(localStorage.getItem(k)||'{}');val=JSON.stringify({...cur,...JSON.parse(v)})}catch{}}
+        if(k==='palco_analise'){try{const cur=JSON.parse(localStorage.getItem(k)||'{}');const nw=JSON.parse(v);val=JSON.stringify(Array.isArray(nw)?nw:{...cur,...nw})}catch{}}
+        try{localStorage.setItem(k,val)}catch{toast('Parte das preferências não coube no armazenamento do navegador.','warn',5000)}
+      }
+      Avulsas.evId=null;
+      /* nuvem: envia o que mudou, se houver token */
+      if(state.token){try{for(const e of h.eventos)Nuvem.dirty.add(idMap[e.id]);await Promise.race([Promise.all([Nuvem.flush(),pushWorkspace()]),new Promise(r=>setTimeout(r,8000))])}catch{}}
+      try{await DB.setCfg('ultimoEvento',idMap[h.eventos[0]?.id]||state.evento?.id)}catch{}
+      if(global){
+        toast(`Backup completo importado: ${h.eventos.length} evento(s), ${h.musicas.length} música(s), avulsas, pads de efeitos e preferências. Recarregando…`,'ok',4000);
+        setTimeout(()=>location.reload(),1600);return;
+      }
+      state.eventos=await DB.all('eventos');
+      HotCue.all=lsGet('palco_hotcues',{});
+      await selectEvent(idMap[h.eventos[0]?.id]||state.evento?.id||state.eventos[0]?.id);
+      if(typeof r==='object'&&r.checked)applyBrand(h.marca);
+      state.musicas.filter(m=>m.status==='baixando').forEach(baixarAudio);
+      toast(`Backup importado: ${h.eventos.length} evento(s), ${h.musicas.length} música(s) e ${nAv} avulsa(s).`,'ok',6000);
+    }catch(e){console.error(e);toast('Falha ao importar: '+esc(e.message||e),'err',9000)}
+  };
 }
 Toque.init();
 

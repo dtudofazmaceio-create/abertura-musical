@@ -28,6 +28,7 @@ O Modo DJ virou um console profissional pensado para o dedo. Ele funciona no iPa
 - **Faders** (pitch, volume do canal, master e crossfader): arraste de qualquer ponto do trilho. No toque, o fader nunca pula sozinho para onde o dedo encostou, para evitar sustos ao vivo. Com o mouse, clicar no trilho leva o fader até o ponto.
 - **Vários dedos ao mesmo tempo**: dá para mexer em dois faders ou knobs juntos, por exemplo para uma passagem manual.
 - **Forma de onda**: com a música tocando, é preciso **tocar duas vezes** para pular para outro ponto. Isso protege contra toques sem querer. Com a música parada, um toque leva ao ponto e dá para arrastar.
+- No iPad o botão **Telão** não aparece no Modo DJ (o telão precisa de uma segunda janela, o que o iPad não faz).
 - No topo: **PADS** mostra ou esconde os pads dos decks. **🌙** deixa o console sempre escuro (recomendado em eventos). **⤢** abre a tela cheia (quando o navegador permite).
 
 **O que o Safari do iPad não permite**
@@ -61,6 +62,23 @@ Abaixo do crossfader fica o painel **PADS DE EFEITOS**, com **16 sons prontos**:
 - **Editar pads**: toque em um pad para trocar o **nome**, a **cor**, o **volume** e o **modo** (*Toque*: toca inteiro · *Segurar*: toca enquanto o dedo estiver no pad · *Loop*: liga e desliga). Em **Usar arquivo** você coloca um som seu (vinheta, nome dos noivos, grito da torcida…). Ele fica salvo no aparelho e funciona offline. **Restaurar padrão** volta ao som original.
 - **Teclado** (computador ou iPad com teclado): teclas **Z X C V B N , .** disparam os pads 1 a 8. Com **Shift**, os pads 9 a 16.
 - **Controladora**: em **CONTROLADORA → Mixer → Aprender**, mapeie “Pad de efeito 1…16” nos pads da sua controladora.
+
+---
+
+## 0.3 Backup completo (levar tudo do computador para o iPad)
+
+Em **Configurações → Backup → Exportar tudo (com arquivos)** o app gera um arquivo `.palco` com **tudo** o que existe no aparelho:
+- eventos, cronogramas, músicas, cortes, montagens e fotos;
+- **músicas avulsas** do Modo DJ (com os arquivos);
+- **pads de efeitos**: nomes, cores, modos, volumes e os **sons próprios** que você colocou (bateria, vinhetas…);
+- hot cues, fila do AUTO MIX, análises de BPM, mapeamento da controladora, Mix PRO, Deezer e preferências do console.
+
+**No iPad:** mande o arquivo para o iPad (AirDrop, iCloud Drive, WhatsApp ou e-mail e salve em Arquivos). Abra o app → **Configurações → Backup → Importar backup** e escolha o arquivo. Confira o resumo e toque em **Importar tudo**. O app recarrega já com tudo no lugar.
+
+- Eventos que já existem no iPad são substituídos pela versão do backup. Os outros eventos do iPad continuam lá.
+- **Só os dados** gera um arquivo leve, sem as músicas, mas leva os sons próprios dos pads e as fotos.
+- O token do GitHub, a saída de áudio escolhida e a conexão da controladora não vão no backup, porque são de cada aparelho.
+- Backups antigos (gerados antes desta versão) continuam podendo ser importados.
 
 ---
 
