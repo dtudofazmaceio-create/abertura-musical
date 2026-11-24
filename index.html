@@ -452,6 +452,7 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:4p
 .ci2-who .ic{width:14px;height:14px}
 .ci2-a{display:flex;gap:6px;flex-wrap:wrap}
 .ci2-more{align-self:flex-start}
+.ci2-del{margin:-4px -6px -4px 0;flex:none}
 .ci2-send{align-self:stretch}
 .ouvir-box{position:relative}
 .ouvir-media{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
@@ -2726,6 +2727,8 @@ async function fetchAudioBlob(audioGistId,audioArquivo,mime,token){
   const b64=await readGistFile(files[audioArquivo]||Object.values(files)[0]);
   return b64ToBlob(b64.trim(),mime);
 }
+/* momentos excluídos pelos noivos/debutante no link do cliente */
+const EXCL_FILE='excluidos_cliente.json';
 /* Envio usado pela professora e pelos clientes (noivos/debutante).
    partes = {antes,depois,trilha} → {file} (novo arquivo) ou {kept:true} (mantém o já enviado) */
 async function enviarSub({P,file,keep,meta,substitui,onProg,partes=null}){
@@ -2876,6 +2879,25 @@ async function aplicarDadosCliente(ev,d){
   toast(`<b>${esc(d.por||'O cliente')}</b> atualizou os dados do evento${'foto' in d&&d.foto?' (incluindo a foto)':''}.`,'new',7000);
   if(!Player.playing)chime();
 }
+/* os noivos/debutante excluíram momentos pelo link: tira do cronograma junto com as músicas */
+async function aplicarExclusoesCliente(ev,lista){
+  if(!isCer(ev))return;
+  const alvo=lista.filter(x=>(ev.momentos||[]).some(m=>m.id===x.id));
+  if(!alvo.length)return;
+  const ids=new Set(alvo.map(x=>x.id));
+  const atual=state.evento?.id===ev.id;
+  for(const m of (await musicasDo(ev)).filter(x=>ids.has(x.momentoId))){
+    if(atual&&Player.cur?.id===m.id){Player.a.pause();Player.freeParts();Player.cur=null}
+    if(atual)await removeLocal(m);
+    else{await DB.del('musicas',m.id);await DB.del('audios',m.id);for(const p of PARTS)await DB.del('audios',partKey(m.id,p));ev.removidos=[...new Set([...(ev.removidos||[]),m.id])]}
+  }
+  ev.momentos=(ev.momentos||[]).filter(m=>!ids.has(m.id));
+  await saveEvento(ev);pushMeta(ev,true);
+  if(atual){renderList();Player.ui()}
+  const quem=alvo.find(x=>x.por)?.por||'O cliente';
+  toast(`<b>${esc(quem)}</b> excluiu ${alvo.length>1?'os momentos':'o momento'} <b>${alvo.map(x=>esc(x.nome||'')).join(', ')}</b> do cronograma.`,'new',8000);
+  if(!Player.playing)chime();
+}
 async function processGist(ev,gist){
   const known=new Set(state.musicas.map(m=>m.id));
   const removed=new Set(ev.removidos||[]);
@@ -2886,8 +2908,13 @@ async function processGist(ev,gist){
   }
   subs.sort((a,b)=>String(a.enviadoEm).localeCompare(String(b.enviadoEm)));
   const novos=[],trocas=[];let evChanged=false;
+  let exclCli=[];
+  const fx=gist.files?.[EXCL_FILE];
+  if(fx){try{const j=JSON.parse(await readGistFile(fx));if(Array.isArray(j?.momentos))exclCli=j.momentos.filter(x=>x&&x.id)}catch{}}
+  const exMo=new Set(exclCli.map(x=>x.id));
   for(const meta of subs){
     if(known.has(meta.id)||removed.has(meta.id))continue;
+    if(meta.momentoId&&exMo.has(meta.momentoId))continue;
     let reuse=null,ordem=null;const reuseParts={};
     if(meta.substitui){
       const old=state.musicas.find(x=>x.id===meta.substitui);
@@ -2934,6 +2961,8 @@ async function processGist(ev,gist){
   if(fd){try{const d=JSON.parse(await readGistFile(fd));if(d?.atualizadoEm&&d.atualizadoEm>(ev.dadosClienteAt||''))await aplicarDadosCliente(ev,d)}catch{}}
   const fe=gist.files?.['estado.json'];
   if(fe){try{await mergeEstado(ev,JSON.parse(await readGistFile(fe)))}catch{}}
+  /* aplica depois do estado.json, para que uma cópia antiga não traga o momento de volta */
+  if(exclCli.length)await aplicarExclusoesCliente(ev,exclCli);
   if(novos.length){
     await renumber();
     novos.forEach(m=>state.novos.add(m.id));
@@ -6144,15 +6173,21 @@ async function initCli(P){
       /* estado do evento salvo pela equipe: inclui as músicas adicionadas no painel e os ajustes feitos lá */
       let est=null;try{if(files['estado.json'])est=JSON.parse(await readGistFile(files['estado.json']))}catch{}
       for(const m of est?.ev?.momentos||[])if(!moms.some(x=>x.id===m.id))moms.push({id:m.id,nome:m.nome});
+      /* momentos que os próprios noivos/debutante excluíram pelo link */
+      let excl=null;try{if(files[EXCL_FILE])excl=JSON.parse(await readGistFile(files[EXCL_FILE]))}catch{}
+      C.excl=excl&&Array.isArray(excl.momentos)?excl:{app:'palco-musical',tipo:'excluidos_cliente',momentos:[]};
+      const exMo=new Set(C.excl.momentos.map(x=>x.id));
       const rem=new Set(est?.ev?.removidos||[]),itens=new Map();
       for(const[id,r]of Object.entries(est?.musicas||{}))if(!rem.has(id))itens.set(id,{...r,id,_equipe:r.origem==='manual'});
       for(const x of subs){
         if(rem.has(x.id))continue;
         if(x.substitui)itens.delete(x.substitui);                 /* envio novo substitui o anterior */
         if(!itens.has(x.id))itens.set(x.id,{...x,ordem:1e6,_equipe:false});
-        if(x.momentoId&&!moms.some(m=>m.id===x.momentoId)){const i=moms.findIndex(m=>m.id===x.momentoApos);moms.splice(i>=0?i+1:moms.length,0,{id:x.momentoId,nome:x.momentoNome||'Momento'})}
+        if(x.momentoId&&!exMo.has(x.momentoId)&&!moms.some(m=>m.id===x.momentoId)){const i=moms.findIndex(m=>m.id===x.momentoApos);moms.splice(i>=0?i+1:moms.length,0,{id:x.momentoId,nome:x.momentoNome||'Momento'})}
       }
       for(const x of subs)if(x.substitui)itens.delete(x.substitui);
+      for(const[id,it]of itens)if(exMo.has(it.momentoId))itens.delete(id);
+      for(let i=moms.length-1;i>=0;i--)if(exMo.has(moms[i].id))moms.splice(i,1);
       const lista=[...itens.values()].sort((a,b)=>(a.ordem??1e6)-(b.ordem??1e6)||String(a.enviadoEm||'').localeCompare(String(b.enviadoEm||'')));
       C.porMom=new Map();for(const it of lista){if(!it.momentoId)continue;if(!C.porMom.has(it.momentoId))C.porMom.set(it.momentoId,[]);C.porMom.get(it.momentoId).push(it)}
       C.itens=itens;C.estado=est;C.allSubs=subs;
@@ -6171,7 +6206,7 @@ async function initCli(P){
     $('#cList').innerHTML=tot?C.momentos.map((mo,i)=>{
       const its=C.porMom.get(mo.id)||[];
       return`<li class="ci2 ${its.length?'ok':''}">
-        <div class="ci2-h"><span class="ci-n">${its.length?icon('check'):i+1}</span><strong>${esc(mo.nome)}</strong>${its.length?'':'<small>Ainda sem música</small>'}</div>
+        <div class="ci2-h"><span class="ci-n">${its.length?icon('check'):i+1}</span><strong>${esc(mo.nome)}</strong><button class="btn icon ghost sm danger ci2-del" data-delmo="${i}" title="Excluir este momento" aria-label="Excluir o momento ${esc(mo.nome)}">${icon('trash')}</button>${its.length?'':'<small>Ainda sem música</small>'}</div>
         ${its.length?`<div class="ci2-list">${its.map(it=>`<div class="ci2-s">
             <div class="ci2-i"><b>${esc(it.titulo||'Sem título')}${it.artista?`<span> — ${esc(it.artista)}</span>`:''}</b>
               <small>${it.link?'🔗 '+esc(it.link.nome)+' · ':''}${it.video?'🎬 vídeo · ':''}${trechoTxt(it)?'✂ '+esc(trechoTxt(it)):'Inteira'}${temMontagem(it)?' · ✨ montagem':''}</small>
@@ -6187,9 +6222,35 @@ async function initCli(P){
   }
   $('#cList').addEventListener('click',e=>{
     const o=e.target.closest('[data-ouvir]');if(o){const it=C.itens.get(o.dataset.ouvir);if(it)openOuvir(it,P);return}
+    const d=e.target.closest('[data-delmo]');if(d){const mo=C.momentos[+d.dataset.delmo];if(mo)excluirMomentoCli(mo);return}
     const t=e.target.closest('[data-trocar]');if(t){const it=C.itens.get(t.dataset.trocar);const mo=C.momentos[+t.dataset.mo];if(it&&mo)openCliEditor(mo,it);return}
     const b=e.target.closest('[data-ci]');if(!b)return;openCliEditor(C.momentos[+b.dataset.ci],null);
   });
+
+  async function excluirMomentoCli(mo){
+    const its=C.porMom.get(mo.id)||[];
+    const ok=await confirmDialog(`O momento <b>${esc(mo.nome)}</b> será removido do cronograma${its.length?` junto com ${its.length>1?'as '+its.length+' músicas':'a música'} dele`:''}. A equipe do evento recebe a alteração automaticamente.`,{title:'Excluir momento',ok:'Excluir momento',danger:true});
+    if(!ok)return;
+    if(!navigator.onLine)return toast('Você está sem internet. Conecte-se e tente novamente.','err',5000);
+    const quem=nomeIn.value.trim();
+    try{
+      /* relê o arquivo para não perder exclusões feitas em outro aparelho */
+      const r=await gh(`/gists/${P.g}`,{token:P.t});const files=r.data.files||{};
+      let excl=C.excl;try{if(files[EXCL_FILE]){const j=JSON.parse(await readGistFile(files[EXCL_FILE]));if(Array.isArray(j.momentos))excl=j}}catch{}
+      const lista=excl.momentos.filter(x=>x.id!==mo.id);
+      lista.push({id:mo.id,nome:mo.nome,por:quem,em:agoraISO()});
+      const body={files:{[EXCL_FILE]:{content:JSON.stringify({app:'palco-musical',tipo:'excluidos_cliente',atualizadoEm:agoraISO(),momentos:lista},null,1)}}};
+      /* envios feitos pelo link para este momento deixam de existir */
+      const subsMo=(C.allSubs||[]).filter(x=>x.momentoId===mo.id&&files[`sub_${x.id}.json`]);
+      for(const x of subsMo)body.files[`sub_${x.id}.json`]=null;
+      await ghRetry(`/gists/${P.g}`,{method:'PATCH',token:P.t,body});
+      toast(`Momento <b>${esc(mo.nome)}</b> excluído.`,'ok',5000);
+      await load();
+    }catch(x){
+      let msg=esc(x.message);if(x.status===401||x.status===404)msg+=' Peça um novo link à equipe do evento.';
+      toast('Não foi possível excluir: '+msg,'err',7000);
+    }
+  }
 
   function openCliEditor(mo,sub){
     let af=null,mv=null;
